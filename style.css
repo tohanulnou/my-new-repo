@@ -58,7 +58,7 @@ html {
 
 thead,
 tfoot {
-  background: url(noise.jpg);
+  background: url(leopardskin.jpg);
   color: white;
   text-shadow: 1px 1px 1px black;
 }
@@ -84,9 +84,9 @@ tbody tr:nth-child(odd) {
     background-color: #e495e4;
   }
   
-  tbody tr {
+  /* tbody tr {
     background-image: url(C:\Users\alexandru.ilie\Documents\GitHub\my-new-repo\noise.png);
-  }
+  } */
   
   table {
     background-color: #ff33cc;
