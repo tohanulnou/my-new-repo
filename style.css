@@ -47,11 +47,11 @@ html {
   }
   
   tbody td {
-    text-align: center;
+    text-align: right;
   }
   
   tfoot th {
-    text-align: right;
+    text-align: center;
   }
 
   /* graphics and colors */
