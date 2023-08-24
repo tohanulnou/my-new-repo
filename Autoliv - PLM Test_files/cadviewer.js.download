@@ -1,0 +1,392 @@
+let cadviewer = {
+
+    isSessionReady: false,
+    getSessionReady: function () {
+        return this.isSessionReady;
+    },
+    setSessionReady: function (value) {
+        this.isSessionReady = value;
+    },
+
+    isCadViewerLaunched: false,
+    init: function () {
+        cadviewer.setCadViewerLaunched(false);
+        cadviewer.setCadViewerUrl();
+        //cadviewer.setCadViewerBackendUrl();
+        //cadviewer.setSessionReady(false);
+        cadviewer.setToken();
+    },
+
+    getCadViewerLaunched: function () {
+        return this.isCadViewerLaunched;
+    },
+    setCadViewerLaunched: function (value) {
+        this.isCadViewerLaunched = value;
+    },
+
+    cadViewerUrl: '',
+    getCadViewerUrl: function () {
+        return this.cadViewerUrl;
+    },
+    setCadViewerUrl: function () {
+        cadviewer.cadViewerUrl = cadViewerService.getCadViewerServerUrl();
+    },
+
+    cadViewerBackendUrl: '',
+    getCadViewerBackendUrl: function () {
+        return this.cadViewerBackendUrl;
+    },
+    setCadViewerBackendUrl: function () {
+        cadviewer.cadViewerBackendUrl = cadViewerService.getCadViewerBackendServerUrl();
+    },
+
+    //Backend Web Socket related APIs
+    webSocketOpen: function (e) {
+        console.log('LOG: Backend websocket Connected');
+        cadviewer.authenticateSession();
+        cadviewer.keepAlive();
+    },
+
+    webSocketClose: function (event) {
+        console.log('LOG: Backend websocket closed for session id: ' + cadviewer.getClientId() + ' with code: ' + event.code + ' reason: ' + event.reason);
+    },
+
+    receiveMessages: function (ev) {
+        console.log('RECEIVE: ' + ev.data);
+        //Only parse string packages (XML API calls are send as strings, other commands like ping binary)
+        if (typeof ev.data === 'string') {
+            //Activate the client matching the first client ID
+            var msg = ev.data;
+            var parser = new DOMParser();
+            var parsedXML = parser.parseFromString(msg, "text/xml");
+            //Split incoming call blocks into single calls
+            var events = parsedXML.getElementsByTagName('BackendEvent');
+
+            //Handle each call seperate
+            var callCount = events.length;
+            for (let i = 0; i < callCount; i++) {
+                var event = events[i].getElementsByTagName("ClientId")[0];
+                if (event) {
+                    id = event.childNodes[0].nodeValue;
+                }
+            }
+
+            if (msg.indexOf('SendSessionReady') !== -1) {
+                cadviewer.setClientId(id);
+                cadviewer.loadWhiteList();
+            }
+            if (msg.indexOf('Type="SessionReady"') !== -1) {
+                cadviewer.setClientId(id);
+                cadviewer.setSessionReady(true);
+                console.log('LOG: Session ready for client: ' + cadviewer.getClientId());
+                //cadviewer.openModel();
+            }
+
+        }
+    },
+
+    backendWebsocket: '',
+    getBackendWebsocket: function () {
+        return this.backendWebsocket;
+    },
+    setBackendWebsocket: function (url) {
+        if (url !== '') {
+            this.backendWebsocket = new WebSocket(url);
+            this.backendWebsocket.binaryType = 'arraybuffer';
+            this.backendWebsocket.onmessage = cadviewer.receiveMessages.bind(this);
+            this.backendWebsocket.onopen = cadviewer.webSocketOpen.bind(this);
+            this.backendWebsocket.onclose = cadviewer.webSocketClose.bind(this);
+        } else {
+            this.backendWebsocket = '';
+        }
+    },
+
+    token: '',
+    getToken: function () {
+        if (this.token === '') {
+            this.token = cadViewerService.generateToken();
+        }
+        return this.token;
+    },
+    setToken: function () {
+        cadviewer.token = cadViewerService.generateToken();
+    },
+
+    clientid: '',
+    getClientId: function () {
+        return this.clientid;
+    },
+    setClientId: function (clientid) {
+        this.clientid = clientid;
+    },
+
+    // Web viewer APIs
+    authenticateSession: function (call) {
+        if (cadviewer.getBackendWebsocket().readyState === 1) {
+            var backendClientAuthenticationRequest = "<Request Type='AuthenticateSession'><Token>" + cadviewer.getToken() + "</Token></Request>";
+            cadviewer.getBackendWebsocket().send(backendClientAuthenticationRequest);
+            console.log('SEND: Backend Authentication sent for Token: ' + cadviewer.getToken());
+        }
+    },
+
+    callToBackend: function (call) {
+        var prefix = "<Request Type='XMLCall'><ClientId>" + cadviewer.getClientId() + "</ClientId>";
+        var postfix = "</Request>";
+        cadviewer.getBackendWebsocket().send(prefix + call + postfix);
+    },
+
+    timerName: '',
+    keepAlive: function () {
+        this.timerName = setInterval(function (e) {
+            console.log('SEND: Ping for session id: ' + cadviewer.getClientId());
+            var xml = "<Request Type='Ping'></Request>";
+            cadviewer.getBackendWebsocket().send(xml);
+        }, 30000);
+    },
+    getTimerName: function () {
+        return this.timerName;
+    },
+
+    openModel: function (objectId) {
+        var filename = cadViewerService.getCadFileName(objectId);
+        if (filename != "") {
+            var xml = "<Call Method='OpenFile'><FileName>" + filename + "</FileName></Call>";
+            this.callToBackend(xml);
+            console.log('SEND: Opening File: ' + filename + " inside session id: " + cadviewer.getClientId());
+        }
+    },
+
+    waitForSessionReadyAndExecute: function (mode) {
+        setTimeout(function (fmode) {
+            if (cadviewer.getSessionReady()) {
+                var params = fmode.split("|");
+                var apiMode = params[0];
+                var objectId = params[1];
+                if (apiMode == "open") {
+                    cadviewer.openModel(objectId);
+                } else if (apiMode == "import") {
+                    cadviewer.importModel(objectId);
+                } else if (apiMode == "compare") {
+                    cadviewer.compareModels();
+                }
+            } else {
+                cadviewer.waitForSessionReadyAndExecute(fmode);
+            }
+        }, 500, mode);
+    },
+
+    waitForSessionReadyAndCompare: function (vsxml) {
+        setTimeout(function (fvsxml) {
+            if (cadviewer.getSessionReady()) {
+                cadviewer.createNewScene();
+                cadviewer.addEventListener();
+                cadviewer.alignView();
+                cadviewer.pauseRendering();
+                cadviewer.updateScene(fvsxml);
+                cadviewer.fitAll();
+                cadviewer.setSelectedNodes();
+                cadviewer.activateGraphicalCompare();
+                cadviewer.resumeRendering();                
+            } else {
+                cadviewer.waitForSessionReadyAndCompare(fvsxml);
+            }
+        }, 500, vsxml);
+    },
+
+    importModel: function (objectId) {
+        var filename = cadViewerService.getCadFileName(objectId);
+        if (filename != "") {
+            var xml = "<Call Method='ImportFile'><FileName>" + filename + "</FileName></Call>";
+            this.callToBackend(xml);
+            console.log('SEND: Importing File: ' + filename + " inside session id: " + cadviewer.getClientId());
+        }
+    },
+
+    compareModels: function () {
+        console.log('SEND: Comparing Models inside session id:' + cadviewer.getClientId());
+        var xml = "<Call Method='ActivateGraphicalCompare'><Activate>true</Activate></Call>";
+        this.callToBackend(xml);
+    },
+
+    listClients: function () {
+        console.log('SEND: Listing clients inside session id:' + cadviewer.getClientId());
+        var xml = "<Request Type='ListClients'></Request>";
+        cadviewer.getBackendWebsocket().send(xml);
+    },
+
+    loadWhiteList: function () {
+        var whiteListCall = "<Request Type='LoadWhitelist'><ClientId>" + cadviewer.getClientId() + "</ClientId></Request>";
+        cadviewer.getBackendWebsocket().send(whiteListCall);
+        console.log("SEND: Whitelist loaded for client: " + cadviewer.getClientId());
+    },
+
+    closeSession: function () {
+        //clearInterval(cadviewer.getTimerName());
+        //cadviewer.closeBackEnd();
+        cadviewer.setWindow("");
+        cadviewer.setClientId("");
+        cadviewer.setSessionReady(false);
+        cadviewer.setCadViewerLaunched(false);
+    },
+
+    closeBackEnd: function () {
+        var BackendCloseSessionRequest = "<Request Type='CloseSession'><ClientId>" + cadviewer.getClientId() + "</ClientId></Request>";
+        cadviewer.getBackendWebsocket().send(BackendCloseSessionRequest);
+        if (cadviewer.getBackendWebsocket().readyState === WebSocket.OPEN) {
+            cadviewer.getBackendWebsocket().close(1000, "Work complete");
+            //cadviewer.setBackendWebsocket('');
+        }
+        console.log("SEND: Backend closing session for session id: " + cadviewer.getClientId());
+    },
+
+    createVSXMLForComparison: function (objectIds) {
+        var vsxml = "<VSXML>";
+        var objCount = objectIds.length;
+        for (var i = 0; i < objCount; i++) {
+            var oid = objectIds[i];
+            var cadId = cadViewerService.getCadObjectId(oid);
+            var filename = cadViewerService.getCadFileName(cadId);
+            var displayName = filename.substring(filename.indexOf("/3DVS")+6, filename.length);
+            if (filename != "") {
+                vsxml += "<Node CustomId='V" + i + "' Name='" + displayName + "' Type='Root' FileName='" + filename + "'>";
+                vsxml += "</Node>";
+            }
+        }
+        vsxml += "</VSXML>";
+        return vsxml;
+    },
+
+    createNewScene: function () {
+        var xml = "<Call Method='NewScene3D'><Width>800</Width><Height>600</Height></Call>";
+        this.callToBackend(xml);
+        console.log("SEND: Creating new scene inside session id: " + cadviewer.getClientId());
+    },
+
+    addEventListener: function () {
+        var xml = "<Call Method='AddEventListener'>" +
+            "<Event>ActivateInteraction</Event>" +
+            "<Event>DeactivateInteraction</Event>" +
+            "<Event>NodePropertiesChanged</Event>" +
+            "<Event>SelectionChanged</Event>" +
+            "</Call>";
+        this.callToBackend(xml);
+        console.log("SEND: Add event listeners inside session id: " + cadviewer.getClientId());
+    },
+
+    alignView: function () {
+        var xml = "<Call Method='AlignView'><Alignment>Isometric</Alignment></Call>";
+        this.callToBackend(xml);
+        console.log("SEND: Align view inside session id: " + cadviewer.getClientId());
+    },
+
+    pauseRendering: function () {
+        var xml = "<Call Method='PauseRendering'/>";
+        this.callToBackend(xml);
+        console.log("SEND: pausing rendering inside session id: " + cadviewer.getClientId());
+    },
+
+    updateScene: function (vsxml) {
+        var xml = "<Call Method='UpdateScene'> " + vsxml + "</Call>";
+        this.callToBackend(xml);
+        console.log("SEND: Updating scene inside session id: " + cadviewer.getClientId());
+    },
+
+    fitAll: function () {
+        var xml = "<Call Method='FitAll'/>";
+        this.callToBackend(xml);
+        console.log("SEND: Fit All inside session id: " + cadviewer.getClientId());
+    },
+
+    setSelectedNodes: function (vsxml) {
+        var xml = "<Call Method='SetSelectedNodes'>" +
+            "<NodeId>V1</NodeId>" +
+            "<NodeId>V2</NodeId>" +
+            "</Call>";
+        this.callToBackend(xml);
+        console.log("SEND: setSelectedNodes inside session id: " + cadviewer.getClientId());
+    },
+
+    activateGraphicalCompare: function () {
+        var xml = "<Call Method='ActivateGraphicalCompare' CustomId='quick_compare_1'><Activate>true</Activate></Call>";
+        this.callToBackend(xml);
+        console.log("SEND: activateGraphicalCompare inside session id: " + cadviewer.getClientId());
+    },
+
+    resumeRendering: function () {
+        var xml = "<Call Method='ResumeRendering'/>";
+        this.callToBackend(xml);
+        console.log("SEND: Resuming rendering inside session id: " + cadviewer.getClientId());
+    },
+
+    importObjects: function (objectIds, openFirst) {
+        var objCount = objectIds.length;
+        for (var i = 0; i < objCount; i++) {
+            var oid = objectIds[i];
+            var cadId = cadViewerService.getCadObjectId(oid);
+            if (i === 0 && openFirst) {
+                cadviewer.waitForSessionReadyAndExecute("open|" + cadId);
+            } else {
+                cadviewer.waitForSessionReadyAndExecute("import|" + cadId);
+            }
+        }
+    },
+    
+    windowObj: '',
+    setWindow: function (winObj) {
+        this.windowObj = winObj;
+    },
+
+    getWindow: function () {
+        return this.windowObj;
+    }
+};
+
+function openCadViewer(objectId) {
+    var winObj = cadviewer.getWindow();
+    if( winObj != undefined && winObj != ""){
+        winObj.location.href = "../autoliv/cadviewer/cadviewer.jsp?viewerUrl=" + cadviewer.getCadViewerUrl() + "&objectId=" + objectId;
+        cadviewer.setWindow(winObj);
+    } else {
+        winObj = showNonModalDialog("../autoliv/cadviewer/cadviewer.jsp?viewerUrl=" + cadviewer.getCadViewerUrl() + "&objectId=" + objectId, 80, 80, false, true);
+        cadviewer.setWindow(winObj);
+    }
+}
+
+function closeCadViewer(objectId) {
+    cadviewer.closeSession();
+}
+
+function compare3D(fileNamesList) {
+    var winObj = cadviewer.getWindow();
+    if( winObj != undefined && winObj != ""){
+        winObj.location.href = "../cadviewer/cadviewer.jsp?viewerUrl=" + cadviewer.getCadViewerUrl() + "&fileNames=" + fileNamesList;
+        cadviewer.setWindow(winObj);
+    } else {
+        winObj = showNonModalDialog("../cadviewer/cadviewer.jsp?viewerUrl=" + cadviewer.getCadViewerUrl() + "&fileNames=" + fileNamesList, 80, 80, false, true);
+        cadviewer.setWindow(winObj);
+    }
+}
+
+function import3D(objectIdsList) {
+    var objectIds = objectIdsList.split("|");
+    if (!cadviewer.isCadViewerLaunched) {
+        cadviewer.setBackendWebsocket(cadviewer.getCadViewerBackendUrl());
+        showNonModalDialog("../cadviewer/cadviewer.jsp?token=" + cadviewer.getToken() + "&viewerUrl=" + cadviewer.getCadViewerUrl(), 80, 80);
+        cadviewer.setCadViewerLaunched(true);
+        cadviewer.importObjects(objectIds, true);
+    } else {
+        cadviewer.importObjects(objectIds, false);
+    }
+}
+
+function listClients() {
+    cadviewer.listClients();
+}
+
+var isCADViewer = true;
+
+$(window).load(function () {
+    $("#alv-breadcrumb").ready(function () {
+        cadviewer.init();
+    });
+});
