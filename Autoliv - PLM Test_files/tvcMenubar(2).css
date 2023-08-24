@@ -1,0 +1,37 @@
+/* LEGACY:TOOLBAR */
+DIV.MenuBar-Outer, DIV.MenuBar-Outer_MSIE {
+	background: #f5f5f5;
+	background: -moz-linear-gradient(top,  #ffffff 0%, #f5f5f5 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(100%,#f5f5f5));
+	background: -webkit-linear-gradient(top,  #ffffff 0%,#f5f5f5 100%);
+	background: -o-linear-gradient(top,  #ffffff 0%,#f5f5f5 100%);
+	background: -ms-linear-gradient(top,  #ffffff 0%,#f5f5f5 100%);
+	background: linear-gradient(to bottom,  #ffffff 0%,#f5f5f5 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#f5f5f5',GradientType=0 );
+    border: 1px solid #cccccc;
+}
+
+DIV.MenuItemLayer {
+    background-color: #F7F7F7;
+}
+
+TABLE.SubMenu TD.icon, TABLE.SubMenu TD.disabledIcon {
+    background-color: #F7F7F7;
+}
+
+TABLE.SubMenu TD.disabledIcon {
+    background-color: #F7F7F7;
+}
+
+DIV.MenuItemLayer {
+    background-color: #F7F7F7;
+}
+
+.menuItemLeft {
+	background-color: #F7F7F7;
+}
+
+.menuItemHover {
+	background-color: #b0e2f2 !important;
+}
+

@@ -1,0 +1,111 @@
+div#tabPageCfgPane {
+    font-family: verdana,arial,sans-serif;
+    font-size: 9pt;
+    -moz-box-sizing: border-box;
+    -moz-user-select: none;
+    -moz-box-shadow: 1px 1px 2px #444444;
+    z-index: 100000;
+}
+
+div#tabPageCfgPane_inner {
+   -moz-box-sizing: border-box;
+}
+
+div#tabPageCfgPane_tabs {
+    padding-bottom: 7px;
+}
+
+div.tabPageCfgPane_tab {
+    font-family: verdana,arial,sans-serif;
+    font-size: 8pt;
+    line-height: 20px;
+    -moz-box-sizing: border-box;
+    cursor: move;
+	-webkit-user-select:none;        
+	-moz-user-select:none;
+	-ms-user-select:none;
+	-o-user-select:none;
+	user-select: none;
+}
+
+div.tabPageCfgPane_tab:hover {
+    background-color: #dcdcdc;
+}
+
+div.droppedSelected {
+    background-color: #ffffff !important;
+    border: 1px solid #DADADA  !important;;
+}
+
+div.tabPageCfgPane_tab *, 
+div#tabPageCfgPane div.tabPageCfgPane_dndPlaceHolder * {
+    vertical-align: middle;
+}
+
+div#tabPageCfgPane div.tabPageCfgPane_dndPlaceHolder {
+    border: 2px dotted #cdf;
+    display: block;
+    -moz-box-sizing: border-box;
+}
+
+.tabPageCfgPane_beingDragged {
+    -moz-box-sizing: border-box;
+    display: block;
+    height: 18px !important;
+    font-size: 8pt;
+    cursor: inherit !important;
+    font-family: verdana,arial,sans-serif;
+    font-size: 8pt;
+    line-height: 20px;
+}
+
+div#tabPageCfgPane button {
+    font-family: verdana,arial,sans-serif;
+    font-size: 8pt;
+}
+
+.tabCfgDiv {
+    cursor: pointer;
+}
+
+.tabCfgDiv i {
+    color: #666;
+}
+
+.dragHandle {
+    background-attachment: scroll;
+    background-color: transparent;
+    background-image: url("../../../../core/images/dragimage.png");
+    background-repeat: repeat-y;
+    height: 100%;
+    display: inline-block;
+    width: 6px;
+    padding-right: 5px;
+}
+
+.notDraggable {
+    padding-top: 1px;
+    padding-bottom: 1px;
+    cursor: pointer;
+}
+
+.tabPageCfgPane_tab span {
+    margin-left: 5px;
+}
+
+.tabPageCfgPane_tab input {
+    margin-bottom: 4px !important;
+}
+
+span.selectedTabLink {
+	font-weight: bold;
+}
+
+span.selectedDroppedTabLink {
+	font-style: italic;
+	font-weight: lighter;
+}
+
+.pane-shadow {
+	overflow: auto;
+}

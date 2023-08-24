@@ -1,0 +1,270 @@
+/* -------------------------------------------------------------------------
+	Navigator Stylesheet for Windows/Mac Platforms
+	emxUINavigator.css
+
+	Release: 2013xFD01
+    Version: 1.0
+
+    Copyright (c) 1992-2012 Dassault Systemes ENOVIA Corp. All Rights Reserved.
+    This program contains proprietary and trade secret information 
+    of Dassault Systemes ENOVIA Corp. Copyright notice is precautionary only
+    and does not evidence any actual or intended publication of such program
+   ------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------
+   Default Styles
+   ------------------------------------------------------------------------- */
+
+html {#overflow:hidden;}
+
+/* the body of the page */
+body.navigator {
+	position:absolute;
+	top:0;
+	right:0;
+	bottom:0;
+	left:0;
+	margin:0;
+	padding:0;
+	overflow:hidden;
+    background: #132b39; /* Old browsers */
+    background:-moz-linear-gradient(left, #132b39 0%, #3c7292 57%, #182d3a 79%, #182d3a 89%, #254256 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, right top, color-stop(0%,#132b39), color-stop(57%,#3c7292), color-stop(79%,#182d3a), color-stop(89%,#182d3a), color-stop(100%,#254256)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(left,  #132b39 0%,#3c7292 57%,#182d3a 79%,#182d3a 89%,#254256 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(left,  #132b39 0%,#3c7292 57%,#182d3a 79%,#182d3a 89%,#254256 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(left,  #132b39 0%,#3c7292 57%,#182d3a 79%,#182d3a 89%,#254256 100%); /* IE10+ */
+    background: linear-gradient(left,  #132b39 0%,#3c7292 57%,#182d3a 79%,#182d3a 89%,#254256 100%); /* W3C */
+}
+
+/* -------------------------------------------------------------------------
+   Navigator Page-Level Styles
+   ------------------------------------------------------------------------- */
+
+div#pageHeadDiv {
+    background:none;
+	border:none;
+	padding:7px 0 3px 0;
+}	
+
+div#pageHeadDiv table {
+    background:none;
+    filter:progid:DXImageTransform.Microsoft.gradient(enabled=false);
+    border:none;
+}
+
+div#pageHeadDiv div.toolbar-container {height:34px;}
+
+div#pageHeadDiv td.toolbar-left {text-align:left;}
+div#pageHeadDiv td.toolbar-center {text-align:center;}
+div#pageHeadDiv td.toolbar-right {padding-right:4px;}
+
+div#pageHeadDiv td.toolbar-center .toolbar,
+div#pageHeadDiv td.toolbar-right .toolbar {
+    float:none;
+    margin:0;
+    padding:0;   
+}
+
+div#pageContentDiv {top:64px;}
+
+/* -------------------------------------------------------------------------
+   Toolbar Base Styles
+   ------------------------------------------------------------------------- */
+
+.toolbar-container {
+    display:table;
+    width:100%;
+}
+
+.toolbar-frame {display:table-row;}
+
+.toolbar {
+    position:relative;
+    display:table-cell;
+    text-align:center;
+    width:30%;
+    white-space:nowrap;
+	}
+
+.toolbar.group-left {
+    text-align:left;
+    width:35%;
+}
+
+.toolbar.group-right {
+    text-align:right;
+    width:35%;
+}
+
+body.navigator div#pageHeadDiv .toolbar table {
+    display:inline-block;
+    height:auto;
+    width:auto;
+	background-color:transparent;
+}
+
+.toolbar table tr td {
+    height:32px;
+	padding:0;
+	font-family:Arial;
+	font-size:11px;
+    white-space:nowrap;
+	vertical-align:middle;
+	color:#CACBD7;
+	border-right:1px solid transparent;
+	border-left:1px solid transparent;
+	}
+
+.toolbar table tr td.compass-placeholder.button-hover {background:none;} 
+
+.toolbar table tr td.compass-placeholder span {
+    display:block;
+	width:85px;
+    padding:0;
+    }
+
+.toolbar table tr td img {vertical-align:middle;}
+
+.functions.toolbar input[type="text"] {
+	height:14px;
+	padding:2px 5px 2px 3px;
+	margin-right:2px;
+	-moz-user-select:normal;
+}
+
+td#AEFWelcomeToolbar {
+    padding-top:3px;
+    color:#CCC;
+    padding-right:10px;
+}
+
+input[name="AEFGlobalFullTextSearch"] {
+	width:180px;
+	height:22px;
+    padding: 0;    
+}
+
+/* UNVERIFIED */
+input,
+select {
+	font-family:Verdana, Arial, Helvetica, Sans-serif;
+	font-size:11px;
+	margin:0;
+	padding:0;
+	height:auto;
+	white-space:nowrap;
+}
+
+/* UNVERIFIED */
+td.toolbar-panel-label {
+	-moz-user-select:none;
+	color:#FFF;
+	white-space:nowrap;
+	margin:0;
+	padding:0 4px 0 4px;
+}
+
+/* UNVERIFIED */
+td.toolbar-panel-input {
+	white-space:nowrap;
+	margin:0;
+	padding:1px 12px 0 0;
+}
+
+/* -------------------------------------------------------------------------
+   Toolbar Button Styles
+   ------------------------------------------------------------------------- */
+
+/* borders are all the same */
+td.icon-button,
+td.text-button,
+td.icon-and-text-button,
+td.overflow-button,
+td.menu-arrow {cursor:pointer;} 
+
+/* button hover state */
+.toolbar td.button-hover {
+    background:#bcbcbc;
+	background:-moz-linear-gradient(top, #c1d8f0 0%, #85a9cf 100%);
+	color:#FFF;
+}
+
+/* button active (down) state */
+.button-active,
+.menu-button-active,
+td.button-active {
+	background:#85a9cf;
+    background:-moz-linear-gradient(top, #c1d8f0 0%, #85a9cf 100%);
+	color:#FFF;
+}
+
+/* menu arrow */
+div.toolbar table tr td img[src="../common/images/utilNavMenuArrow.gif"] {margin-right:8px;}
+
+
+/* menu arrow for combo buttons */
+div.toolbar table tr td.menu-arrow {
+	text-align:center;   
+	margin:0;
+}
+
+div.toolbar table tr td.menu-arrow img {margin-left:0px;}
+
+/* location of icon for the icon only button */
+.toolbar table tr td.icon-and-text-button img {margin-right:6px;}
+
+
+/* -------------------------------------------------------------------------
+   Toolbar Separator Styles
+   ------------------------------------------------------------------------- */
+
+div.toolbar .separator {
+	background-color:red;
+	border-left:1px solid #000;
+	border-right:1px solid #9db7d4;
+	height:26px;
+	margin:-2px 5px 0 5px;
+	overflow:hidden;
+	width:0;
+	font-size:0;
+}
+
+
+/* -------------------------------------------------------------------------
+   "CX" Styles
+   ------------------------------------------------------------------------- */
+
+.cx .toolbar table tr td {padding:0 1px;}
+
+.cx .toolbar.group-left {padding-left:5px;}
+.cx .toolbar.group-right {padding-right:5px;}
+
+/* button hover state */
+.cx .toolbar td.button-hover {
+    background: #8aadce; /* Old browsers */
+    background: -moz-linear-gradient(top,  #8aadce 0%, #8aadce 6%, #3474a5 26%, #3474a5 74%, #6793c0 94%, #6793c0 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#8aadce), color-stop(6%,#8aadce), color-stop(26%,#3474a5), color-stop(74%,#3474a5), color-stop(94%,#6793c0), color-stop(100%,#6793c0)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #8aadce 0%,#8aadce 6%,#3474a5 26%,#3474a5 74%,#6793c0 94%,#6793c0 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #8aadce 0%,#8aadce 6%,#3474a5 26%,#3474a5 74%,#6793c0 94%,#6793c0 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #8aadce 0%,#8aadce 6%,#3474a5 26%,#3474a5 74%,#6793c0 94%,#6793c0 100%); /* IE10+ */
+    background: linear-gradient(top,  #8aadce 0%,#8aadce 6%,#3474a5 26%,#3474a5 74%,#6793c0 94%,#6793c0 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#8aadce', endColorstr='#3474a5',GradientType=0 ); /* IE6-9 */
+    color:#FFF;
+    border-right:1px solid #29527A;
+    border-left:1px solid #85A4C2;
+}
+
+/* button active (down) state */
+.cx .button-active,
+.cx .menu-button-active,
+.cx td.button-active {
+    background: #8aadce; /* Old browsers */
+    background: -moz-linear-gradient(top,  #8aadce 0%, #8aadce 6%, #3474a5 26%, #3474a5 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#8aadce), color-stop(6%,#8aadce), color-stop(26%,#3474a5), color-stop(100%,#3474a5)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #8aadce 0%,#8aadce 6%,#3474a5 26%,#3474a5 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #8aadce 0%,#8aadce 6%,#3474a5 26%,#3474a5 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #8aadce 0%,#8aadce 6%,#3474a5 26%,#3474a5 100%); /* IE10+ */
+    background: linear-gradient(top,  #8aadce 0%,#8aadce 6%,#3474a5 26%,#3474a5 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#8aadce', endColorstr='#3474a5',GradientType=0 ); /* IE6-9 */
+    color:#FFF;
+}

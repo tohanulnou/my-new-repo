@@ -1,0 +1,332 @@
+// CLASS: TVCPane
+function TVCPane(parentWindow, decorate) {
+    this._window = parentWindow ? parentWindow : self;
+    this._decorate = decorate ? decorate : false;
+    this._borderTop = "1px solid #b4b4b4";
+    this._borderLeft = "1px solid #b4b4b4";
+    this._borderBotton = "1px solid #8e8e8e";
+    this._borderRight = "1px solid #8e8e8e";
+    this._innerTop = "1px solid #ffffff";
+    this._innerLeft = "1px solid #ffffff";
+    this._innerBottom = "1px solid #c1c1c1";
+    this._innerRight = "1px solid #c1c1c1";
+    this._padding = "2px";
+    this._ie_popup = null;
+    this._layer = null;
+    this._root = null;
+    this._innerHTML = null;
+    this._close_func = null;
+    this._parent_pane = null;
+    this._child_panes = [];
+    this._is_open = false;
+    this._use_popup = null; //this._window.createPopup;
+}
+TVCPane.prototype.createNestedPane = function(decorate) {
+    if (typeof decorate == "undefined") {
+        decorate = this._decorate;
+    }
+    var newPane = new TVCPane(this._window, decorate);
+    newPane._parent_pane = this;
+    this._child_panes.push(newPane);
+    return newPane;
+};
+TVCPane.prototype.isOpen = function() {
+    return this._is_open;
+};
+TVCPane.prototype.clear = function() {
+    if (this._root) {
+        while (this._root.childNodes.length>0) {
+            this._root.removeChild(this._root.firstChild);
+        }
+    }
+};
+TVCPane.prototype.getElementById = function(s) {
+    if (this._root) {
+        return this._root.ownerDocument.getElementById(s);
+    }
+    return null;
+};
+TVCPane.prototype.prepare = function() {
+    if (this._use_popup) {
+        if (this._ie_popup==null) {
+            var parentWindow = this._window;
+            if (this._parent_pane != null && this._parent_pane._ie_popup != null) {
+                parentWindow = this._parent_pane._ie_popup.document.parentWindow;
+            }
+            this._ie_popup = parentWindow.createPopup();
+            var doc = this._ie_popup.document;
+            var styles = this._window.document.styleSheets;
+            for (var i=0; i < styles.length; i++) {
+                if (styles[i].href!="") {
+                    doc.createStyleSheet(styles[i].href);
+                }
+            }
+            this._root = doc.body;
+        } else {
+            this.clear();
+        }
+    } else {
+        if (this._layer==null) {
+            var doc = this._window.document;
+            var div = doc.createElement("DIV");
+            div.style.position = "absolute";
+            div.style.display = "none";
+            div.setAttribute("class", "pane-shadow");
+            div.setAttribute("TVC_PANE", "true");
+            doc.body.appendChild(div);
+            this._layer = div;
+            this._root = div;
+        } else {
+            this.clear();
+        }
+    }
+};
+TVCPane.prototype.setPadding = function(padding) {
+    this._padding = padding;
+};
+TVCPane.prototype.setHTML = function(html) {
+    if (this._decorate) {
+        var tmp = this._divHTML(this._borderTop,
+                                this._borderLeft,
+                                this._borderBotton,
+                                this._borderRight,
+                                "0px",
+                                "#444 1px 1px 2px");
+        tmp += this._divHTML(this._innerTop,
+                             this._innerLeft,
+                             this._innerBottom,
+                             this._innerRight,
+                             this._padding,
+                             null);
+        tmp += html;
+        tmp += "</div></div>";
+        this._innerHTML = tmp;
+    } else {
+        this._innerHTML = html;
+    }
+};
+TVCPane.prototype._divHTML = function(bt,bl,bb,br,pad,shadow) {
+    var html = "<div class='paneinner' style='overflow:hidden;"+
+        "box-sizing:border-box;position:absolute;";
+    if (bt) { html += "border-top:"+bt+";"; }
+    if (bl) { html += "border-left:"+bl+";"; }
+    if (bb) { html += "border-bottom:"+bb+";"; }
+    if (br) { html += "border-right:"+br+";"; }
+    if (pad) { html += "padding:"+pad+";"; }
+    if (shadow) {
+        html += "box-shadow:"+shadow+";";
+    }
+    html += "'>";
+    return html;
+};
+TVCPane.prototype.show = function(x,y,width,height) {
+    this.hide();
+    this.prepare();
+    if (this._innerHTML) {
+        this._root.innerHTML = this._innerHTML;
+    }
+    if (this._use_popup) {
+        var parentDoc = this._window.document;
+        if (x < 0) {
+            var availWidth = parentDoc.body.clientWidth;
+            if (width < availWidth) {
+                x = (availWidth / 2) - (width / 2);
+            }
+        }
+        if (y < 0) {
+            var availHeight = parentDoc.body.clientHeight;
+            if (height < availHeight) {
+                y = (availHeight / 2) - (height / 2);
+            }
+        }
+        if (this._decorate) {
+            this._root.firstChild.style.width = width+"px";
+            this._root.firstChild.firstChild.style.width = (width-2)+"px";
+            this._root.firstChild.style.height = height+"px";
+            this._root.firstChild.firstChild.style.height = (height-2)+"px";
+        }
+        TVCPane_IE_Attach_Unload_Listener(this);
+        var parentWindow = this._window;
+        if (this._parent_pane != null && this._parent_pane._ie_popup != null) {
+            parentWindow = this._parent_pane._ie_popup.document.parentWindow;
+        }
+        this._ie_popup.show(x,y,width,height,parentWindow.document.body);
+        this._is_open = true;
+    } else {
+        var div = this._layer;
+        div.style.visibility = "hidden";
+        if (x < 0) {
+            div.style.left = "0px";
+        } else {
+            div.style.left = x + "px";
+        }
+        if (y < 0) {
+            div.style.top = "0px";
+        } else {
+            div.style.top = y + "px";
+        }
+        if (width<0) {
+            div.style.width = "auto";
+        } else {
+            div.style.width = width + "px";
+            if (this._decorate) {
+                this._root.firstChild.style.width = width+"px";
+                this._root.firstChild.firstChild.style.width = (width-2)+"px";
+            }
+        }
+        if (height<0) {
+            div.style.height = "auto";
+        } else {
+            div.style.height = height + "px";
+            if (this._decorate) {
+                this._root.firstChild.style.height = height+"px";
+                this._root.firstChild.firstChild.style.height = (height-2)+"px";
+            }
+        }
+        div.style.display = "block";
+        if (x < 0) {
+            var availWidth = this._window.innerWidth;
+            var width = div.scrollWidth;
+            if (width < availWidth) {
+                x = (availWidth / 2) - (width / 2);
+                div.style.left = x + "px";
+            }
+        }
+        if (y < 0) {
+            var availHeight = this._window.innerHeight;
+            var height = div.scrollHeight;
+            if (height < availHeight) {
+                y = (availHeight / 2) - (height / 2);
+                div.style.top = y + "px";
+            }
+        }
+        div.style.visibility = "visible";
+        this._capture(this._window.top);
+        this._is_open = true;
+    }
+};
+TVCPane.prototype.hide = function() {
+    if (this._ie_popup) {
+        this._ie_popup.hide();
+    } else if (this._layer) {
+        this._layer.style.display = "none";
+        try {
+            this._layer.parentNode.removeChild(this._layer);
+        } catch (E) {}
+        this._layer = null;
+        this._root = null;
+        this._release(this._window.top);
+        this._xTVCPane_Pre = null;
+        this._fireClosedEvent();
+    }
+    for (var i=0; i < this._child_panes.length; i++) {
+        this._child_panes[i].hide();
+    }
+    this._child_panes = [];
+    this._ie_popup = null;
+    this._is_open = false;
+};
+TVCPane.prototype._handleClick = function(e) {
+    if (!e) var e = window.event;
+    var pane = this._xTVCPane;
+    while (pane!=null) {
+        if (pane._window == this) {
+            var elem = e.target ? e.target : e.srcElement;
+            while (elem) {
+                if (elem==pane._layer) {
+                    // don't close if we clicked on the
+                    // pane or one of its child elements
+                    return;
+                }
+                try { if (elem.getAttribute("TVC_PANE") == "true") { return; }}catch(E) {}
+                elem = elem.parentNode;
+            }
+        }
+        try {
+            pane.hide();
+            pane = this._xTVCPane;
+        } catch(E) {}
+    }
+};
+TVCPane.prototype._handleKey = function(e) {
+    if (!e) var e = window.event;
+    var pane = this._xTVCPane;
+    if (pane!=null) {
+        var kc = e.keyCode ? e.keyCode : e.which;
+        if (kc==27) {//27=Escape
+            pane.hide();
+        }
+    }
+};
+TVCPane.prototype._capture = function(aWindow,depth) {
+    if (aWindow == null || aWindow == "undefined") {
+        return;
+    }
+    if (aWindow._xTVCPane != null) {
+        this._xTVCPane_Pre = aWindow._xTVCPane;
+    } else {
+        //tvc.captureEvent(aWindow, "mousedown", this._handleClick);
+        //tvc.captureEvent(aWindow, "keydown", this._handleKey);
+        if (aWindow.addEventListener) {
+            aWindow.addEventListener("mousedown",this._handleClick,true);
+            aWindow.addEventListener("keydown",this._handleKey,true);
+        } else if (aWindow.attachEvent) {
+            var elm = aWindow.document;
+            elm.attachEvent("onmousedown",this._handleClick);
+            elm.attachEvent("onkeydown",this._handleKey);
+        }
+    }
+    aWindow._xTVCPane = this;
+    if (!depth) var depth = 0;
+    if (depth < 100) {
+        for (var i=0; i<aWindow.frames.length; i++) {
+            this._capture(aWindow.frames[i], depth+1);
+        }
+    }
+};
+TVCPane.prototype._release = function(aWindow, depth) {
+    if (aWindow == null || aWindow == "undefined") {
+        return;
+    }
+    if (this._xTVCPane_Pre != null) {
+        aWindow._xTVCPane = this._xTVCPane_Pre;
+    } else {
+        aWindow._xTVCPane = null;
+        //tvc.stopCaptureEvent(aWindow, "mousedown", this._handleClick);
+        //tvc.stopCaptureEvent(aWindow, "keydown", this._handleKey);
+        if (aWindow.removeEventListener) {
+            aWindow.removeEventListener("mousedown",this._handleClick,true);
+            aWindow.removeEventListener("keydown",this._handleKey,true);
+        } else if (aWindow.detachEvent) {
+            var elm = aWindow.document;
+            elm.detachEvent("onmousedown",this._handleClick);
+            elm.detachEvent("onkeydown",this._handleKey);
+        }
+    }
+    if (!depth) var depth = 0;
+    if (depth < 100) {
+        for (var i=0; i<aWindow.frames.length; i++) {
+            this._release(aWindow.frames[i], depth+1);
+        }
+    }
+};
+TVCPane.prototype._fireClosedEvent = function() {
+    this._is_open = false;
+    try {
+        if (typeof this._close_func == "function") {
+            this._close_func();
+        }
+    } catch (E) {}
+};
+TVCPane.prototype.setCloseListener = function(func) {
+    this._close_func = func;
+}
+TVCPane_IE_Attach_Unload_Listener = function(pane) {
+    var win = pane._ie_popup.document.parentWindow;
+    win._TVCPane_UNLOAD = function() {
+        pane._fireClosedEvent();
+        win.detachEvent("onunload", win._TVCPane_UNLOAD);
+        win._TVCPane_UNLOAD=null;
+    };
+    win.attachEvent("onunload", win._TVCPane_UNLOAD);
+};

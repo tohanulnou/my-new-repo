@@ -1,0 +1,857 @@
+(function(window, backendService, i18n) {
+    if (!window.tvc) {
+        window.tvc = {};
+    }
+    if (!window.tvc.fileManager) {
+        window.tvc.fileManager = {};
+    }
+
+    function _debug() {
+        //console.debug.apply(this, arguments);
+    }
+
+    var defaultBadFileNameChars = "'#$@&%";
+    function isFileNameValid(fn) {
+        var bad = window.FILE_NAME_BAD_CHARS || defaultBadFileNameChars;
+        for (var i = 0; i < bad.length; i++) {
+            var ch = bad.charAt(i);
+            if (fn.indexOf(ch) > -1) {
+                return false;
+            }
+        }
+        return true;
+    }
+    function isFileNameInvalid(fn) {
+        return !isFileNameValid(fn);
+    }
+
+    /**
+     * The states the uploaded file will/might go into
+     */
+    var STATUSES = {
+        NOT_STARTED: 1,
+        STARTED: 2,
+        USER_INPUT: 4,
+        UPLOADING: 8,
+        FINALIZING: 16,
+        COMPLETED: 32,
+        FAILED: 64
+    };
+
+    function formatBytes(bytes, decimals) {
+        if (bytes === undefined) return '';
+        if (bytes === 0) return '0 Bytes';
+        var k = 1024,
+            dm = 2 || decimals,
+            sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'],
+            i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+    }
+
+    /**
+     * Default options for file uploader to work with ENOVIA FCS architecture / TVC File Manager.
+     */
+    var defaultFileUploadOptions = {
+        type: 'POST',
+        dataType: 'text',
+        headers: {
+            // 'Accept' : 'text/xml,text/plain',
+            'x-MxEncoding': 'UTF-8'
+        },
+        xhrFields: {
+            withCredentials: true
+        },
+        sequentialUploads: true,
+        singleFileUploads: true,
+        paramName: 'file',
+        multipart: true
+    };
+
+    window.tvc.fileManager.html5 = {
+        // TODO: Use Handlebar template for the UI creation.
+        _context: null,
+        _$div: null,
+        _counter: 0,
+
+        /**
+         * View of a particular file
+         *
+         * @param e Event object causing the download. Currently not used
+         * @param objectId The object id of the object holding the file
+         * @param format The format of the file to download
+         * @param fileName The file to download
+         * @param lock Whether or not to lock the file, e.g. doing a checkout vs viewing file.
+         */
+        downloadFile: function(e, objectId, format, fileName, lock, sidepanel) {
+            var n, previewFrame;
+            if (sidepanel) {
+                var frame = e.view.window.tvc.findFrame(
+                    e.view.window.parent.parent,
+                    'tableContentFrame'
+                ).parent;
+                var c = frame.tvc.inlineFrame.load(
+                    'non-sticky',
+                    null,
+                    screen.width / 4,
+                    fileName,
+                    '',
+                    true
+                );
+                n = c.frame.id;
+                previewFrame = c.frame;
+                this.startLoader(previewFrame);
+            }
+            var self = this;
+            backendService
+                .downloadPromise(objectId, format, fileName, lock)
+                .then(function(response) {
+                    var data = response['download-response'],
+                        err = response['error-message'],
+                        fnl = data.file.name.toLowerCase(),
+                        downloadUrl = data.file['download-url'],
+                        formId = 'html5DownloadForm',
+                        $form = $('#' + formId);
+                    if (err) {
+                        throw err.message;
+                    }
+                    if (!$form[0]) {
+                        $form = $('<form>', { id: formId, method: 'POST' }).appendTo(document.body);
+                    }
+
+                    $form
+                        .empty()
+                        .removeAttr('target')
+                        .attr('action', downloadUrl.url + '/' + encodeURI(data.file.name))
+                        .append(
+                            $('<input/>', {
+                                type: 'hidden',
+                                name: downloadUrl.param.name,
+                                value: downloadUrl.param.value
+                            })
+                        );
+
+                    if (!sidepanel) {
+                        var w = 730,
+                            h = 450,
+                            l = (screen.width - w) / 2,
+                            t = (screen.height - h) / 2,
+                            f =
+                                'width=' +
+                                w +
+                                ',height=' +
+                                h +
+                                ',left=' +
+                                l +
+                                ',top=' +
+                                t +
+                                ',screenX=' +
+                                l +
+                                ',screenY=' +
+                                t +
+                                ',resizable=yes' +
+                                ',dependent=yes,resizable=yes,toolbar=yes,scrollbars=yes';
+                        n = 'CheckoutWin' + new Date().getTime();
+                        window.open('', n, f);
+                    }
+                    $form.attr('target', n);
+                    window.setTimeout(function() {
+                        $form.submit();
+                        if (sidepanel) {
+                            self.stopLoader(previewFrame);
+                        }
+                        window.setTimeout(function() {
+                            // we cannot figure out when the file has been downloaded, so we simply
+                            // fire this event in order to not forget it.
+                            backendService.downloadDone(data.transactionToken);
+                            if (lock) {
+                                tvc.fileManager.listeners.entryChanged(
+                                    objectId,
+                                    'download_complete'
+                                );
+                            }
+                        }, 3000);
+                    }, 250);
+                })
+                .catch(function(err) {
+                    alert(err);
+                });
+        },
+
+        /**
+         * Download of a particular file
+         *
+         * @param e Event object causing the download. Currently not used
+         * @param objectId The object id of the object holding the file
+         * @param format The format of the file to download
+         * @param fileName The file to download
+         */
+        downloadFileAsAttachment: function(e, objectId, format, fileName) {
+            backendService
+                .downloadPromise(objectId, format, fileName, false)
+                .then(function(response) {
+                    var data = response['download-response'],
+                        err = response['error-message'],
+                        downloadUrl = data.file['download-url'];
+                    if (err) {
+                        throw err.message;
+                    }
+                    var dataObject = {};
+                    dataObject[downloadUrl.param.name] = downloadUrl.param.value;
+                    $.ajax({
+                        method: 'POST',
+                        url: downloadUrl.url + '/' + encodeURI(data.file.name),
+                        data: dataObject,
+                        beforeSend: function(request) {
+                            request.overrideMimeType('text/plain; charset=x-user-defined');
+                        },
+                        success: function(response, status, xhr) {
+                            var arr = new Uint8Array(response.length);
+                            for (var i = 0; i < arr.length; i++) {
+                                arr[i] = response.charCodeAt(i);
+                            }
+                            var blob = new Blob([arr], {
+                                type: xhr.getResponseHeader('Content-Type')
+                            });
+                            var href = URL.createObjectURL(blob);
+                            var a = document.createElement('a');
+                            a.href = href;
+                            a.download = data.file.name;
+                            document.body.appendChild(a);
+                            a.click();
+                            a.remove();
+                            URL.revokeObjectURL(href);
+                            backendService.downloadDone(data.transactionToken);
+                        },
+                        error: function(xhr, status, error) {
+                            throw error;
+                        }
+                    });
+                })
+                .catch(function(err) {
+                    alert(err);
+                });
+        },
+
+        startLoader: function(frame) {
+            frame.style.backgroundImage =
+                "url('../tvc/structurebrowser/images/load-blue-white-big.gif')";
+            frame.style.backgroundRepeat = 'no-repeat';
+            frame.style.backgroundPosition = 'center center';
+        },
+
+        stopLoader: function(frame) {
+            if (frame.style.backgroundImage) {
+                frame.style.cssText = 'display:block;';
+            }
+        },
+
+        /**
+         * Shows the checkin/update file UI.
+         *
+         * @param objectId The object id of the object holding the file
+         * @param format The format to use
+         * @param fileName The name of the file to checkin/upload
+         * @public
+         */
+        showCheckinFileUI: function(objectId, format, fileName) {
+            this._reset(false, objectId, format, fileName);
+            this._showUI();
+        },
+
+        /**
+         * Shows the checkin-new file UI.
+         *
+         * @param objectId The object id of the object that will hold the new file
+         * @public
+         */
+        showCheckinNewFileUI: function(objectId) {
+            this._reset(true, objectId);
+            this._showUI();
+        },
+
+        /**
+         * Called from our drop zone's in order to invoke the file checkin UI.
+         *
+         * @param items The file items to be added.
+         * @param callback The callback to be invoked once the UI closes
+         * @returns {*}
+         */
+        addFromDropZone: function(items, callback) {
+            var self = this;
+            self._reset(true);
+            self._context.onClose = callback;
+            var $div = self._showUI();
+            items.forEach(function(item) {
+                $div.fileupload('add', item);
+                //self._onFileAdded(undefined, item);
+            });
+            return self._startCheckinProcess();
+        },
+
+        /**
+         * Closes the UI overlay and tries to cancel any pending requests
+         * if the userAction argument is true.
+         *
+         * @param userAction
+         */
+        closeUI: function(userAction) {
+            var $div = this._$div,
+                closeCallback = this._context.onClose || Function.prototype;
+            if ($div == null) {
+                return;
+            } else if (!this._context.inProgress) {
+                $div.parent().css('display', 'none');
+                closeCallback(this);
+                var parentWindow = window.parent;
+                if (parentWindow) {
+                    parentWindow.postMessage(
+                        {
+                            subscriber: 'fmFallbackClose'
+                        },
+                        '*'
+                    );
+                }
+            } else {
+                var tokensToRelease = [],
+                    jqXHRs = [],
+                    canProceed = true;
+                this._context.uploadData.forEach(function(elm) {
+                    var state = elm._state || STATUSES.NOT_STARTED;
+                    switch (state) {
+                        case STATUSES.NOT_STARTED:
+                        case STATUSES.COMPLETED:
+                            break;
+                        case STATUSES.STARTED:
+                        case STATUSES.FINALIZING:
+                            canProceed = false;
+                            break;
+                        case STATUSES.USER_INPUT:
+                        case STATUSES.UPLOADING:
+                            if (userAction) {
+                                tokensToRelease.push(elm.transactionToken);
+                                if (elm._jqXHR) {
+                                    jqXHRs.push(elm._jqXHR);
+                                }
+                            } else {
+                                canProceed = false;
+                            }
+                            break;
+                        case STATUSES.FAILED:
+                            if (!userAction) {
+                                canProceed = false;
+                            }
+                            break;
+                    }
+                });
+                if (canProceed) {
+                    if (jqXHRs.length > 0) {
+                        jqXHRs.forEach(function(jqXHR) {
+                            jqXHR.abort();
+                        });
+                    }
+                    if (tokensToRelease.length > 0) {
+                        backendService.cancelRequestsPromise(tokensToRelease).then(function(data) {
+                            _debug('Cancelled request', tokensToRelease, data);
+                        });
+                    }
+                    $div.parent().css('display', 'none');
+                    closeCallback(this);
+                    var parentWindow = window.parent;
+                    if (parentWindow) {
+                        parentWindow.postMessage(
+                            {
+                                subscriber: 'fmFallbackClose'
+                            },
+                            '*'
+                        );
+                    }
+                }
+            }
+        },
+
+        // Resets the state of the file upload control
+        _reset: function(allowMultipleSelections, objectId, format, fileName) {
+            this._counter = 0;
+            this._context = {
+                inProgress: false,
+                allowMultipleSelections: allowMultipleSelections,
+                objectId: objectId,
+                format: format,
+                fileName: fileName,
+                uploadData: []
+            };
+        },
+
+        _showUI: function() {
+            var topDocument;
+            if (typeof getTopWindow === 'function') {
+                var win = getTopWindow();
+                if (win.location.pathname.indexOf('3ddashboard') > -1) {
+                    var tvcwin = tvc.getTvcWidgetWindow(window, 'tvcFileManagerFrame');
+                    if (tvcwin) {
+                        topDocument = tvcwin.document;
+                    } else {
+                        var tvcFMFrame = win[0].document.getElementById('tvcFileManagerFrame');
+                        tvcFMFrame =
+                            tvcFMFrame || win.document.getElementById('tvcFileManagerFrame');
+                        topDocument = tvcFMFrame.contentWindow.document;
+                    }
+                } else {
+                    topDocument = win.document;
+                }
+            } else {
+                topDocument = top.document;
+            }
+            var $div = this._getDiv(topDocument);
+            this._initCheckinFileUI($div);
+            this._initCheckinFileUIEventListeners($div);
+            $div.fileupload(
+                $.extend({}, defaultFileUploadOptions, {
+                    dropZone: $div,
+                    fileInput: $div.find('input[type=file]'),
+                    add: this._onFileAdded.bind(this),
+                    progress: this._updateProgress.bind(this)
+                })
+            );
+            this._resizer($div)
+                .parent()
+                .css('display', 'inline-block');
+            return $div;
+        },
+
+        _onFileAdded: function(e, data) {
+            if (isFileNameInvalid(data.files[0].name)) {
+                this._createGuiForInvalidFiles(data);
+            } else {
+                data._state = STATUSES.NOT_STARTED;
+                data._ID = 'tvcFileItem-' + this._counter++;
+                if (this._context.allowMultipleSelections) {
+                    this._context.uploadData.push(data);
+                } else {
+                    this._context.uploadData.forEach(function(elm) {
+                        if (elm.context) elm.context.remove();
+                    });
+                    this._context.uploadData = [data];
+                }
+                this._createGuiForFileAdded(data);
+            }
+        },
+
+        _createGuiForInvalidFiles: function(data) {
+            var badFileNameChars = window.FILE_NAME_BAD_CHARS || defaultBadFileNameChars;
+            data.context = $('<div>')
+                .addClass('tvcFileManagerFileItem')
+                .attr('data-id', data._ID)
+                .append(
+                    $('<div>')
+                        .addClass('tvcFileManagerFileItemName')
+                        .append(data.files[0].name)
+                )
+                .append(
+                    $('<div>')
+                        .addClass('tvcFileManagerFileError')
+                        .append(i18n('tvc.filemanager.client.invalidFileFormat'))
+                        .append(' (' + badFileNameChars + ')')
+                );
+            this._$div
+                .find('#tvcFileManagerSelectedFile')
+                .append(data.context)
+                .css('display', 'inline-block');
+        },
+
+        _createGuiForFileAdded: function(data) {
+            data.context = $('<div>')
+                .addClass('tvcFileManagerFileItem')
+                .attr('data-id', data._ID)
+                .append(
+                    $('<div>')
+                        .addClass('tvcFileManagerFileItemName')
+                        .append(data.files[0].name)
+                )
+                .append(
+                    $('<div>')
+                        .addClass('tvcFileManagerFileItemSize')
+                        .append(formatBytes(data.files[0].size))
+                )
+                .append(
+                    $('<div>')
+                        .addClass('tvcFileManagerFileItemRemoveIcon')
+                        .on('click', this._removeAddedFile.bind(this))
+                )
+                .append($('<div>').addClass('tvcFileManagerUserInputHolder'))
+                .append($('<div>').addClass('tvcFileManagerFileItemStatus'))
+                .append(
+                    $('<div>')
+                        .addClass('tvcFileManagerFileItemProgress')
+                        .append($('<progress>', { max: '100', value: '0' }))
+                );
+            this._$div
+                .find('#tvcFileManagerSelectedFile')
+                .append(data.context)
+                .css('display', 'inline-block');
+            this._$div.find('#tvcFileManagerSubmitButton').prop('disabled', false);
+        },
+
+        _removeAddedFile: function(e) {
+            e.preventDefault();
+            var id = $(e.target)
+                    .parents('.tvcFileManagerFileItem')
+                    .first()
+                    .attr('data-id'),
+                arr = this._context.uploadData;
+            for (var index = 0; index < arr.length; index++) {
+                if (arr[index]._ID === id) {
+                    arr.splice(index, 1)[0].context.remove();
+                    break;
+                }
+            }
+            this._$div.find('#tvcFileManagerSubmitButton').prop('disabled', arr.length == 0);
+            return false;
+        },
+
+        _updateProgress: function(e, data) {
+            var progressValue = parseInt((data.loaded / data.total) * 100, 10);
+            data.context
+                .find('progress')
+                .css('display', 'inline-block')
+                .val(progressValue);
+        },
+
+        _createDiv: function(doc) {
+            var $div = $(doc.body)
+                .append($('<div/>', { id: 'tvcFileManagerOverlay' }))
+                .find('div:last')
+                .append($('<div/>', { id: 'tvcFileManagerOverlayContent' }))
+                .find('div:last')
+                .attr('tabindex', '1');
+            $(doc.defaultView).resize(function(event) {
+                tvc.fileManager.html5._resizer($div);
+            });
+            $div.on('click', function(event) {
+                event.stopPropagation();
+            });
+            /*$div.on("keyup", function(event) {
+             if (event.keyCode == 27) {
+             tvc.fileManager.html5.closeUI(true);
+             }
+             });*/
+            $div.parent().on('click', function(event) {
+                tvc.fileManager.html5.closeUI(true);
+            });
+            return $div;
+        },
+
+        _getDiv: function(doc) {
+            var $div = $(doc).find('#tvcFileManagerOverlayContent');
+            if (!$div[0]) {
+                $div = this._createDiv(doc);
+            }
+            this._$div = $div;
+            return $div.empty().focus();
+        },
+
+        _resizer: function($div) {
+            var doc = $div[0].ownerDocument,
+                mw = doc.body.offsetWidth,
+                mh = doc.body.offsetHeight,
+                w = mw * 0.75,
+                h = mh * 0.8,
+                l = (mw - w) / 2,
+                t = (mh - h) / 2;
+            $div.css({ top: t + 'px', left: l + 'px', width: w + 'px', height: h + 'px' });
+            return $div;
+        },
+
+        _initCheckinFileUI: function($div) {
+            $div.append(
+                $('<input>', { type: 'file' })
+                    .prop('multiple', this._context.allowMultipleSelections)
+                    .css({ display: 'none' })
+            ).append(
+                $('<div>', { id: 'tvcFileManagerDropZoneLabel' }).text(
+                    i18n('tvc.filemanager.client.clickToDropFile')
+                )
+            );
+            var $innerDiv = $('<div/>', { id: 'tvcFileManagerDropZone' });
+            if (this._context.fileName) {
+                $innerDiv.append(
+                    $('<div>').append(
+                        $('<span>')
+                            .addClass('existingFileNameLabel')
+                            .html(
+                                i18n('tvc.filemanager.client.checkinNewVersionOfLabel', [
+                                    this._context.fileName
+                                ])
+                            )
+                    )
+                );
+            }
+            $innerDiv.append(
+                $('<div>', { id: 'tvcFileManagerSelectedFile' }).addClass(
+                    this._context.allowMultipleSelections
+                        ? 'multipleFilesAllowed'
+                        : 'singleFileOnly'
+                )
+            );
+            $innerDiv.append(
+                $('<div>')
+                    .addClass('buttonContainer')
+                    .append(
+                        $('<button>', { id: 'tvcFileManagerSubmitButton' })
+                            .prop('disabled', true)
+                            .text(i18n('submitBtnLabel'))
+                    )
+                    .append(
+                        $('<button>', { id: 'tvcFileManagerCancelButton' }).text(
+                            i18n('cancelBtnLabel')
+                        )
+                    )
+            );
+            $div.append($innerDiv);
+            return $div;
+        },
+
+        _startCheckinProcess: function() {
+            var self = this;
+            if (!self._context.inProgress) {
+                self._context.inProgress = true;
+                self._$div.find('#tvcFileManagerDropZoneLabel').css('display', 'none');
+            }
+            self._$div.find('.tvcFileManagerFileItemRemoveIcon').css('display', 'none');
+            return self._context.uploadData.map(function(elm) {
+                return self._startCheckinProcessForFile(elm);
+            });
+        },
+
+        _startCheckinProcessForFile: function(uploadData) {
+            switch (uploadData._state) {
+                case STATUSES.FINALIZING:
+                case STATUSES.UPLOADING:
+                case STATUSES.COMPLETED:
+                case STATUSES.FAILED:
+                case STATUSES.STARTED:
+                    return Promise.resolve(false);
+            }
+            uploadData._state = STATUSES.STARTED;
+
+            var self = this,
+                userInput = {},
+                $context = uploadData.context;
+            // collect any user input
+            $context.find("[data-tvcuserinputfield='true']").each(function(index, field) {
+                var $f = $(field);
+                userInput[$f.attr('data-fieldid')] = $f.val();
+            });
+
+            var objectId = uploadData._objectId || self._context.objectId,
+                format = uploadData._format || self._context.format,
+                fileName = uploadData._fileName || self._context.fileName;
+
+            // Request for checkin (Step 1/3)
+            return backendService
+                .checkinRequestPromise(
+                    uploadData.transactionToken,
+                    objectId,
+                    format,
+                    fileName,
+                    uploadData.files[0].name,
+                    userInput
+                )
+                .then(function(resp) {
+                    var checkinRequestResponse = resp['checkin-response'],
+                        err = resp['error-message'];
+                    if (err) throw err;
+
+                    uploadData.transactionToken = checkinRequestResponse.transactionToken;
+
+                    var respUserInput = checkinRequestResponse['user-input'];
+                    if (respUserInput) {
+                        // Request for checkin requires user input
+                        self._updateState(uploadData, STATUSES.USER_INPUT, null);
+                        self._addUserInputFields(
+                            $context.find('.tvcFileManagerUserInputHolder').show(),
+                            respUserInput
+                        );
+                    } else {
+                        return new Promise(function(resolve, reject) {
+                            // Upload the file (step 2/3)
+                            self._updateState(uploadData, STATUSES.UPLOADING, null);
+
+                            var params = [],
+                                p = checkinRequestResponse.file['upload-url']['param'];
+                            if (p != null) {
+                                $(p).each(function() {
+                                    params.push(this);
+                                });
+                            }
+
+                            uploadData.formData = params;
+                            uploadData.url = checkinRequestResponse.file['upload-url']['url'];
+                            uploadData._jqXHR = uploadData
+                                .submit()
+                                .error(function(jqXHR, textStatus, errorThrown) {
+                                    var msg = errorThrown;
+                                    if (msg === 'abort') {
+                                        msg = i18n('tvc.filemanager.client.fileUploadCancelled');
+                                    }
+                                    reject({ message: msg });
+                                })
+                                .complete(function(jqXHR, textStatus, result) {
+                                    uploadData._state = STATUSES.FINALIZING;
+                                    resolve(result.responseText);
+                                });
+                        })
+                            .then(function(ret) {
+                                _debug('File Upload Completed', ret);
+                                // Finalize the checkin now (step 3/3)
+                                return backendService
+                                    .checkinDonePromise(uploadData.transactionToken, ret)
+                                    .then(function(data) {
+                                        var checkinDoneResponse = data['checkin-done-response'],
+                                            err = data['error-message'];
+                                        if (err) throw err;
+                                        return checkinDoneResponse;
+                                    });
+                            })
+                            .then(function(r) {
+                                _debug('Checkin-done completed', r);
+                                delete uploadData.transactionToken;
+                                delete uploadData._jqXHR;
+                                self._updateState(
+                                    uploadData,
+                                    STATUSES.COMPLETED,
+                                    i18n('tvc.filemanager.client.fileUploadCompleted')
+                                );
+                                tvc.fileManager.listeners.entryChanged(objectId, 'upload_complete');
+                            });
+                    }
+                })
+                .catch(function(err) {
+                    _debug('File Upload Failed', err);
+                    if (err.code === '2') {
+                        top.location.href = err.message;
+                    } else {
+                        self._updateState(uploadData, STATUSES.FAILED, err.message);
+                    }
+                });
+        },
+
+        _updateState: function(uploadData, status, message) {
+            var $context = uploadData.context;
+
+            uploadData._state = status;
+            $context.find('.tvcFileManagerUserInputHolder').css('display', 'none');
+            if (message == null) {
+                $context.find('.tvcFileManagerFileItemStatus').css('display', 'none');
+            } else {
+                $context
+                    .find('.tvcFileManagerFileItemStatus')
+                    .removeClass('error info')
+                    .addClass(status == STATUSES.FAILED ? 'error' : 'info')
+                    .html(message)
+                    .show();
+                $context
+                    .find('progress')
+                    .val(0)
+                    .css('display', 'none');
+            }
+
+            this._updateButtonStates();
+        },
+
+        _updateButtonStates: function() {
+            var totCount = this._context.uploadData.length,
+                values = {};
+            for (var i in STATUSES) values[STATUSES[i]] = 0;
+            this._context.uploadData.forEach(function(elm) {
+                values[elm._state] = (values[elm._state] || 0) + 1;
+            });
+            var $submitBtn = this._$div.find('#tvcFileManagerSubmitButton'),
+                $cancelBtn = this._$div.find('#tvcFileManagerCancelButton');
+            if (
+                /*!this._context.allowMultipleSelections && */ values[STATUSES.COMPLETED] ==
+                totCount
+            ) {
+                this.closeUI(false);
+            } else if (values[STATUSES.COMPLETED] + values[STATUSES.FAILED] == totCount) {
+                $submitBtn.prop('disabled', true);
+                $cancelBtn.prop('disabled', false).text(i18n('dismissBtnLabel'));
+            } else if (values[STATUSES.USER_INPUT] > 0) {
+                $submitBtn.prop('disabled', false);
+                $cancelBtn.prop('disabled', false);
+            } else if (values[STATUSES.UPLOADING] > 0) {
+                $submitBtn.prop('disabled', true);
+                $cancelBtn.prop('disabled', false);
+            } else {
+                $submitBtn.prop('disabled', true);
+                $cancelBtn.prop('disabled', true);
+            }
+        },
+
+        _initCheckinFileUIEventListeners: function($div) {
+            var self = tvc.fileManager.html5;
+            $div.find('#tvcFileManagerSubmitButton').on('click', function(event) {
+                event.stopPropagation();
+                self._startCheckinProcess();
+            });
+            $div.find('#tvcFileManagerCancelButton').on('click', function(event) {
+                event.stopPropagation();
+                tvc.fileManager.html5.closeUI(true);
+            });
+            $div.children('div').on('click', function(event) {
+                event.stopPropagation();
+                if (!self._context.inProgress) {
+                    var nodeName = event.target.nodeName;
+                    if (nodeName != 'INPUT' && nodeName != 'TEXTAREA') {
+                        $div.find('input[type=file]').click();
+                        setTimeout(function() {
+                            $div.find('#tvcFileManagerDropZone').focus();
+                        }, 1);
+                    }
+                }
+            });
+            return $div;
+        },
+
+        _addUserInputFields: function($container, userInput) {
+            var focusSet = false;
+            $(userInput.input).each(function(index, field) {
+                var $field = $container.find("[data-fieldid='" + field.id + "']");
+                if (!$field[0]) {
+                    var $fieldContainer = $('<div/>')
+                        .addClass('tvcUserInputField')
+                        .appendTo($container);
+                    $fieldContainer.append(
+                        $('<label/>')
+                            .addClass(field.required ? 'required' : 'normal')
+                            .text(field.label)
+                    );
+                    if (field.rows > 1) {
+                        $field = $('<textarea/>', {
+                            rows: field.rows,
+                            cols: field.cols
+                        });
+                    } else {
+                        $field = $('<input/>', {
+                            type: 'text',
+                            size: field.cols
+                        });
+                    }
+                    $field
+                        .attr('data-tvcuserinputfield', 'true')
+                        .attr('data-fieldid', field.id)
+                        .val('' || field.value);
+                    $fieldContainer.append(
+                        $('<div/>')
+                            .addClass('inputFieldContainer')
+                            .append($field)
+                    );
+                }
+                if (!focusSet) {
+                    $field.focus();
+                    focusSet = true;
+                }
+            });
+        }
+    };
+})(window, fileManagerHtml5Service, i18n);

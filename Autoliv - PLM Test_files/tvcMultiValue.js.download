@@ -1,0 +1,169 @@
+(function() {
+    if (!window.tvc) {
+        window.tvc = {};
+    }
+    if (!window.tvc.tablemultivalue) {
+        window.tvc.tablemultivalue = {};
+
+        var multi = {
+            init: function(id) {
+                var $field = $('#' + id);
+                multi.addEvents(id, $field, null);
+            },
+
+            initByReference: function(elt) {
+                var $field = $(elt);
+                var id = elt.id;
+                multi.addEvents(id, $field, elt);
+            },
+
+            addEvents: function(id, $field, ref) {
+                var selectize = multi.initField($field, multi.getSettings($field));
+                var $cell = $field.parent('td');
+                var closeSelectize = function closeSelectize() {
+                    selectize.blur();
+                };
+                selectize.on('blur', function(e) {
+                    multi.save(selectize, id, $cell, $field, ref);
+                });
+                selectize.on('item_add', function() {
+                    multi.resizeTableColumn($cell);
+                });
+                selectize.on('item_remove', function() {
+                    multi.resizeTableColumn($cell);
+                });
+                selectize.on('dropdown_open', function() {
+                    multi.registerEvents(selectize, closeSelectize);
+                });
+                selectize.on('dropdown_close', function() {
+                    multi.removeScrollEvent(selectize, closeSelectize);
+                });
+            },
+
+            registerEvents: function(selectize, closeSelectize) {
+                var selector = multi.getScrollContentSelector(selectize);
+                $(selector).on('scroll', closeSelectize);
+            },
+
+            removeScrollEvent: function(selectize, closeSelectize) {
+                var selector = multi.getScrollContentSelector(selectize);
+                $(selector).off('scroll', closeSelectize);
+            },
+
+            getScrollContentSelector: function(selectize) {
+                var id = '#tbrc';
+                if (selectize.settings.isForm) {
+                    id = '#accordion, #formcontent, #contentDiv, .ui-tabs-panel';
+                }
+                return id;
+            },
+
+            resizeTableColumn: function($cell) {
+                if (multi.isInCellEdit($cell)) {
+                    var width = $cell.measure(function() {
+                        return this.outerWidth();
+                    });
+                    multi.setTableColumnWidth($cell, width);
+                }
+            },
+
+            setTableColumnWidth: function($cell, width) {
+                $cell.outerWidth(width);
+                $cell.width(width);
+                tvc.sbTableResizeMgr.setCellWidth($cell, width);
+                tvc.sbTableResizeMgr.refreshLayout();
+            },
+
+            isInCellEdit: function($cell) {
+                if ($cell.length > 0) {
+                    return $cell[0].hasAttribute('ice');
+                }
+                return false;
+            },
+            // Saves values
+            save: function(selectize, id, $cell, $field, ref) {
+                function handleResult(result, selectize) {
+                    if (result.status === 'error') {
+                        if (ref) {
+                            multi.initByReference(ref);
+                        } else {
+                            multi.init(id);
+                        }
+                    }
+                }
+                var values = selectize.getValue().join(selectize.settings.delimiter);
+                var tvcEditFunction = parent.tvcEditCell;
+                if (selectize.settings.isForm) {
+                    $('#' + id + 'hidden').val(values);
+                } else if (selectize.settings.isTopPanel) {
+                    updateField(id, function(result) {
+                        handleResult(result, selectize);
+                    });
+                } else {
+                    if (multi.isInCellEdit($cell)) {
+                        $field.remove();
+                    }
+                    if (typeof tvcEditCell === 'function') {
+                        tvcEditFunction = tvcEditCell;
+                    }
+
+                    tvcEditFunction(selectize.$input.get(0), values, function(result) {
+                        handleResult(result, selectize);
+                    });
+                }
+            },
+
+            // Gets selectize settings
+            getSettings: function($field) {
+                var delimiter = $field.attr('data-delimiter');
+                var hasRanges = $field.attr('data-has-ranges') === 'true';
+                var isTopPanel = $field[0].hasAttribute('toppanel');
+                var isForm = $field[0].hasAttribute('form');
+                var enableDuplicates = $field.attr('data-enable-duplicates') === 'true';
+                var hideSelected = true;
+                if (enableDuplicates) {
+                    hideSelected = false;
+                }
+                var settings = {
+                    load: '',
+                    delimiter: delimiter,
+                    maxItems: 1000,
+                    create: function(input) {
+                        if (hasRanges) {
+                            return false;
+                        }
+                        return {
+                            value: input,
+                            label: input
+                        };
+                    },
+                    hideSelected: hideSelected,
+                    enableDuplicate: enableDuplicates,
+                    isTopPanel: isTopPanel,
+                    selectOnTab: false,
+                    isForm: isForm,
+                    plugins: ['enable-duplicates']
+                };
+                return settings;
+            },
+
+            // Selectizes the field and adds items
+            initField: function($field, settings) {
+                $field.tvcselectize(settings);
+                var selectize = $field[0].selectize;
+                var items = $field.attr('data-values').split(selectize.settings.delimiter);
+                multi.addItems(selectize, items);
+                return selectize;
+            },
+
+            addItems: function(selectize, items) {
+                selectize.clear();
+                for (var i = 0; i < items.length; i++) {
+                    selectize.addItem(items[i]);
+                }
+            }
+        };
+        window.tvc.tablemultivalue.init = multi.init;
+        window.tvc.tablemultivalue.initByReference = multi.initByReference;
+    }
+})();

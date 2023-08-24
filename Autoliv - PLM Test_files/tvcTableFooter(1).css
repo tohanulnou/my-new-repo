@@ -1,0 +1,23 @@
+body {
+    overflow: hidden;
+    cursor: default;
+    background-color: #D7D8E8;
+    background-image: url("../../../../../common/images/bgnd-content-foot.png");
+    background-position: 0 0;
+    background-repeat: repeat-x;
+    border-top: 1px solid #FFFFFF;
+    height: 25px;
+}
+div#pagContainer {
+    top:2px ! important;
+}
+/*.pageBorder {
+    border-top: 1px solid #036;
+}*/
+div#rowCounter, div#selectedRowCounter {
+    color: black;
+    top: 5px !important;
+}
+table#submitCancelButtons td {
+    color: black;
+}

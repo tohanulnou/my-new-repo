@@ -1,0 +1,1653 @@
+(function(root, factory) {
+    'use strict';
+    if (typeof define === 'function' && define.amd) {
+        // Register as an anonymous AMD module:
+        define(function() {
+            return factory(root);
+        });
+    } else {
+        // Browser globals:
+        if (!root.tvc) {
+            root.tvc = {};
+        }
+        var props = factory(root);
+        for (var item in props) {
+            root.tvc[item] = props[item];
+        }
+    }
+})(this, function(global) {
+    // 2014x and 2015x ENOVIA BUG Workaround
+    var topcache = null;
+    global.getTopWindow = function _getTopWindow() {
+        if (topcache) {
+            return topcache;
+        }
+        if (typeof global.topMostEnoviaWindow != 'undefined' && global.topMostEnoviaWindow) {
+            topcache = global;
+            return global;
+        }
+        try {
+            var tmp = (global.top.test = 'temp');
+            if (
+                global.top.test === 'temp' &&
+                typeof global.top.topMostEnoviaWindow != 'undefined' &&
+                global.top.topMostEnoviaWindow
+            ) {
+                topcache = global.top;
+                return global.top;
+            }
+        } catch (e) {}
+
+        var oTop = global;
+        while (
+            oTop &&
+            oTop.parent != oTop &&
+            oTop.name != 'mxPortletContent' &&
+            typeof oTop.topMostEnoviaWindow == 'undefined'
+        ) {
+            try {
+                var doc = (oTop.parent.test = 'temp');
+                if (oTop.parent.test !== 'temp') {
+                    break;
+                }
+            } catch (e) {
+                break;
+            }
+            oTop = oTop.parent;
+        }
+        topcache = oTop;
+        return topcache;
+    };
+
+    global.APP_NAME = window.location.pathname
+        .split('/')
+        .splice(0, 2)
+        .join('/');
+
+    var tvc = {};
+
+    tvc.getTopWindow = global.getTopWindow;
+
+    tvc.getContentWindow = function() {
+        var target = tvc.getTopWindow();
+        return tvc.findFrame(target, 'content', false) || target;
+    };
+
+    tvc.getCurrentTvcBroker = function() {
+        var topWindow = this.getTopWindow();
+        return topWindow.TVCbroker;
+    };
+
+    tvc.publisher = function(msgPublisher, publishFunction, params, origin) {
+        if (typeof publishFunction === 'function') {
+            publishFunction.call(msgPublisher, params, origin);
+        }
+    };
+
+    /**
+     * function returns promise object represents security context object.
+     * If security context found in window then it will return from there otherwise
+     * it will do ajax call.
+     *
+     * @return {Promise} Promise object represents security context object
+     */
+    tvc.getSecurityContext = function() {
+        return new Promise(function(resolve, reject) {
+            if (getTopWindow().curSecCtx) {
+                resolve({ SecurityContext: encodeHREF('ctx::' + getTopWindow().curSecCtx) });
+            } else {
+                var scRequestURL = parent.getAbsoluteURL('resources/pno/person/getsecuritycontext');
+                var options = {
+                    contentType: 'application/json',
+                    method: 'GET',
+                    success: function(response) {
+                        resolve({
+                            SecurityContext: encodeHREF(
+                                'ctx::' + JSON.parse(response).SecurityContext
+                            )
+                        });
+                    },
+                    error: function(xhr, status, error) {
+                        reject(xhr, status, error);
+                    },
+                    url: scRequestURL
+                };
+                $.ajax(options);
+            }
+        });
+    };
+
+    /**
+     * this function is to find tvcWidget frame for same domain in 3DDashboard.
+     * can't use findFrame function as it search from the top window and
+     * it will return wrong window when there are multiple widgets are present.
+     */
+    tvc.getTvcWidgetWindow = function(w, name) {
+        if (w && w !== w.parent) {
+            if (w.name.indexOf(name) == 0) {
+                return w;
+            } else if (w.parent) {
+                var f = tvc.getTvcWidgetWindow(w.parent, name);
+                if (f) {
+                    return f;
+                }
+            }
+        }
+        return null;
+    };
+
+    tvc.callFunctionFromAllWindow = function(callBackFunction) {
+        var resultList = new Array();
+        var currentWindowResult = callBackFunction(tvc);
+        if (currentWindowResult) {
+            resultList.push(currentWindowResult);
+        }
+        var baseWindowOpener = tvc.getTopWindow().opener;
+        while (baseWindowOpener) {
+            var baseWindowResult = callBackFunction(baseWindowOpener.tvc);
+            if (baseWindowResult) {
+                resultList.push(baseWindowResult);
+            }
+            baseWindowOpener = baseWindowOpener.top.opener;
+        }
+        return resultList;
+    };
+
+    // Opens a popup dialog, either the window is modal or not.
+    tvc.popup = function(url, width, height, modal) {
+        var win = null;
+        try {
+            var factory = modal ? TVCModalDialog : TVCNonModalDialog;
+            var dialog = factory.getInstance(window, null, url, width, height);
+            win = dialog.show();
+            win.applicationWindow = win.applicationWindow || top.applicationWindow || top;
+        } catch (ignore) {}
+        return win;
+    };
+
+    // Opens a new window.
+    tvc.openNewWindow = function(url, name, width, height) {
+        var feature = arguments.length > 4 ? arguments[4] : null;
+        var dialog = TVCNonModalDialog.getInstance(window, name, url, width, height);
+        return dialog.show(feature);
+    };
+
+    // Closes the specified window
+    tvc.closeWindow = function(win) {
+        try {
+            if (win && !win.closed) {
+                win.close();
+            }
+        } catch (e) {}
+    };
+
+    tvc.findFrame = function(win, name, checkOpener) {
+        var ctx = win != null ? win : window;
+        if (name == '_top' || name == 'top') {
+            return ctx.top;
+        } else if (name == '_self' || name == 'self') {
+            return ctx.self;
+        } else if (name == '_parent' || name == 'parent') {
+            return ctx.parent;
+        } else {
+            var dig = function(w) {
+                if (w != undefined) {
+                    if (w.name == name) {
+                        return w;
+                    }
+                    for (var i = 0; i < w.frames.length; i++) {
+                        var f = dig(w.frames[i]);
+                        if (f != null) {
+                            return f;
+                        }
+                    }
+                }
+                return null;
+            };
+            var f = dig(ctx);
+            if (f == null) {
+                f = dig(ctx.top);
+                if (f == null && checkOpener) {
+                    var o = ctx.top.opener;
+                    if (o && !o.closed) {
+                        f = tvc.findFrame(o, name, checkOpener);
+                    }
+                }
+            }
+            return f;
+        }
+    };
+
+    // Stop's the bubbeling of events
+    tvc.stopBubbleEvent = function(e) {
+        if (!e) var e = window.event;
+        if (e) {
+            e.cancelBubble = true;
+            if (e.stopPropagation) e.stopPropagation();
+            if (e.preventDefault) e.preventDefault();
+        }
+    };
+
+    // Don't show the browser's context menu for the
+    // specified document (works for MSIE and Firefox).
+    tvc.noContextMenu = function(doc) {
+        tvc.handleEvent(doc, 'contextmenu', function(e) {
+            tvc.stopBubbleEvent(e);
+            return false;
+        });
+    };
+
+    tvc.dashboardDropCallBack = function(dropEvent) {
+        var topWindow = window.tvc.getTopWindow();
+        if (topWindow.IS_CROSS_DOMAIN || (topWindow.tvc && topWindow.tvc._3ddashboard)) {
+            dropEvent.preventDefault();
+            var dragData = JSON.parse(dropEvent.dataTransfer.getData('text'));
+            var dataTransferJson = {
+                protocol: dragData.protocol,
+                version: dragData.version,
+                data: {
+                    items: []
+                }
+            };
+            var types = [];
+            var items = dragData.data.items;
+            for (var i = 0; i < items.length; i++) {
+                var dataItem = items[i];
+                var itemObject = {
+                    envId: dataItem['envId'],
+                    serviceId: dataItem['serviceId'],
+                    objectId: dataItem['objectId'],
+                    objectType: dataItem['objectType']
+                };
+                dataTransferJson.data.items.push(itemObject);
+                types.push(dataItem.objectType);
+            }
+
+            var referrer = topWindow.document.referrer;
+            var publisher = topWindow.parent;
+            var functionName = publisher.postMessage;
+            var dataItem = {};
+            if (!topWindow.IS_CROSS_DOMAIN) {
+                var broker = tvc.getCurrentTvcBroker();
+                if (broker) {
+                    publisher = broker;
+                    functionName = broker.publish;
+                }
+            }
+            dataItem.subscriber = 'tvcOnDropRenderCallSubscribe';
+            dataItem.dataTransfer = dataTransferJson;
+            dataItem.types = types;
+            if (topWindow.IS_CROSS_DOMAIN) {
+                window.tvc.publisher(publisher, functionName, dataItem, referrer);
+            } else {
+                var widgetId;
+                var tvcWidgetWindow = tvc.getTvcWidgetWindow(window, 'tvcwidget');
+                if (tvcWidgetWindow) {
+                    widgetId = tvcWidgetWindow.frameElement.id;
+                }
+                dataItem = widgetId + '_tvcOnDropRenderCallSubscribe';
+                var data = {};
+                data.types = types;
+                data.dataTransfer = dataTransferJson;
+                window.tvc.publisher(publisher, functionName, dataItem, data);
+            }
+        }
+    };
+
+    //For cross we are register event on
+    tvc.registerDropEvent = function(window) {
+        var findFrameFunction = window.tvc.findFrame;
+        var _selfthis = window;
+        if (findFrameFunction) {
+            var tableBodyRightFrame = findFrameFunction(window, 'tableBodyRight');
+            if (tableBodyRightFrame) {
+                this.tableBeanName = tableBodyRightFrame.parent.getTableBeanName();
+                tableBodyRightFrame.addEventListener(
+                    'drop',
+                    window.tvc.dashboardDropCallBack.bind(window)
+                );
+            }
+        }
+    };
+
+    // Add an event listener to the specified object.
+    // The name of the event should be without the
+    // on-prefix that is used on some browsers (read: MSIE).
+    tvc.handleEvent = function(object, event, func) {
+        if (object && func) {
+            if (typeof object.addEventListener == 'function') {
+                object.addEventListener(event, func, false);
+            } else if (typeof object.attachEvent != 'undefined') {
+                object.attachEvent('on' + event, func);
+            }
+        }
+    };
+
+    tvc.unhandleEvent = function(object, event, func) {
+        if (object && func) {
+            if (typeof object.removeEventListener == 'function') {
+                object.removeEventListener(event, func, false);
+            } else if (typeof object.detachEvent != 'undefined') {
+                object.detachEvent('on' + event, func);
+            }
+        }
+    };
+
+    // Capture an event on the specified object.
+    tvc.captureEvent = function(object, event, func) {
+        if (object && func) {
+            if (typeof object.addEventListener == 'function') {
+                object.addEventListener(event, func, true);
+            } else {
+                eval('object.on' + event + '=func');
+            }
+        }
+    };
+
+    // Stops capturing of an event on the specified object.
+    tvc.stopCaptureEvent = function(object, event, func) {
+        if (object && func) {
+            if (typeof object.removeEventListener == 'function') {
+                object.removeEventListener(event, func, true);
+            } else {
+                eval('object.on' + event + '=null');
+            }
+        }
+    };
+
+    // Returns whether the specified
+    // value is a number
+    tvc.isNumber = function(s) {
+        if (s == null) return false;
+        var s = s.replace(/,/g, '.');
+        return !isNaN(s) && s.indexOf('x') == -1;
+    };
+
+    // Returns whether the specified
+    // value is a number
+    tvc.isInteger = function(s) {
+        if (s == null) return false;
+        var s = s.replace(/,/g, '.');
+        return !isNaN(s) && s.indexOf('x') == -1 && s.indexOf('.') == -1;
+    };
+
+    // Returns whether the nodes are related
+    tvc.isAncestorOrSelf = function(node, ancestor) {
+        var temp = node;
+        while (temp) {
+            if (temp == ancestor) {
+                return true;
+            }
+            temp = temp.parentNode;
+        }
+        return false;
+    };
+
+    // Returns the ancestor (starting from node) with the
+    // specified
+    // classname.
+    tvc.getAncestorWithClassName = function(node, className) {
+        var ancestor = node;
+        while (ancestor != null && ancestor.className != className) {
+            ancestor = ancestor.parentNode;
+        }
+        return ancestor;
+    };
+
+    // Returns the ancestor (starting from node)
+    // with the specified node name.
+    tvc.getAncestorWithNodeName = function(node, name) {
+        name = name.toUpperCase();
+        var ancestor = node;
+        while (ancestor != null && ancestor.nodeName.toUpperCase() != name) {
+            ancestor = ancestor.parentNode;
+        }
+        return ancestor;
+    };
+
+    // Returns the first next sibling
+    // with the specified node name.
+    tvc.getNextSiblingWithNodeName = function(element, tagName) {
+        var current = element;
+        while (current.nextSibling) {
+            current = current.nextSibling;
+            if (current.tagName == tagName) {
+                return current;
+            }
+        }
+        return null;
+    };
+
+    // Returns the first previous sibling
+    // with the specified node name.
+    tvc.getPreviousSiblingWithNodeName = function(element, tagName) {
+        var current = element;
+        while (current.previousSibling) {
+            current = current.previousSibling;
+            if (current.tagName == tagName) {
+                return current;
+            }
+        }
+        return null;
+    };
+
+    // Returns the first child
+    // with the specified node name.
+    tvc.getFirstChildWithNodeName = function(node, name) {
+        var childNodes = node.childNodes;
+        for (var i = 0; i < childNodes.length; i++) {
+            var child = childNodes.item(i);
+            if (child.nodeName == name) {
+                return child;
+            }
+        }
+        return null;
+    };
+
+    // Returns all the child elements
+    // with the specified node name.
+    tvc.getAllChildrenWithNodeName = function(node, name) {
+        var retval = new Array();
+        var childNodes = node.childNodes;
+        for (var i = 0; i < childNodes.length; i++) {
+            var child = childNodes.item(i);
+            if (child.nodeName == name) {
+                retval.push(child);
+            }
+        }
+        return retval;
+    };
+
+    // removes all child nodes
+    tvc.removeAllChildren = function(node) {
+        while (node.childNodes.length > 0) {
+            node.removeChild(node.childNodes[0]);
+        }
+    };
+
+    // Returns the total offset top for the
+    // specified element.
+    tvc.pageTop = function(element) {
+        var body = element != null ? element.ownerDocument.body : null;
+        var top = 0;
+        while (element != null) {
+            if (element.offsetTop) {
+                top += element.offsetTop;
+            }
+            if (element.scrollTop) {
+                if (element != body) {
+                    top -= element.scrollTop;
+                }
+            }
+            if (typeof element.offsetParent == 'object') {
+                // Check elements between current and
+                // its offset parent for scrolling
+                var parent = element.offsetParent;
+                var node = element.parentNode;
+                while (node != parent) {
+                    if (node.scrollTop) {
+                        if (node != body) {
+                            top -= node.scrollTop;
+                        }
+                    }
+                    node = node.parentNode;
+                }
+                element = parent;
+            } else {
+                element = null;
+            }
+        }
+        return top;
+    };
+
+    // Returns the total offset left for the
+    // specified element.
+    tvc.pageLeft = function(element) {
+        var body = element != null ? element.ownerDocument.body : null;
+        var left = 0;
+        while (element != null) {
+            if (element.offsetLeft) {
+                left += element.offsetLeft;
+            }
+            if (element.scrollLeft) {
+                if (element != body) {
+                    left -= element.scrollLeft;
+                }
+            }
+            if (typeof element.offsetParent == 'object') {
+                // Check elements between current and
+                // its offset parent for scrolling
+                var parent = element.offsetParent;
+                var node = element.parentNode;
+                while (node != parent) {
+                    if (node.scrollLeft) {
+                        if (node != body) {
+                            left -= node.scrollLeft;
+                        }
+                    }
+                    node = node.parentNode;
+                }
+                element = parent;
+            } else {
+                element = null;
+            }
+        }
+        return left;
+    };
+
+    // checks whether the one frame is a
+    // child frame to another frame
+    tvc.isParentFrame = function(childFrame, parentFrame) {
+        while (childFrame.parent) {
+            if (childFrame.parent == parentFrame) {
+                return true;
+            }
+            childFrame = childFrame.parent;
+        }
+        return false;
+    };
+
+    tvc.XMLHttpRequest = function(url, xmlData, callback, errorHandler) {
+        var xhr = null;
+        if (typeof XMLHttpRequest === 'undefined') {
+            var names = ['Msxml2.XMLHTTP.6.0', 'Msxml2.XMLHTTP.3.0', 'Microsoft.XMLHTTP'];
+            for (var i = 0; i < names.length && xhr == null; i++) {
+                try {
+                    xhr = new ActiveXObject(names[i]);
+                } catch (e) {}
+            }
+        } else {
+            xhr = new XMLHttpRequest();
+        }
+
+        if (xhr) {
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4) {
+                    if (xhr.status == 200) {
+                        callback(xhr.responseXML);
+                    } else if (errorHandler) {
+                        errorHandler(xhr);
+                    } else {
+                        alert(
+                            'Problem retrieving XML data [statusText=' +
+                                xhr.statusText +
+                                ', readyState=' +
+                                xhr.readyState +
+                                ']'
+                        );
+                    }
+                }
+            };
+            xhr.open('POST', url, true);
+            xhr.send(xmlData);
+        }
+    };
+
+    tvc.loadXML = function(url, callback) {
+        if (tvc.agent.isGecko) {
+            var doc = document.implementation.createDocument('', 'test', null);
+            doc.addEventListener(
+                'load',
+                function() {
+                    callback(doc);
+                },
+                false
+            );
+            doc.load(url);
+            doc.asynch = false;
+        } else if (window.ActiveXObject) {
+            var doc = new ActiveXObject('Msxml2.FreeThreadedDOMDocument.3.0');
+            doc.async = false;
+            doc.load(url);
+            if (doc.parseError.errorCode != 0) {
+                alert(doc.parseError.reason);
+            } else {
+                callback(doc);
+            }
+        } else {
+            alert('Your browser is currently not supported!');
+        }
+    };
+
+    tvc.newXMLDoc = function(qualifiedName) {
+        if (tvc.agent.isGecko) {
+            return document.implementation.createDocument('', qualifiedName, null);
+        } else {
+            var doc = new ActiveXObject('Msxml2.FreeThreadedDOMDocument.3.0');
+            doc.appendChild(doc.createElement(qualifiedName));
+            return doc;
+        }
+    };
+
+    tvc.serializeXMLToString = function(xmlDoc) {
+        if (tvc.agent.isGecko) {
+            return new XMLSerializer().serializeToString(xmlDoc);
+        } else if (tvc.agent.isMSIE) {
+            return xmlDoc.xml;
+        }
+        return null;
+    };
+
+    // returns the scrollbar width
+    tvc.scrollbarWidth = 0;
+    tvc.getScrollbarWidth = function() {
+        if (tvc.scrollbarWidth == 0) {
+            var elem = document.createElement('DIV');
+            var style = [];
+            style.push('top:0px;left:0px;');
+            style.push('width:100px;height:100px;visibility:hidden;');
+            style.push('overflow:scroll;position:absolute;');
+            elem.style.cssText = style.join('');
+            document.body.appendChild(elem);
+            tvc.scrollbarWidth = elem.offsetWidth - elem.clientWidth;
+            document.body.removeChild(elem);
+        }
+        return tvc.scrollbarWidth;
+    };
+
+    /**
+     * parses url query string into key values
+     */
+    tvc.parseQuery = function(query) {
+        var params = {};
+        if (query) {
+            var segments = query.split('&');
+            for (var i = 0, length = segments.length; i < length; i++) {
+                var parts = segments[i].split('=');
+                var key = parts.shift();
+                key = key && decodeURIComponent(key);
+                if (key) {
+                    var value = parts.join('=');
+                    value = value && decodeURIComponent(value);
+                    var values = params[key] || (params[key] = []);
+                    values.push(value);
+                }
+            }
+        }
+        return params;
+    };
+
+    /**
+     * parses url into key values
+     */
+    tvc.parseUrl = function(url) {
+        var parsed = {
+            uri: '',
+            params: {}
+        };
+        if (url) {
+            var segments = url.split('?');
+            var uri = segments.shift();
+            var query = segments.join('?');
+            parsed.uri = uri;
+            parsed.params = tvc.parseQuery(query);
+        }
+        return parsed;
+    };
+
+    tvc.HTMLDecode = function(input) {
+        var elt = document.createElement('textarea');
+        elt.setAttribute('id', 'invalidCharsTextArea');
+        elt.innerHTML = input;
+        return elt.value;
+    };
+
+    tvc.acknowledgePublisher = function(eventName) {
+        var publishIDs = eventName.split(',');
+        var tvcBrokers = tvc.getTVCBrokers();
+        publishIDs.forEach(function(publishID) {
+            tvcBrokers.forEach(function(tvcBroker, index) {
+                tvcBroker.publish(publishID);
+            });
+        });
+    };
+
+    tvc.getTVCBrokers = function() {
+        var tvcBrokers = tvc.callFunctionFromAllWindow(function(tvcWindowObj) {
+            var tvcCurrentWindowBroker = tvcWindowObj.getCurrentTvcBroker;
+            if (tvcCurrentWindowBroker) {
+                return tvcCurrentWindowBroker();
+            }
+            return tvcCurrentWindowBroker;
+        });
+        return tvcBrokers;
+    };
+
+    /*
+     * Gecko version / Firefox version mapping:
+     *
+     * Gecko | FF ------+------ 1.7 | 1.0 1.8.0 | 1.5 1.8.1 | 2.0 1.9 | 3.0
+     * 1.9.1 | 3.5 1.9.2 | 3.6 1.9.3 | 3.7
+     */
+    tvc.agent = {
+        version: 0.0,
+        isMSIE: false,
+        isMinMSIE_5_5: false,
+        isMSIE_5_5: false,
+        isMSIE_6_0: false,
+        isMSIE_7_0: false,
+        isMSIE_8_0: false,
+        isMSIE_9_0: false,
+        isMSIE_10_0: false,
+        isMSIE_11: false,
+        isGecko: false,
+        isMinGecko_1_4: false,
+        isGecko_1_4: false,
+        isGecko_1_7: false,
+        isGecko_1_8: false, // FF2
+        isMinGecko_1_8: false,
+        isGecko_1_9: false, // FF3
+        isMinGecko_1_9: false,
+        isNetscape: false,
+        isChrome: false,
+        isSafari: false,
+        init: function() {
+            var ua = window.navigator.userAgent;
+            if (ua.indexOf('MSIE') != -1) {
+                this.isMSIE = true;
+                var i = ua.indexOf('MSIE');
+                var ver = parseFloat(ua.substring(i + 5, ua.indexOf(';', i + 5)));
+                this.version = ver;
+                if (ver >= 5.5) {
+                    this.isMinMSIE_5_5 = true;
+                    if (ver == 5.5) {
+                        this.isMSIE_5_5 = true;
+                    }
+                    if (ver == 6.0) {
+                        this.isMSIE_6_0 = true;
+                    }
+                    if (ver == 7.0) {
+                        this.isMSIE_7_0 = true;
+                    }
+                    if (ver == 8.0) {
+                        this.isMSIE_8_0 = true;
+                    }
+                    if (ver == 9.0) {
+                        this.isMSIE_9_0 = true;
+                    }
+                    if (ver == 10.0) {
+                        this.isMSIE_10_0 = true;
+                    }
+                }
+            } else if (ua.indexOf('Trident/') != -1 && ua.indexOf('like Gecko') != -1) {
+                this.isMSIE_11 = true;
+                this.isGecko = true;
+                this.isMinGecko_1_9 = true;
+                var i = ua.indexOf('rv:');
+                var ver = parseFloat(ua.substring(i + 3));
+                this.version = ver;
+            } else if (ua.indexOf('Chrome') != -1) {
+                this.isChrome = true;
+                var i = ua.indexOf('Chrome/');
+                var ver = ua.substring(i + 7, ua.indexOf(' ', i + 7)).split('.');
+                this.version = parseFloat(ver[0] + '.' + ver[1]);
+            } else if (ua.indexOf('Safari') != -1) {
+                this.isSafari = true;
+                var i = ua.indexOf('Version/');
+                var ver = ua.substring(i + 8, ua.indexOf(' ', i + 8)).split('.');
+                this.version = parseFloat(ver[0] + '.' + ver[1]);
+            } else if (ua.indexOf('Gecko') != -1) {
+                this.isGecko = true;
+                var i = ua.indexOf('rv:');
+                var ver = parseFloat(ua.substring(i + 3, i + 6));
+                this.version = ver;
+                if (ver >= 1.4) {
+                    this.isMinGecko_1_4 = true;
+                    if (ver == 1.4) {
+                        this.isGecko_1_4 = true;
+                    }
+                    if (ver == 1.7) {
+                        this.isGecko_1_7 = true;
+                    }
+                    if (ver == 1.8) {
+                        this.isGecko_1_8 = true;
+                    }
+                    if (ver >= 1.8) {
+                        this.isMinGecko_1_8 = true;
+                    }
+                    if (ver == 1.9) {
+                        this.isGecko_1_9 = true;
+                    }
+                    if (ver >= 1.9) {
+                        this.isMinGecko_1_9 = true;
+                    }
+                }
+                this.isNetscape = ua.indexOf('Netscape') != -1;
+            }
+            return true;
+        }
+    };
+
+    tvc.agent.init();
+
+    (function(tvc) {
+        if (!Object.assign) {
+            var shallowCopy = function(to, from) {
+                for (var prop in from) {
+                    if (from.hasOwnProperty(prop)) {
+                        to[prop] = from[prop];
+                    }
+                }
+            };
+
+            Object.assign = function(target) {
+                var to = Object(target);
+                for (var i = 1; i < arguments.length; i++) {
+                    arguments[i] && shallowCopy(to, Object(arguments[i]));
+                }
+                return to;
+            };
+        }
+
+        if (!Function.prototype.bind) {
+            Function.prototype.bind = function() {
+                var original = this,
+                    args = [].slice.call(arguments),
+                    binder = args.shift();
+                return function() {
+                    return original.apply(binder, args.concat([].slice.call(arguments)));
+                };
+            };
+        }
+
+        if (!Function.prototype.inherits) {
+            Function.prototype.inherits = function(_super) {
+                function __(constructor) {
+                    this.constructor = constructor;
+                }
+                __.prototype = _super.prototype;
+                Object.assign(this, _super);
+                this.prototype = new __(this);
+            };
+        }
+
+        if (!Function.prototype.behaves) {
+            Function.prototype.behaves = function() {
+                var args = [this.prototype];
+                [].push.apply(args, arguments);
+                Object.assign.apply(Object, args);
+            };
+        }
+
+        if (!Function.prototype.throttle) {
+            Function.prototype.throttle = function(delay, context) {
+                var timeout = this.timeout(delay, context),
+                    timeid = null;
+                return function() {
+                    timeid && clearTimeout(timeid);
+                    timeid = timeout.apply(context, [].slice.call(arguments));
+                };
+            };
+        }
+
+        if (!Function.prototype.timeout) {
+            Function.prototype.timeout = function(delay, context) {
+                var original = this;
+                return function() {
+                    var args = [].slice.call(arguments);
+                    return setTimeout(
+                        function() {
+                            original.apply(context, args);
+                        },
+                        delay !== void 0 ? delay : 10
+                    );
+                };
+            };
+        }
+
+        if (!Function.prototype.getName) {
+            Function.prototype.getName = function() {
+                var nameRegEx = /^function\s?([^\s(]*)/;
+                return this.__name__ || this.name || this.toString().match(nameRegEx)[1];
+            };
+        }
+
+        if (!Function.Super) {
+            Function.Super = (function() {
+                function Super() {}
+
+                Super.prototype.getClass = function() {
+                    return this.constructor;
+                };
+
+                Super.prototype.getClassName = function() {
+                    return this.constructor.getName();
+                };
+
+                return Super;
+            })();
+        }
+
+        // String trim method (missing from JS API)
+        if (!String.prototype.trim) {
+            String.prototype.trim = function() {
+                return this.replace(/^\s+/g, '').replace(/\s+$/g, '');
+            };
+        }
+
+        // adds the indexof method on array's
+        if (!Array.prototype.indexOf) {
+            Array.prototype.indexOf = function(elt /* , from */) {
+                var len = this.length;
+                var from = Number(arguments[1]) || 0;
+                from = from < 0 ? Math.ceil(from) : Math.floor(from);
+                if (from < 0) {
+                    from += len;
+                }
+                for (; from < len; from++) {
+                    if (from in this && this[from] === elt) {
+                        return from;
+                    }
+                }
+                return -1;
+            };
+        }
+
+        // Returns the xml document as a string,
+        // useful for debugging with firebug (firefox extension)
+        if (typeof XMLDocument != 'undefined') {
+            XMLDocument.prototype.toString = function() {
+                return tvc.serializeXMLToString(this);
+            };
+        }
+    })(tvc);
+
+    tvc.onDocumentRendered = (function(tvc) {
+        var handlers = [],
+            loaded = false;
+
+        var rendered = function() {
+            while (handlers.length) {
+                handlers.shift()();
+            }
+        }.timeout(50);
+
+        function onLoad() {
+            if (tvc.agent.isMSIE || tvc.agent.isMSIE_11) {
+                var frame = document.createElement('iframe');
+                frame.name = 'hiddenExtLoad';
+                frame.style.cssText = 'top:-9999px;left:-9999px;height:0;width:0';
+                tvc.handleEvent(frame, 'load', function() {
+                    frame.parentNode.removeChild(frame);
+                    loaded = true;
+                    rendered();
+                });
+                document.body.appendChild(frame);
+            } else {
+                loaded = true;
+                rendered();
+            }
+        }
+
+        function removeClosedClass() {
+            var arrayOfPageContent = [];
+            var contentName = 'page-content-container';
+            // putting it in try/catch block as it is throwing an error in 3DDashboard for cross domain.
+            // not changing existing try/catch as it might have different use case.
+            // not able to check whether it is 3Dashboard or not as condition is not getting satisfied, while registering to handleEvent "removeClosedClass".
+            try {
+                arrayOfPageContent[0] = document.getElementsByClassName(contentName);
+                arrayOfPageContent[1] = parent.document.getElementsByClassName(contentName);
+                arrayOfPageContent[2] = parent.parent.document.getElementsByClassName(contentName);
+                for (var i = 0; i < arrayOfPageContent.length; i++) {
+                    try {
+                        if (arrayOfPageContent[i].length) {
+                            var pageContentElement = arrayOfPageContent[i][0];
+                            pageContentElement.classList.remove('closed');
+                            break;
+                        }
+                    } catch (error) {
+                        console.error('An error occurs while removing closed class', error);
+                    }
+                }
+            } catch (error) {
+                console.warn('An error occurs while removing closed class', error);
+            }
+        }
+
+        tvc.handleEvent(window, 'load', onLoad);
+        tvc.handleEvent(window, 'load', removeClosedClass);
+
+        return function(handler, timeout) {
+            handlers.push(handler.timeout(timeout || 50));
+            loaded && rendered();
+        };
+    })(tvc);
+
+    /**
+     * Executes a function with arguments. Supports functions in name spaces,
+     * e.g. `App.custom.sortChart()`
+     *
+     * @param  {String|Function}     functionName Name of function or function to execute
+     * @param  {Object} win          Window object
+     * @param  {Object} context      Context for function (Optional)
+     * @param  {Object} args         Arguments sent to function (Optional)
+     * @return {Any}                 Returns method values of the requested function
+     */
+
+    tvc.execFunction = function(functionName, win, context, args) {
+        try {
+            var fn = tvc.isFunction(functionName)
+                ? functionName
+                : tvc.stringToFunction(functionName, win);
+            return fn.apply(context, args);
+        } catch (err) {
+            console.log('Error executing function ' + functionName + args);
+        }
+    };
+
+    /**
+     * Returns a function based on the passed in string, supports namespaces.
+     * e.g App.custom.sortChart();
+     *
+     * @param {String}      functionName, Name of the function
+     * @param {Object}      win Window object
+     * @return {Function}   the found function
+     */
+
+    tvc.stringToFunction = function(functionName, win) {
+        var fname = functionName.replace('javascript:', '').replace(/ *\([^)]*\); */g, '');
+        var namespaces = fname.split('.');
+        var func = namespaces.pop();
+        namespaces.forEach(function(namespace) {
+            win = win[namespace];
+        });
+        return win[func];
+    };
+
+    /**
+     * Returns true if the passed in variable is an instance of function
+     *
+     * @param {Object}     variableToCheck, Name of the function
+     * @return {Boolean}   `true` is the passed in variable is a function else `false`
+     */
+    tvc.isFunction = function(variableToCheck) {
+        return typeof variableToCheck === 'function';
+    };
+
+    var TVCDialog = (function(_super, tvc) {
+        TVCDialog.inherits(_super);
+
+        function TVCDialog(opener, name, url, width, height) {
+            _super.apply(this, arguments);
+            this.url = url;
+            this.name = name;
+            this.width = width;
+            this.height = height;
+            this.prefix = '_blank';
+            this.openerWindow = opener;
+            this.contentWindow = null;
+
+            this.isContent = TVCDialog.isContentPage(url);
+            this.isEnoviaContent = this.isContent && TVCDialog.isEnoviaContentPage(url);
+        }
+
+        var behaviours = {
+            getFeatures: function(feature) {
+                var features = [];
+                try {
+                    var top = Math.max((window.screen.height - this.height) / 2, 0);
+                    features.push('top=' + top);
+                } catch (e) {}
+                try {
+                    var left = Math.max((window.screen.width - this.width) / 2, 0);
+                    features.push('left=' + left);
+                } catch (e) {}
+                features.push('width=' + this.width);
+                features.push('height=' + this.height);
+                feature && features.push(feature);
+                return features;
+            },
+
+            getContextWindow: function() {
+                return this.openerWindow;
+            },
+
+            getOpenerWindow: function() {
+                return this.getContextWindow();
+            },
+
+            show: function(feature) {
+                var name = this.name || this.prefix + new Date().getTime();
+                var features = this.getFeatures(feature).join(',');
+                var context = this.getContextWindow();
+                if (this.isEnoviaContent) {
+                    var dialogForwardParam = 'dialogForward';
+                    var dialogMode;
+                    if (this.url.indexOf(dialogForwardParam) === -1) {
+                        dialogMode = 'dialog';
+                    } else {
+                        var parsed = tvc.parseUrl(this.url);
+                        var dialogForward = parsed.params[dialogForwardParam];
+                        dialogMode = dialogForward.pop();
+                        dialogMode = dialogMode.toLowerCase();
+                    }
+
+                    if (dialogMode === 'url') {
+                        this.contentWindow = context.open(this.url, name, features);
+                    } else {
+                        var dialogWindow =
+                            dialogMode === 'navigator'
+                                ? '/common/emxNavigator.jsp?isPopup=true&'
+                                : '/common/emxNavigatorDialog.jsp?';
+
+                        this.contentWindow = context.open(
+                            APP_NAME + dialogWindow + 'contentURL=' + encodeURIComponent(this.url),
+                            name,
+                            features
+                        );
+                        this.contentWindow.name = this.name = name + '||' + this.url;
+                    }
+                } else {
+                    this.contentWindow = context.open(this.url, name, features);
+                }
+                TVCDialog.registerChildWindows(this.contentWindow, this.getOpenerWindow());
+                return this.contentWindow;
+            },
+
+            release: function() {
+                TVCDialog.closeWindow(this.contentWindow);
+            }
+        };
+
+        TVCDialog.enoviaContentPages = ['emxTree.jsp', 'emxNavigatorDialog.jsp', '/emx'];
+
+        TVCDialog.tvcContentPages = [
+            '/loadTopPanel',
+            '/launchFromPortal',
+            '/personalbrowser',
+            '/beginCreateReport',
+            '/loadCategoryTopPanel'
+        ];
+
+        TVCDialog.contentPages = TVCDialog.enoviaContentPages.concat(TVCDialog.tvcContentPages);
+
+        TVCDialog.isContentPage = function(page) {
+            return TVCDialog.isInDependentPage(TVCDialog.contentPages, page);
+        };
+
+        TVCDialog.isEnoviaContentPage = function(page) {
+            return TVCDialog.isInDependentPage(TVCDialog.enoviaContentPages, page);
+        };
+
+        TVCDialog.isInDependentPage = function(pages, page) {
+            var parsed = tvc.parseUrl(page);
+            var independent = parsed.params['independent'];
+            if (independent) {
+                return independent.pop().toLowerCase() === 'true';
+            }
+            return TVCDialog.hasPage(pages, parsed.uri);
+        };
+
+        TVCDialog.hasPage = function(pages, page) {
+            for (var i = 0; i < pages.length; i++) {
+                if (page.indexOf(pages[i]) !== -1) {
+                    return true;
+                }
+            }
+            return false;
+        };
+
+        TVCDialog.registerChildWindows = function(childWindow, parentWindow) {
+            if (parentWindow && !parentWindow.closed && childWindow !== parentWindow) {
+                parentWindow.childWindows = parentWindow.childWindows || [];
+                parentWindow.childWindows.push(childWindow);
+
+                parentWindow.tvcChildWindows = parentWindow.tvcChildWindows || [];
+                parentWindow.tvcChildWindows.push(childWindow);
+
+                TVCDialog.listenWindowClose(parentWindow);
+            }
+        };
+
+        TVCDialog.listenWindowClose = function(parentWindow) {
+            TVCDialog.registerWindowClose(parentWindow);
+
+            if (tvc.agent.isMSIE || tvc.agent.isMSIE_11) {
+                var parent = parentWindow.parent;
+                while (parent !== null && parent !== parentWindow.top) {
+                    TVCDialog.registerWindowClose(parent);
+                    parent = parent.parent;
+                }
+            }
+
+            TVCDialog.registerWindowClose(parentWindow.top);
+        };
+
+        TVCDialog.registerWindowClose = function(contextWindow) {
+            if (!contextWindow.__listeningClose) {
+                var onClose = function() {
+                    contextWindow.top.modalDialog && contextWindow.top.modalDialog.release();
+                    TVCDialog.closeChildWindows(contextWindow);
+                };
+                TVCDialog.onWindowClose(contextWindow, onClose);
+                contextWindow.__listeningClose = true;
+            }
+        };
+
+        TVCDialog.onWindowLoad = function(contextWindow, handler) {
+            tvc.handleEvent(contextWindow, 'load', handler);
+        };
+
+        TVCDialog.onWindowClose = function(contextWindow, handler) {
+            tvc.handleEvent(contextWindow, 'unload', handler);
+            tvc.handleEvent(contextWindow, 'beforeunload', handler);
+        };
+
+        TVCDialog.closeChildWindows = function(parentWindow) {
+            if (parentWindow && parentWindow.tvcChildWindows) {
+                var childWindows = parentWindow.tvcChildWindows;
+                parentWindow.tvcChildWindows = null;
+                for (var i = 0; i < childWindows.length; i++) {
+                    var childWindow = childWindows[i];
+                    if (parentWindow != childWindow) {
+                        TVCDialog.closeWindow(childWindow);
+                    }
+                }
+            }
+        };
+
+        TVCDialog.closeWindow = function(contentWindow) {
+            try {
+                if (contentWindow && !contentWindow.closed) {
+                    TVCDialog.closeChildWindows(contentWindow);
+                    contentWindow.close();
+                }
+            } catch (eIgnore) {}
+        };
+
+        TVCDialog.behaves(behaviours);
+
+        return TVCDialog;
+    })(Function.Super, tvc);
+
+    var TVCNonModalDialog = (function(_super) {
+        TVCNonModalDialog.inherits(_super);
+
+        function TVCNonModalDialog(opener, name, url, width, height) {
+            _super.apply(this, arguments);
+        }
+
+        TVCNonModalDialog.getInstance = function(opener, name, url, width, height) {
+            return new TVCNonModalDialog(opener, name, url, width, height);
+        };
+
+        var overrides = {
+            getFeatures: function() {
+                var features = _super.prototype.getFeatures.apply(this, arguments);
+                features.push('channelmode=no,directories=no');
+                features.push('status=no,toolbar=no,menubar=no,titlebar=no');
+                features.push('location=no,resizable=yes,scrollbars=yes');
+                return features;
+            },
+
+            getOpenerWindow: function() {
+                if (this.isContent) {
+                    return TVCNonModalDialog.getRegistrationWindow(top);
+                }
+                return _super.prototype.getOpenerWindow.apply(this, arguments);
+            },
+
+            show: function() {
+                var win = _super.prototype.show.apply(this, arguments);
+                try {
+                    win.focus();
+                } catch (ex) {}
+                return win;
+            }
+        };
+
+        TVCNonModalDialog.getRegistrationWindow = function(contextWindow) {
+            while (TVCNonModalDialog.hasWindowOpener(contextWindow)) {
+                contextWindow = contextWindow.opener.top;
+            }
+            return contextWindow;
+        };
+
+        TVCNonModalDialog.hasWindowOpener = function(contextWindow) {
+            try {
+                // IE throws permission denied error when opener
+                // is closed
+                return contextWindow.opener && !contextWindow.opener.closed;
+            } catch (ex) {
+                return false;
+            }
+        };
+
+        TVCNonModalDialog.behaves(overrides);
+
+        return TVCNonModalDialog;
+    })(TVCDialog);
+
+    var TVCModalDialog = (function(_super, tvc) {
+        TVCModalDialog.inherits(_super);
+
+        function TVCModalDialog(opener, name, url, width, height, scrollbars, resizable) {
+            _super.apply(this, arguments);
+            this.prefix = 'ModalDialog';
+            this.parentWindow = opener.top;
+            this.scrollbars = !!scrollbars;
+            this.resizable = !!resizable;
+            this.captureHandler = TVCModalDialog.createCaptureHandler(this);
+            this.releaseMouse = Function.prototype;
+            this.parentWindow.top.modalDialog = this;
+            this.released = false;
+        }
+
+        TVCModalDialog.getExisting = function() {
+            var dialog = null;
+            try {
+                var modal = top.modalDialog;
+                if (modal && modal.contentWindow && !modal.contentWindow.closed) {
+                    dialog = modal;
+                }
+            } catch (ex) {
+                top.modalDialog = null;
+            }
+            return dialog;
+        };
+
+        TVCModalDialog.getInstance = function(opener, name, url, width, height) {
+            var dialog = TVCModalDialog.getExisting();
+            return dialog || new TVCModalDialog(opener, name, url, width, height, true, true);
+        };
+
+        var overrides = {
+            getFeatures: function() {
+                var features = _super.prototype.getFeatures.apply(this, arguments);
+                this.resizable && features.push('resizable=yes');
+                this.scrollbars && features.push('scrollbars=yes');
+                tvc.agent.isGecko && features.push('modal=yes');
+                return features;
+            },
+
+            show: function() {
+                if (this.contentWindow == null || this.contentWindow.closed) {
+                    this.contentWindow = _super.prototype.show.apply(this, arguments);
+                    if (!this.contentWindow) {
+                        throw new Error('The modal dialog failed to create the new window.');
+                    }
+                    TVCModalDialog.captureEvents(this, this.parentWindow);
+                }
+                if (window.focus) {
+                    this.contentWindow.focus();
+                }
+                return this.contentWindow;
+            },
+
+            release: function() {
+                try {
+                    if (!this.released) {
+                        TVCModalDialog.removeEventHandlers(this, this.parentWindow);
+                        this.parentWindow.top.modalDialog = null;
+                        if (this.contentWindow && !this.contentWindow.closed) {
+                            TVCModalDialog.closeWindow(this.contentWindow);
+                        }
+                        this.openerWindow = this.contentWindow = this.parentWindow = null;
+                        this.released = true;
+                    }
+                } catch (ex) {
+                    TVCModalDialog.handleException(this, 'releaseModalDialog', ex);
+                }
+            }
+        };
+
+        TVCModalDialog.releaseDialog = function(dialog) {
+            dialog && dialog.release();
+        };
+
+        TVCModalDialog.createCaptureHandler = function(dialog) {
+            return function(event) {
+                if (TVCModalDialog.checkFocus(dialog)) {
+                    tvc.stopBubbleEvent(event);
+                    return false;
+                }
+                TVCModalDialog.releaseDialog(dialog);
+                return true;
+            };
+        };
+
+        TVCModalDialog.checkFocus = function(dialog) {
+            try {
+                var contentWindow = dialog.contentWindow;
+                if (contentWindow && !contentWindow.closed) {
+                    var modalDialog = contentWindow.modalDialog;
+                    if (
+                        modalDialog &&
+                        modalDialog.contentWindow &&
+                        !modalDialog.contentWindow.closed
+                    ) {
+                        return TVCModalDialog.checkFocus(modalDialog);
+                    } else {
+                        dialog.show();
+                        return true;
+                    }
+                }
+            } catch (ex) {
+                TVCModalDialog.handleException(dialog, 'checkFocus', ex);
+            }
+            TVCModalDialog.releaseDialog(dialog);
+            return false;
+        };
+
+        TVCModalDialog.captureEvents = function(dialog, captureWindow) {
+            if (captureWindow) {
+                for (var i = 0; i < captureWindow.frames.length; i++) {
+                    TVCModalDialog.captureEvents(dialog, captureWindow.frames[i]);
+                }
+                TVCModalDialog.captureEvent(dialog, captureWindow);
+            }
+        };
+
+        TVCModalDialog.captureEvent = function(dialog, captureWindow) {
+            try {
+                if (captureWindow && captureWindow.document && captureWindow.document.body) {
+                    var captured = tvc.agent.isMSIE ? captureWindow.document.body : captureWindow;
+                    tvc.captureEvent(captured, 'click', dialog.captureHandler);
+                    tvc.captureEvent(captured, 'focus', dialog.captureHandler);
+                    tvc.captureEvent(captured, 'mousedown', dialog.captureHandler);
+                    tvc.captureEvent(captured, 'mouseup', dialog.captureHandler);
+                    tvc.captureEvent(captured, 'contextmenu', dialog.captureHandler);
+                    captured.setCapture && captured.setCapture();
+                }
+            } catch (ex) {
+                TVCModalDialog.handleException(dialog, 'captureEvent', ex);
+            }
+        };
+
+        TVCModalDialog.removeEventHandlers = function(dialog, captureWindow) {
+            if (captureWindow) {
+                for (var i = 0; i < captureWindow.frames.length; i++) {
+                    TVCModalDialog.removeEventHandlers(dialog, captureWindow.frames[i]);
+                }
+                TVCModalDialog.removeEventHandler(dialog, captureWindow);
+            }
+        };
+
+        TVCModalDialog.removeEventHandler = function(dialog, captureWindow) {
+            try {
+                if (captureWindow && captureWindow.document && captureWindow.document.body) {
+                    var captured = tvc.agent.isMSIE ? captureWindow.document.body : captureWindow;
+                    tvc.stopCaptureEvent(captured, 'click', dialog.captureHandler);
+                    tvc.stopCaptureEvent(captured, 'focus', dialog.captureHandler);
+                    tvc.stopCaptureEvent(captured, 'mousedown', dialog.captureHandler);
+                    tvc.stopCaptureEvent(captured, 'mouseup', dialog.captureHandler);
+                    tvc.stopCaptureEvent(captured, 'contextmenu', dialog.captureHandler);
+                    captured.releaseCapture && captured.releaseCapture();
+                }
+            } catch (ex) {
+                TVCModalDialog.handleException(dialog, 'removeEventHandler', ex);
+            }
+        };
+
+        TVCModalDialog.handleException = function(dialog, message, ex) {};
+
+        TVCModalDialog.behaves(overrides);
+
+        return TVCModalDialog;
+    })(TVCDialog, tvc);
+
+    return tvc;
+});
+
+
+// Used to switch focus to the main content screen when a search item is selected
+// Copied the following 2 functions from emxUIConstants.js:
+
+//! Public Function findFrame()
+//!     This function finds a frame with a given name.
+function findFrame(objWindow, strName) {
+    if (strName == "_top") {
+        return top;
+    } else if (strName == "_self") {
+        return self;
+    } else if (strName == "_parent") {
+        return parent;
+    } else {
+        var objFrame = null;
+        for (var i = 0; i < objWindow.frames.length && !objFrame; i++) {
+            try {
+                if (objWindow.frames[i].name == strName) {
+                    objFrame = objWindow.frames[i];
+                }
+            } catch (objException) {
+            }
+        }
+        if (!objFrame) {
+            for (var i = 0; i < objWindow.frames.length && !objFrame; i++) {
+                objFrame = findFrame(objWindow.frames[i], strName);
+            }
+        }
+        return objFrame;
+    }
+}
+
+//! Public Function openerFindFrame()
+//!     This function finds a frame from current window or its
+//!     opener with a given name.
+function openerFindFrame(objWindow, strName) {
+    var objFrame = findFrame(objWindow, strName);
+    var objOpenerWindow = null;
+    if (!objFrame) {
+        if (objWindow && objWindow.opener) {
+            objOpenerWindow = objWindow.opener.top;
+            if (objOpenerWindow) {
+                objFrame = openerFindFrame(objOpenerWindow, strName)
+            }
+        }
+    }
+    return objFrame;
+}
+
+//window.onerror = function(msg,url,lno) { if (msg.indexOf('Permission denied') >= 0) { return true; } else { return false; } }
+function emxTableTVCColumnLinkClick(href, width, height, modal, target, onselaction) {
+    targetFrame = openerFindFrame(top, target);
+    if (targetFrame != null) {
+        targetFrame.location.target = "content";
+        if (targetFrame.top.document.getElementById && targetFrame.top.document.getElementById('imgProgressDiv') != null) {
+            targetFrame.top.document.getElementById('imgProgressDiv').style.visibility = 'visible';
+        }
+        targetFrame.location.href = href;
+        targetFrame.top.focus();
+    }
+}
+
+function emxTableTVCColumnTreeLinkClick(href, width, height, modal, target, onselaction) {
+    var url = href;
+    var targetFrame;
+
+    if ((href.indexOf("emxTree.jsp") == 0 || href.indexOf("../common/emxTree.jsp") == 0 ) &&
+        ( href.indexOf("mode=insert") != -1) &&
+        ( target == "content") &&
+        ( openerFindFrame(top, "treeDisplay") != null) &&
+        ( top.tempTree)) {
+        href = href.replace("emxTree.jsp", "emxTreeDisplay.jsp");
+        targetFrame = openerFindFrame(top, "treeDisplay");
+
+    } else {
+        // targetFrame = findFrame(top, target);
+        targetFrame = openerFindFrame(top, target);
+    }
+
+    //if there is a target, assign the form's target to it
+    if (targetFrame) {
+        /*
+        document.emxTableForm.target = targetFrame.name;
+        //assign the URL to the form's action
+        document.emxTableForm.action = href;
+        //submit the form
+        document.emxTableForm.submit();
+        */
+        targetFrame.location.href = href;
+        // set the focus to new window
+        targetFrame.top.focus();
+
+    } else {
+//        windowObject = showNonModalDialog(url, '750', '600', true);
+        //todo
+        tvc.popup(url, '750', '600', false);
+    }
+
+}
+var request;
+function makeRequest(personId,chkboxObj)
+{
+    var URL ="../programcentral/alvProgramCentralMemberAddSession.jsp?chkboxObjName="+chkboxObj.name+"&chkboxObjValue="+chkboxObj.value+"&personId="+personId;
+    if(window.XMLHttpRequest)
+    {
+        request = new XMLHttpRequest();
+    }
+    else if(window.ActiveXObject)//ie
+    {
+        request = new ActiveXObject("MSXML2.XMLHTTP");
+    }
+    sendRequest(URL);
+}
+//Function to implement AJAX technology
+function sendRequest(URL)
+{
+    request.onreadystatechange = onResponse;
+    request.open("GET", URL, true);
+    request.send(null);
+}
+//Function to implement AJAX technology
+function onResponse()
+{
+    if(request.readyState == 4)
+    {
+        if(request.status == 200)
+        {
+            var response = request.responseXML.documentElement;
+        }
+    }
+}
+<!-- #######################################################  -->
+<!-- Javascript code used by APP Portal                       -->
+<!--                                                          -->
+<!-- Main login application code for Autoliv Partner Portal   -->
+<!--                                                          -->
+<!-- Software Engineer : David Allen Barney                   -->
+<!--                                                          -->
+<!-- Date              :   11/21/2008                         -->
+<!-- #######################################################  -->
+function login_User(sApp)
+{
+    var sLogin = "../portal/alvLogin.jsp?Application="+sApp;
+    var TopX = screen.availHeight;
+    var LeftX = screen.availWidth;
+    var windowProps = "width=1,height=1,top="+TopX+",left="+LeftX+",status=no,location=no,directories=no,menubar=no,toolbar=no,resizable=no";
+
+    win3=window.open(sLogin,"",windowProps)
+    /*attach the custom property "creator" to win2, and have it contain the current window (main window)*/
+    win3.creator=self
+
+}
+var s00000103 = "Your application account or your company's application account is pending.....";
+function PendingMsg()
+{
+    alert(s00000103);
+}
+function hov(loc,cls){
+    if(loc.className)
+        loc.className=cls
+}

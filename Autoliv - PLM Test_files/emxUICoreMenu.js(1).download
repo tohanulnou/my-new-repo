@@ -1,0 +1,1552 @@
+/*!================================================================
+ *  JavaScript Core Menu Component
+ *  emxUICoreMenu.js
+ *  Version 1.0
+ *  Requires: emxUICore.js
+ *  Last Updated: 4-Apr-03, Nicholas C. Zakas (NCZ)
+ *
+ *  This file contains the definition of a JavaScript popup menu.
+ *
+ *  Copyright (c) 1992-2012 Dassault Systemes. All Rights Reserved.
+ *  This program contains proprietary and trade secret information
+ *  of MatrixOne,Inc. Copyright notice is precautionary only
+ *  and does not evidence any actual or intended publication of such program
+ *
+ *  static const char RCSID[] = $Id: emxUICoreMenu.js.rca 1.15 Wed Oct 22 15:48:18 2008 przemek Experimental przemek $
+ *=================================================================
+ */
+var emxUICoreMenu = new Object;
+emxUICoreMenu.CSS_FILE = emxUICore.getStyleSheet("emxUIMenu");
+emxUICoreMenu.WATCH_DELAY = 50;
+emxUICoreMenu.POPUP_MAX_HEIGHT = 740;
+emxUICoreMenu.POPUP_MIN_WIDTH = 200;
+emxUICoreMenu.DELAY_BETWEEN = 50;
+emxUICoreMenu.SCROLL_DISTANCE = 10;
+emxUICoreMenu.MAXITEMS_PER_COLUMN = 18;
+emxUICoreMenu.MAXITEMS_PER_COLUMN_GB = 22;
+emxUICoreMenu.HEADER_HT = 30;
+emxUICoreMenu.ROW_HT = 21;
+emxUICoreMenu.DEF_POPUP_SRC = "<!DOCTYPE html><html style='overflow:hidden;'><head></head><body></body></html>";
+var objulStatus = false;
+//! Class emxUICorePopupMenu
+//!    This object represents a menu.
+function emxUICorePopupMenu() {
+        this.superclass = emxUIObject;
+        this.superclass();
+        delete this.superclass;
+        this.cssClass = "menu-layer";
+        this.emxClassName = "emxUICorePopupMenu";
+        this.items = new Array;
+        this.layer = null;
+        this.innerLayer = null;
+        this.scrollTimeoutID = null;
+        this.timeoutID = null;
+        this.visible = false;
+        this.maxHeight = 740;
+        this.templateInnerLayer = null;
+        this.templateOuterLayer = null;
+        this.templateUpButton = null;
+        this.templateDownButton = null;
+        this.ownerWindow = self;
+        this.parent = null;
+        this.popup = null;
+        this.stylesheet = emxUICoreMenu.CSS_FILE;
+        this.displayWindow = self;
+        this.uniqueID = emxUICore.getUniqueID();
+        this.treeMenuRevision = false;
+        this.menucontent = null;
+        this.menuborder = null;
+        this.menuinset = null;
+        this.numColumns = 1;
+        this.winheight = null;
+        this.widthConstant = 231;
+        this.sbheight = 0; // only for IE
+        this.doIEChange = true;
+        this.isRMBMenu = false;
+}
+
+function adjustMenuHeight(menuElem){
+	var adjustedHeight = ((emxUICore.getWinHeight() - emxUICore.getActualTop(menuElem)) * 0.9 );
+	if(jQuery(menuElem).height() > adjustedHeight &&  adjustedHeight > 0 ){
+		jQuery(menuElem).height(adjustedHeight);
+    }
+}
+emxUICorePopupMenu.prototype = new emxUIObject;
+//! Protected Method emxUICorePopupMenu.addItem()
+//!     This method adds an item to the menu.
+emxUICorePopupMenu.prototype.addItem = function _emxUICorePopupMenu_addItem(objItem) {
+        objItem.index = this.items.length;
+        this.items.push(objItem);
+        objItem.parent = this;
+        return objItem;
+};
+emxUICorePopupMenu.prototype.createDOM = function _emxUICorePopupMenu_createDOM() {
+        //if(isMoz && !this.displayWindow) {
+        if(!this.displayWindow) {
+            this.displayWindow = self;
+        }
+        this.numColumns = 1;
+        if(isIE) {
+        	var doc = this.displayWindow ? this.displayWindow.document : document;
+			var ieMenuCoverForObjectTag = doc.getElementById('ieMenuCoverForObjectTag');
+			if(ieMenuCoverForObjectTag) doc.body.removeChild(ieMenuCoverForObjectTag);
+		}
+        if (!this.displayWindow.document.body) return;
+        var objDoc = this.displayWindow.document;
+        //Added For Bug : 348007
+        if(this.treeMenuRevision) {
+        	objDoc = this.displayWindow.document;
+        }
+
+        this.layer = objDoc.createElement("div");
+        this.layer.className = "mmenu";
+        if (this.ownerWindow != this.displayWindow) {
+        	this.layer.className = "mmenu page";
+        }
+        this.layer.style.visibility = "hidden";
+        this.layer.style.display = "block";
+        if(isIE){
+        	objDoc.body.appendChild(this.layer);
+        	}else{
+        objDoc.body.insertBefore(this.layer, objDoc.body.firstChild);
+        	}
+
+
+        var objThis = this;
+        this.menucontent = objDoc.createElement("div");
+        this.menucontent.className = "mmenu-content";
+        this.menuborder = objDoc.createElement("div");
+        this.menuborder.className = "mmenu-border";
+        this.menuinset = objDoc.createElement("div");
+        this.menuinset.className = "mmenu-inset";
+
+		this.menuborder.appendChild(this.menuinset);
+		this.menucontent.appendChild(this.menuborder);
+		this.layer.appendChild(this.menucontent);
+
+        this.templateInnerLayer = this.layer;
+
+        var menugroup = objDoc.createElement("div");
+        menugroup.className = "mmenu-group first-child last-child";
+        this.menuinset.appendChild(menugroup);
+        this.winheight = emxUICore.getWinHeight(this.displayWindow);
+        this.winheight = this.winheight * 0.8;
+        if(this.winheight > 540){
+        	this.winheight = 540;
+        }
+	if(this.isRMBMenu && this.winheight > 240){
+        	this.winheight = 240;
+        }
+		this.winheight -= 20
+        var columnheightpx = 0;
+        var menugroupitems = objDoc.createElement("div");
+        menugroupitems.className = "mmenu-column first-child";
+        menugroup.appendChild(menugroupitems);
+
+        if(isIE11){
+            window.addEventListener("onunload",
+                function(){
+                    objThis = null;
+                    });
+        }else if(isIE && !isIE11){
+        	if(this.treeMenuRevision)
+	        {
+		    	this.displayWindow.attachEvent("onunload",
+		        function(){
+		            objThis = null;;
+		            });
+	        }else
+            {
+            	window.attachEvent("onunload",
+                function(){
+                    objThis = null;;
+                    });
+            }
+        }
+        for (var i=0; i < this.items.length; i++) {
+        	 if(columnheightpx >= this.winheight || this.items[i].text == 'ColSep') {
+        		lastElement = objul.lastChild;
+        		if(lastElement != null){
+        			objul.removeChild(lastElement);
+        		}
+				if(!objul.firstChild){
+                	menugroupitems.removeChild(objul);
+                }
+			        columnheightpx = 0;
+	                menugroupitems = objDoc.createElement("div");
+	        		menugroupitems.className = "mmenu-column";
+	        		menugroup.appendChild(menugroupitems);
+	        		this.numColumns = this.numColumns + 1;
+        		var objul = objDoc.createElement("ul");
+        		menugroupitems.appendChild(objul);
+        		objulStatus = true;
+        		if(lastElement != null){
+        			objul.appendChild(lastElement);
+        			columnheightpx += lastElement.offsetHeight;
+                }
+	        		if(this.items[i].text == 'ColSep') {
+	        			continue;
+	        		}
+               }
+               if (this.items[i].menu) {
+                	var hd = objDoc.createElement("h3");
+
+                	var objspn = objDoc.createElement("span");
+                	objspn.className = "icon";
+                	var objimg = objDoc.createElement("img");
+                	objimg.src = (this.items[i].icon? this.items[i].icon : "images/iconSmallDefault.gif");
+                	objspn.appendChild(objimg);
+                	var objspnt = objDoc.createElement("span");
+                    objspnt.innerHTML = this.items[i].text;
+			if(this.items[i].url && this.items[i].url != "javascript:;"){
+                    	var objThis2 = this.items[i];
+                    	hd.className= "link";
+                    	hd.onmousedown = function () { objThis2.fireEvent("mousedown", (isMinIE55 && isWin? null : emxUICore.getEvent())); };
+                    	objThis2.onmousedown = function () { var objEvent = emxUICore.getEvent(); objThis2.handleEvent("mousedown", objEvent); };
+			            }
+                    	hd.appendChild(objspn);
+                        hd.appendChild(objspnt);
+
+
+					menugroupitems.appendChild(hd);
+                columnheightpx += objspn.offsetHeight + objspnt.offsetHeight;
+					var objul = objDoc.createElement("ul");
+			        menugroupitems.appendChild(objul);
+					for (var j=0; j < this.items[i].menu.items.length; j++) {
+			        	 if(columnheightpx >= this.winheight || this.items[i].menu.items[j].text == 'ColSep') {
+                		var lastElement = objul.lastChild;
+                		if(lastElement != null){
+                			objul.removeChild(lastElement);
+                			if(!objul.firstChild){
+                				menugroupitems.removeChild(objul);
+                			}
+                		}
+                		var retainHeader = true;
+                		if(j == 0){
+                			menugroupitems.removeChild(hd);
+                			retainHeader = false;
+                		}
+						        columnheightpx = 0;
+				                menugroupitems = objDoc.createElement("div");
+				        		menugroupitems.className = "mmenu-column";
+				        		menugroup.appendChild(menugroupitems);
+				        		this.numColumns = this.numColumns + 1;
+			                	var hd1 = objDoc.createElement("h3");
+			                	var objspn1 = objDoc.createElement("span");
+			                	objspn1.className = "icon";
+			                	hd1.appendChild(objspn1);
+			                	var objimg1 = objDoc.createElement("img");
+			                	objimg1.src = (this.items[i].icon? this.items[i].icon : "images/iconSmallDefault.gif");
+			                	objspn1.appendChild(objimg1);
+			                    var objspnt1 = objDoc.createElement("span");
+			                    objspnt1.innerHTML = this.items[i].text;
+                		if(retainHeader){
+			                	var objem = objDoc.createElement("em");
+			                	objem.innerHTML = " ("+emxUIConstants.STR_CONTINUE+") ";
+			                	objspnt1.appendChild(objem);
+                		}
+			                    hd1.appendChild(objspnt1);
+
+								menugroupitems.appendChild(hd1);
+                		columnheightpx += objspn1.offsetHeight + objspnt1.offsetHeight;
+				        		objul = objDoc.createElement("ul");
+						        menugroupitems.appendChild(objul);
+                        if(lastElement != null){
+                			objul.appendChild(lastElement);
+                			columnheightpx += lastElement.offsetHeight;
+                        }
+				        		if(this.items[i].menu.items[j].text == 'ColSep') {
+				        			continue;
+				        		}
+			               }
+
+		                var objli = this.items[i].menu.items[j].createDOM(objDoc);
+		                objul.appendChild(objli);
+	                columnheightpx += objli.offsetHeight;
+						if (this.items[i].menu.items[j].menu) {
+							objli.className = "submenu";
+							var objulsub = objDoc.createElement("ul");
+							objul.appendChild(objulsub);
+							for (var k=0; k < this.items[i].menu.items[j].menu.items.length; k++) {
+					        	 if(columnheightpx >= this.winheight || this.items[i].menu.items[j].menu.items[k].text == 'ColSep') {
+                				var lastElement = objulsub.lastChild;
+                				if(lastElement != null){
+                					objulsub.removeChild(lastElement);
+                					if(!objulsub.firstChild){
+                						objul.removeChild(objulsub);
+                					}
+                				}
+                				var retainLi  = true;
+                				if(k == 0){
+                					objul.removeChild(objli);
+                					retainLi = false;
+                				}
+								        columnheightpx = 0;
+						                menugroupitems = objDoc.createElement("div");
+						        		menugroupitems.className = "mmenu-column";
+						        		menugroup.appendChild(menugroupitems);
+						        		this.numColumns = this.numColumns + 1;
+						        		objul = objDoc.createElement("ul");
+								        menugroupitems.appendChild(objul);
+                				var objli1 = this.items[i].menu.items[j].createDOM(objDoc, retainLi);
+						                objul.appendChild(objli1);
+						                objli1.className = "submenu";
+                				columnheightpx += objli1.offsetHeight;
+										objulsub = objDoc.createElement("ul");
+										objul.appendChild(objulsub);
+                				if(lastElement != null){
+                					objulsub.appendChild(lastElement);
+                					columnheightpx += lastElement.offsetHeight;
+                			    }
+						        		if(this.items[i].menu.items[j].menu.items[k].text == 'ColSep') {
+						        			continue;
+						        		}
+					               }
+				                var objlisub = this.items[i].menu.items[j].menu.items[k].createDOM(objDoc);
+				                objulsub.appendChild(objlisub);
+                			columnheightpx += objlisub.offsetHeight;
+								if (this.items[i].menu.items[j].menu.items[k].menu) {
+									objlisub.className = "submenu";
+									var objulsubul = objDoc.createElement("ul");
+									objulsub.appendChild(objulsubul);
+									for (var l=0; l < this.items[i].menu.items[j].menu.items[k].menu.items.length; l++) {
+							        	 if(columnheightpx >= this.winheight || this.items[i].menu.items[j].menu.items[k].menu.items[l].text == 'ColSep') {
+                						var lastElement = objulsubul.lastChild;
+                						if(lastElement != null){
+                							objulsubul.removeChild(lastElement);
+                							if(!objulsubul.firstChild){
+                								objulsub.removeChild(objulsubul);
+                							}
+                						}
+                						var retainLiSub = true;
+                						if(l == 0){
+                							objulsub.removeChild(objlisub);
+                							retainLiSub = false;
+                						}
+										        columnheightpx = 0;
+								                menugroupitems = objDoc.createElement("div");
+								        		menugroupitems.className = "mmenu-column";
+								        		menugroup.appendChild(menugroupitems);
+								        		this.numColumns = this.numColumns + 1;
+								        		objul = objDoc.createElement("ul");
+										        menugroupitems.appendChild(objul);
+										        objulsub = objDoc.createElement("ul");
+										        objul.appendChild(objulsub);
+                						var tempObjliSub = this.items[i].menu.items[j].menu.items[k].createDOM(objDoc, retainLiSub);
+                						objulsub.appendChild(tempObjliSub);
+                						columnheightpx += tempObjliSub.offsetHeight;
+												objulsubul = objDoc.createElement("ul");
+												objulsub.appendChild(objulsubul);
+                						if(lastElement != null){
+                							objulsubul.appendChild(lastElement);
+                							columnheightpx += lastElement.offsetHeight;
+                					    }
+								        		if(this.items[i].menu.items[j].menu.items[k].menu.items[l].text == 'ColSep') {
+								        			continue;
+								        		}
+							               }
+											var objlisubli = this.items[i].menu.items[j].menu.items[k].menu.items[l].createDOM(objDoc);
+							                objulsubul.appendChild(objlisubli);
+                					columnheightpx += objlisubli.offsetHeight;
+									}
+								}
+							}
+		                }
+					}
+                objulStatus = false;
+                } else {
+
+                	if(!objulStatus){
+                  	  var objul;
+                  	  objul = objDoc.createElement("ul");
+			        menugroupitems.appendChild(objul);
+                  	  objulStatus = true;
+                    }
+	                var objli = this.items[i].createDOM(objDoc);
+	                objul.appendChild(objli);
+                columnheightpx += objli.offsetHeight;
+                }
+        }
+        objulStatus = false;
+        if(this.numColumns == 1) {
+        	menugroupitems.className = "mmenu-column first-child last-child";
+        } else {
+        	menugroupitems.className = "mmenu-column last-child";
+        }
+
+        //emxUICore.addEventHandler(objBody, "contextmenu", cancelEvent);
+        //emxUICore.addEventHandler(objBody, "selectstart", cancelEvent);
+        if(this.numColumns >= 4) {
+        	this.finalWidth = this.widthConstant * 4;
+        } else {
+        	this.finalWidth = this.widthConstant * this.numColumns;
+        }
+    	var insetwidth = this.widthConstant * this.numColumns;
+    	var winwidth = emxUICore.getWinWidth(this.displayWindow);
+    	var maxcols = winwidth / this.widthConstant;
+    	maxcols = Math.floor(maxcols);
+    	if(maxcols == 0) maxcols = 1;
+    	if(this.numColumns > maxcols) {
+    		this.finalWidth = this.widthConstant * maxcols;
+    		if(isIE){
+    			this.sbheight = 14;
+    		}
+    	}
+		if(this.isRMBMenu && isIE){
+    		this.finalWidth = this.finalWidth + 6;
+    	}
+            this.finalHeight = Math.min(this.layer.offsetHeight, this.winheight);
+        this.menuinset.style.width = "" + insetwidth + "px";
+			if(insetwidth > this.finalWidth){
+				this.menuborder.style.width = "" + this.finalWidth + "px";
+			}else{
+    	this.menuborder.style.width = "" + insetwidth + "px";
+			}
+
+    	this.menuborder.onmousedown = function () {
+    		var objEvent = emxUICore.getEvent(objThis.displayWindow ? objThis.displayWindow : null);
+    		objThis.handleEvent("scrollstart", objEvent);
+    	};
+		this.layer.style.visibility = "visible";
+        this.layer.style.display = "none";
+        this.reset();
+};
+
+//! Private Method emxUICorePopupMenu.endScroll()
+//!     This method ends menu scrolling.
+emxUICorePopupMenu.prototype.endScroll = function _emxUICorePopupMenu_endScroll() {
+        clearTimeout(this.scrollTimeoutID);
+        this.fireEvent("endscroll");
+};
+//! Private Method emxUICorePopupMenu.handleEvent()
+//!     This method handles events for the menu.
+emxUICorePopupMenu.prototype.handleEvent = function _emxUICorePopupMenu_handleEvent(strType, objEvent) {
+        switch(strType) {
+                case "downbutton-mouseover":
+                        this.downButton.className = "downbutton-hover";
+                        this.scroll(false);
+                        break;
+                case "downbutton-mouseout":
+                        this.downButton.className = "downbutton";
+                        this.endScroll();
+                        break;
+                case "upbutton-mouseover":
+                        this.upButton.className = "upbutton-hover";
+                        this.scroll(true);
+                        break;
+                case "upbutton-mouseout":
+                        this.upButton.className = "upbutton";
+                        this.endScroll();
+                        break;
+                case "scrollstart":
+                	if (objEvent) {
+						if(objEvent.target && objEvent.target.tagName.toLowerCase() == 'select'){
+							objEvent.target.focus();
+						}
+				objEvent.cancelBubble = true;
+				objEvent.returnValue = false;
+				if (objEvent.stopPropagation) {
+					objEvent.stopPropagation();
+					objEvent.preventDefault();
+				}
+                        }
+                    break;
+        }
+};
+//! Private Method emxUICorePopupMenu.hide()
+//!     This method hides the menu.
+emxUICorePopupMenu.prototype.hide = function _emxUICorePopupMenu_hide(blnCascade) {
+        if (this.visible) {
+                clearTimeout(this.timeoutID);
+                /*if (isMinIE55 && isWin) {
+                        this.popup.hide();
+				    } else {*/
+                        //emxUICore.hide(this.layer);
+                		/* This logic is added just for IE for those pages which have ActiveX or Applets in their pages.
+                         * To show the menu on top of the objects this logic is introduced. Once IE problem is fixed in the
+                         * browser then this code needs to be reomved
+                         */
+		                if(isIE) {
+			                var menu = this;
+			                setTimeout(function(){
+			                	var doc = menu.displayWindow ? menu.displayWindow.document : document;
+			                	var ieMenuCoverForObjectTag = doc.getElementById('ieMenuCoverForObjectTag');
+	                			if(ieMenuCoverForObjectTag) doc.body.removeChild(ieMenuCoverForObjectTag);
+	                			menu.layer.style.display = "none";
+			                },5);
+		                } else {
+		                	this.layer.style.display = "none";
+		                }
+
+		                var fnTemp = this.fnTemp;
+
+		                if(this.emxClassName == "emxUICalendarMonthMenu" || this.emxClassName == "emxUICalendarYearMenu")
+		                {
+	                        emxUICore.iterateFrames(function (objFrame) {
+	                        	if(objFrame){
+	                        		if(isIE){
+		                        		emxUICore.removeEventHandler(objFrame, "onmousedown", fnTemp, false);
+		                    	    	if (!isUnix) {
+		                    	    		objFrame.document.onresize = fnTemp;
+		                    	    	}
+		                        	} else {
+		                                objFrame.removeEventListener("mousedown", fnTemp, false);
+		                                if (!isUnix) objFrame.removeEventListener("resize", fnTemp, false);
+		                        	}
+	                        	}
+	                        });
+		                }
+		                else{
+	                        emxUICore.iterateFrames(function (objFrame) {
+	                        	if(objFrame){
+	                        		if(isIE){
+		                                //objFrame.removeEvent("onmousedown", fnTemp);
+		                                //if (!isUnix) objFrame.removeEvent("onresize", fnTemp);
+							try{
+								objFrame.document.onmousedown = fnTemp;
+								if (!isUnix) {
+									objFrame.document.onresize = fnTemp;
+								}
+							}catch(e){}
+		                        	} else {
+		                        		if(objFrame.editableTable && objFrame.editableTable.divListBody){
+			              					  objFrame.editableTable.divListBody.removeEventListener("scroll", fnTemp, false);
+			              					  objFrame.editableTable.divTreeBody.removeEventListener("scroll", fnTemp, false);
+			              				  }
+		                                objFrame.removeEventListener("mousedown", fnTemp, false);
+		                                if (!isUnix) objFrame.removeEventListener("resize", fnTemp, false);
+		                        	}
+	                        	}
+	                        });
+		                }
+                        	//}
+                this.reset();
+                this.visible = false;
+                this.fireEvent("hide");
+                if(blnCascade) {
+                        if (this.parent) {
+                                this.parent.parent.hide(true);
+                        }
+                }
+                //In case of Dynamic Menus,
+                //before hiding the Dynamic menus has to replaced with Loading menus
+      		 	if(this.parent !=  null && this.parent != 'undefined')
+				{
+					if (this.parent.dynamicJPO != null && this.parent.dynamicJPO != "undefined"
+							 && this.parent.dynamicJPO != "")
+					{
+					 	if (this.dynamicJPO != null && this.dynamicJPO != "undefined"
+							 && this.dynamicJPO != "")
+						{
+							var objThis = this;
+		                	objThis.items = new Array();
+		                	var objMenu = new emxUIToolbarMenu();
+							objMenu.addItem(new emxUIToolbarMenuItem(emxUIToolbar.TEXT_ONLY, "", emxUIConstants.STR_LOADING_MENU, "","", "", "", "", "", "", "", "", false,objThis.dynamicJPO,objThis.dynamicMethod,objThis.dynamicName));
+		                    for(var k = 0 ; k < objMenu.items.length ; k++)
+		                 	{
+		                 		objThis.addItem(objMenu.items[k]);
+		                 	}
+		                   	objThis.init();
+		                 }
+					}
+				}
+        }
+};
+//! Protected Method emxUICorePopupMenu.init()
+//!     This method initializes the menu.
+emxUICorePopupMenu.prototype.init = function _emxUICorePopupMenu_init(objDocument) {
+        objDocument = objDocument || document;
+        /*if (isMinIE55 && isWin) {
+                this.popup = this.ownerWindow.createPopup();
+        } else {
+        } */
+        //Added For Bug : 348007
+        if(typeof arguments[1] != "undefined" && arguments[1] == "revisionFilter")
+        {
+           this.displayWindow = objDocument;
+           /*if (isMinIE55 && isWin) {
+               this.popup = this.displayWindow.createPopup();
+           }*/
+           this.ownerWindow = this.displayWindow;
+           this.treeMenuRevision = true;
+        }
+        //this.maxHeight = (isMinIE55 && isWin) ? screen.availHeight - top.screenTop : emxUICore.getWindowHeight(this.displayWindow);
+        this.maxHeight = emxUICore.getWinHeight(this.displayWindow);
+        this.createDOM();
+};
+//! Private Method emxUICorePopupMenu.reset()
+//!     This method resets the view of the menu.
+emxUICorePopupMenu.prototype.reset = function _emxUICorePopupMenu_reset() {
+	    this.selectedIndex = -1;
+        for (var i=0; i < this.items.length; i++) {
+                this.items[i].reset();
+        }
+        /*if (this.templateInnerLayer.offsetHeight > this.finalHeight) {
+                //this.downButton.style.visibility = "inherit";
+                emxUICore.hide(this.upButton);
+        }*/
+        //this.innerLayer.style.top = this.maxTop + "px";
+       // this.downButton.style.top = (this.finalHeight - this.templateDownButton.offsetHeight - this.templateUpButton.offsetHeight) + "px";
+        this.selectedItem = null;
+};
+//! Private Method emxUICorePopupMenu.scroll()
+//!     This method scrolls the menu.
+/*emxUICorePopupMenu.prototype.scroll = function _emxUICorePopupMenu_scroll(blnUp) {
+        //var intStop = blnUp ? this.maxTop : this.minTop;
+        var intStop = '';
+        var intIncrement = blnUp ? emxUICoreMenu.SCROLL_DISTANCE : -emxUICoreMenu.SCROLL_DISTANCE;
+        emxUICore.show(this.upButton);
+        emxUICore.show(this.downButton);
+        var intCurTop = parseInt(this.innerLayer.style.top);
+        var intNextTop;
+        if (Math.abs(intCurTop - intStop) < emxUICoreMenu.SCROLL_DISTANCE){
+                intNextTop = intStop;
+        } else {
+                intNextTop = intCurTop + intIncrement;
+        }
+        emxUICore.moveTo(this.innerLayer, 0, intNextTop);
+        if (intNextTop != intStop) {
+                var objThis = this;
+                this.scrollTimeoutID = setTimeout(function () { objThis.scroll(blnUp) }, emxUICoreMenu.DELAY_BETWEEN);
+        } else {
+                emxUICore.hide(blnUp ? this.upButton : this.downButton);
+                clearTimeout(this.scrollTimeoutID);
+        }
+}; */
+//! Private Method emxUICorePopupMenu.selectItem()
+//!     This method selects an item on the menu, deselecting the others.
+emxUICorePopupMenu.prototype.selectItem = function _emxUICorePopupMenu_selectItem(objItem) {
+        if (this.selectedItem == objItem) return;
+        if (this.selectedItem) {
+                this.selectedItem.reset();
+        }
+        this.selectedItem = objItem;
+        this.selectedItem.select();
+};
+//! Private Method emxUICorePopupMenu.show()
+//!     This method shows the menu.
+emxUICorePopupMenu.prototype.show = function _emxUICorePopupMenu_show(objRef, strDir, x, y) {
+        var objThis = this;
+        var intX, intY;
+        /*if (isMinIE55 && isWin) {
+                switch(strDir) {
+                        case "down":
+                        case "down-left":
+                                intX = 1;
+                                intY = objRef.offsetHeight;
+                                this.reset();
+                                break;
+                        /*case "down-left":
+                                intX = -this.finalWidth + objRef.offsetWidth;
+                                intY = objRef.offsetHeight;
+                                break;
+                        case "right":
+                                intX = objRef.offsetWidth;
+                                intY = 0;
+                                break;
+                        case "absolute":
+                        		intX = x;
+                                intY = y+225;
+                                break;
+                        default:
+                                throw new Error("Required argument strDirection is not valid (value='" + strDir + "'). (emxUICoreMenu.js::emxUICoreMenu.prototype.show)");
+                }
+                emxUICore.show(this.layer);
+        		if(this.doIEChange) {
+        			this.doIEChange = false;
+        		var templay = this.ownerWindow.document.createElement("div");
+        		templay.className = "mmenu";
+        		templay.innerHTML = this.layer.innerHTML;
+        		this.ownerWindow.document.body.appendChild(templay);
+        		var lh = templay.offsetHeight;
+        		this.ownerWindow.document.body.removeChild(templay);
+	        		if(this.sbheight > 0) {
+	        			this.menuborder.style.height = "" + lh + "px";
+	        		}
+        		this.finalHeight = Math.min(lh, this.winheight);
+        		}
+                this.popup.show(intX, intY, this.finalWidth + 18, this.finalHeight + 4 + this.sbheight, objRef);
+                this.timeoutID = setTimeout(function () {
+                        if (objThis.popup.isOpen) {
+                                objThis.timeoutID = setTimeout(arguments.callee, emxUICoreMenu.WATCH_DELAY);
+                        } else {
+                                objThis.hide();
+                        }
+                }, emxUICoreMenu.WATCH_DELAY);
+        } else {*/
+                if (this.ownerWindow != this.displayWindow) {
+                        switch(strDir) {
+                                case "down":
+                                case "down-left":
+                                        //intX = this.displayWindow.document.body.offsetLeft + objRef.offsetLeft - 6;
+                                        var parentnode1 = objRef.parentNode.parentNode.parentNode.parentNode;
+                                    	intX = parentnode1.offsetLeft + objRef.offsetLeft;
+                                        intY = this.displayWindow.document.body.offsetTop;
+                                        this.reset();
+                                        break;
+                                /*case "down-left":
+                                        intX = emxUICore.getActualLeft(objRef) - this.templateInnerLayer.offsetWidth + objRef.offsetWidth + this.displayWindow.document.body.scrollLeft;
+                                        intY = this.displayWindow.document.body.scrollTop;
+                                        break;*/
+                                case "right":
+                                        intX = emxUICore.getActualLeft(objRef) + objRef.offsetWidth;
+                                        intY = emxUICore.getActualTop(objRef);
+                                        this.layer.className = "mmenu page";
+                                        break;
+                                /*case "absolute":
+                        				intX = x;
+                               			intY = y+100;
+                                		break;*/
+                                default:
+                                        throw new Error("Required argument strDirection is not valid (value='" + strDir + "'). (emxUICoreMenu.js::emxUICoreMenu.prototype.show)");
+                        }
+                        if (!this.displayWindow.document.getElementById("menu" + this.uniqueID)) {
+                                this.createDOM(this.displayWindow.document);
+                                this.layer.id = "menu" + this.uniqueID;
+                        }
+                } else {
+                        switch(strDir) {
+                                case "down":
+                                case "down-left":
+                                        var parentnode1 = objRef.parentNode.parentNode.parentNode.parentNode;
+                                        var xdelta = 0;
+                                    	var ydelta = 0;
+                                    	var toolbar = objRef.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.id;
+                                    	//IR-175491V6R2013x
+                                    	if(objRef.parentNode.parentNode.parentNode.parentNode.parentNode.parentNode.id == "globalToolbar"){
+                                    		//xdelta = 5;
+                                    		ydelta = 8;
+                                    	} else {
+                                    		//If the menu is not a global toolbar, we need 5 pixels more Y. Not sure why!
+                                    		ydelta = 4;
+                                    	}
+                                    	if(parentnode1.parentNode.parentNode.className == 'toolbar-container' && !!parentnode1.parentNode.parentNode.id){
+
+                                    		if(toolbar != "globalToolbar"){
+                                    			this.layer.className = "mmenu page";
+                                    		} else {
+                                        	this.layer.className = "mmenu dialog";
+                                    		}
+
+
+                                        	intX = parentnode1.offsetLeft + objRef.offsetLeft + xdelta;
+                                        	intY = parentnode1.parentNode.parentNode.offsetTop + parentnode1.parentNode.parentNode.parentNode.offsetTop + objRef.clientHeight + ydelta;
+                                        }else{
+                                        	if(!isIE) {
+                                        		xdelta = 6;
+                                        	} else {
+                                        		xdelta = 1;
+                                        	}
+                                        	intX = parentnode1.offsetLeft + objRef.offsetLeft + xdelta;
+                                        	intY = parentnode1.offsetTop + parentnode1.parentNode.offsetTop + objRef.clientHeight + ydelta;
+                                        }
+                                        this.reset();
+                                        break;
+                                /*case "down-left":
+                                        intX = emxUICore.getActualLeft(objRef) - this.templateInnerLayer.offsetWidth + objRef.offsetWidth;
+                                        intY = emxUICore.getActualTop(objRef) + objRef.offsetHeight;
+                                        break;  */
+                                case "right":
+                                        var dpb = this.displayWindow.parent.document.getElementById("divPageBody");
+                                        if(dpb){
+                                          intX = emxUICore.getActualLeft(objRef) + objRef.offsetWidth;
+                                          intY = emxUICore.getActualTop(objRef);
+                                        }else{
+                                        intX = x;
+                                        intY = y;
+                                        }
+                                        this.layer.className = "mmenu page";
+                                        break;
+
+                                case "calendar-down":
+									//sk
+									intX = emxUICore.getActualLeft(objRef);
+                                    intY = emxUICore.getActualTop(objRef) + objRef.offsetHeight;
+                                    this.layer.className = "mmenu page calendar";
+				    //calendar div's Z-index is 1001,
+				    //z-index of year and month is 1002 to display them over the calendar
+                                    this.layer.style.zIndex = 1002;
+                                    this.reset();
+                                    break;
+                                case "channel-overflow":
+	                                	intX = emxUICore.getActualLeft(objRef);
+	                                    intY = emxUICore.getActualTop(objRef) + objRef.clientHeight -12;
+	                                    this.layer.className = "mmenu page";
+	                                    this.reset();
+	                                    break;
+
+                                case "revisionFilterDropDown":
+                                		intX = emxUICore.getActualLeft(objRef) - this.templateInnerLayer.offsetWidth + objRef.offsetWidth;
+                                        intY = emxUICore.getActualTop(objRef) + objRef.offsetHeight;
+                                        this.reset();
+                                       	break;
+
+                                /*case "absolute":
+                        				intX = x;
+                                		intY = y+100;
+                                		break;*/
+                                default:
+                                        throw new Error("Required argument strDirection is not valid (value='" + strDir + "'). (emxUICoreMenu.js::emxUICoreMenu.prototype.show)");
+                        }
+                }
+
+              if(strDir == 'revisionFilterDropDown'){
+              	var intFinalX = intX + this.finalWidth;
+              	var diff =emxUICore.getWindowWidth(this.displayWindow)- intFinalX;
+              	if(diff < 0 ){
+              		intX= intX + diff;
+              		if(intX < 0){
+              			intX = 0;
+              		}
+              	}
+              	this.layer.style.display = "block";
+              	emxUICore.moveTo(this.layer, intX, intY);
+              	this.fnTemp = fnTemp = function () { objThis.hide();};
+                emxUICore.iterateFrames(function (objFrame) {
+                	if(objFrame){
+                		if(isIE){
+                	    	objFrame.document.onmousedown = function () { objThis.hide();};
+                	    	if (!isUnix) {
+                	    		objFrame.document.onresize = function () { objThis.hide();};
+                	    	}
+                	    } else {
+                            objFrame.addEventListener("mousedown", fnTemp, false);
+                            if (!isUnix) objFrame.addEventListener("resize", fnTemp, false);
+                	    }
+                	}
+
+                });
+              }  else {
+            	  var wid;
+            	  if(this.emxClassName != "emxUICalendarMonthMenu"){
+            		  if(this.displayWindow) {
+                		  wid = emxUICore.getWinWidth(this.displayWindow);
+                	  } else {
+                		  wid = emxUICore.getWinWidth(top);
+                	  }
+                	  var diff = wid - intX;
+                	  var butwidth = 29;
+                	  if (objRef.xml && objRef.xml.indexOf('combo-button')>=0) {
+                		  butwidth = 35;
+                	  }
+                	  if(diff < this.finalWidth){
+                		  intX = intX - this.finalWidth + butwidth;
+                	  }
+                	  if(intX < 0) {
+                		  intX = 0;
+                	  }
+            	  }
+
+            	  //emxUICore.show(this.layer);
+
+            	  this.layer.style.display = "block";
+
+            	  /* This logic is added just for IE for those pages which have ActiveX or Applets in their pages.
+            	   * To show the menu on top of the objects this logic is introduced. Once IE problem is fixed in the
+            	   * browser then this code needs to be removed
+            	   */
+            	  //This Piece of code is commented out to fix issue related to false text in Navigator JSP
+            	  /*if(isIE && !this.visible) {
+            		  var menu = this;
+            		  setTimeout(function(){
+            			  var doc = menu.displayWindow ? menu.displayWindow.document : document;
+            			  var ieMenuCoverForObjectTag = doc.createElement('iframe');
+            			  ieMenuCoverForObjectTag.id='ieMenuCoverForObjectTag';
+            			  ieMenuCoverForObjectTag.style.position='absolute';
+            			  ieMenuCoverForObjectTag.style.width = menu.layer.clientWidth + 'px';
+            			  ieMenuCoverForObjectTag.style.height = menu.layer.clientHeight + 'px';
+            			  ieMenuCoverForObjectTag.style.top = (menu.layer.offsetTop) + 'px';
+            			  ieMenuCoverForObjectTag.style.left = (menu.layer.offsetLeft) + 'px';
+						  //Added for IR-179823V6R2013x.
+            			  //Applying inline styling(minHeight) for this iFrame, this should be removed when the false frame is removed
+            			  ieMenuCoverForObjectTag.style.minHeight="auto";
+            			  ieMenuCoverForObjectTag.style.zIndex='99';
+            			  ieMenuCoverForObjectTag.setAttribute('frameborder','0');
+            			  ieMenuCoverForObjectTag.setAttribute('src','javascript:false;');
+            			  doc.body.appendChild(ieMenuCoverForObjectTag);
+            		  },30);
+            	  }*/
+            	  /*  Special Code for Activex and Obejcts End*/
+
+            	  var wht;
+            	  if(this.displayWindow) {
+            		  wht = emxUICore.getWinHeight(this.displayWindow);
+            	  } else {
+            		  wht = emxUICore.getWinHeight(top);
+            	  }
+
+            	  var diffht = wht - (intY + this.layer.offsetHeight);
+            	  if(diffht < 0 && strDir == 'right'){
+            		  intY = intY - this.layer.offsetHeight;
+            	  }
+            	  var isSlideIn = false;
+            	  if(objThis && objThis.displayWindow && objThis.displayWindow.targetLocation){
+            		  isSlideIn = (objThis.displayWindow.targetLocation == "slidein")? true: false;
+            	  }
+
+            	  if(isIE){
+    		          if ((this.emxClassName == "emxUICalendarMonthMenu" || this.emxClassName == "emxUICalendarYearMenu") &&  !isSlideIn ) {
+    			          var totalHeight = intY + this.layer.offsetHeight;
+    			          var totalScrollHeight = document.body.scrollHeight;
+    			          if (totalHeight > totalScrollHeight) {
+    				          var diff = totalHeight - totalScrollHeight;
+    				          intY = intY - diff;
+    			          }
+    		          }
+            	  }else{
+            	  var page_yOffset = typeof pageYOffset != "undefined" ? pageYOffset : (document.documentElement ? document.documentElement.scrollTop : null);
+		          if ((this.emxClassName == "emxUICalendarMonthMenu" || this.emxClassName == "emxUICalendarYearMenu") &&  !isSlideIn) {
+		        	      var totalHeight = page_yOffset != null ? (intY + this.layer.offsetHeight - page_yOffset) : (intY + this.layer.offsetHeight);
+			              var totalScrollHeight =  (parent.document.getElementById('divPageBody') && page_yOffset != null) ? parent.document.getElementById('divPageBody').clientHeight : document.body.scrollHeight;
+			              if (totalHeight > totalScrollHeight && totalScrollHeight > 0) {
+				          var diff = totalHeight - totalScrollHeight;
+				          intY = intY - diff;
+			          }
+		          }
+            	  }
+
+            	  if(intY < 0) {
+            		  intY = 0;
+            	  }
+            	  emxUICore.moveTo(this.layer, intX, intY);
+				  if(strDir == "calendar-down"){
+					 adjustMenuHeight(this.layer.firstChild.firstChild);
+				  }
+
+            	  this.fnTemp = fnTemp = function () {
+                		                                objThis.hide();
+													};
+
+            	  if(this.emxClassName == "emxUICalendarMonthMenu" || this.emxClassName == "emxUICalendarYearMenu")
+            	  {
+            		  emxUICore.iterateFrames(function (objFrame) {
+            			  if(objFrame){
+            				  if(isIE){
+                				  emxUICore.addEventHandler(objFrame, "onmousedown", fnTemp, false);
+                				  if (!isUnix) {
+                					  objFrame.document.onresize = function () { objThis.hide();};
+                				  }
+                			  } else {
+                				  objFrame.addEventListener("mousedown", fnTemp, false);
+                				  if (!isUnix) objFrame.addEventListener("resize", fnTemp, false);
+                			  }
+            			  }
+            		  });
+            	  }
+            	  else{
+            		  emxUICore.iterateFrames(function (objFrame) {
+            			  if(objFrame){
+            				  if(isIE){
+                				  try{
+                					 objFrame.document.onmousedown = fnTemp;
+                					  if(objFrame.editableTable && objFrame.editableTable.divListBody){
+                						  objFrame.editableTable.divListBody.onscroll = function () { objThis.hide();};
+                						  objFrame.editableTable.divTreeBody.addEventListener("scroll", fnTemp, false);
+                					  }
+                					  if (!isUnix) {
+                						  objFrame.document.onresize = function () { objThis.hide();};
+                					  }
+                				  }catch(e){}
+                			  } else {
+                				  if(objFrame.editableTable && objFrame.editableTable.divListBody){
+                					  objFrame.editableTable.divListBody.addEventListener("scroll", fnTemp, false);
+                					  objFrame.editableTable.divTreeBody.addEventListener("scroll", fnTemp, false);
+                				  }
+                				  objFrame.addEventListener("mousedown", fnTemp, false);
+                				  if (!isUnix) objFrame.addEventListener("resize", fnTemp, false);
+                			  }
+            			  }
+            		  });
+            	  }
+
+              }
+        this.visible = true;
+        this.fireEvent("show");
+       //Check if the menu is Dynamic
+		if (this.dynamicJPO != null && this.dynamicJPO != "undefined"
+			 && this.dynamicJPO != "")
+		{
+			createRequestObject();
+		    var objectID=FORM_DATA['objectId'];
+		    //Structure Browser timeStamp/uiType/objectId
+		    var tempTimeStamp ;
+		    var tempUIType ;
+		    try
+		    {
+		    	 tempTimeStamp = timeStamp;
+		    	 tempUIType = uiType;
+				 //IR-076243V6R2012
+				 if(objectID == null || objectID == 'undefined') {
+					objectID = objectId;
+				}
+		    }
+		    catch(e)
+		    {
+		    	//do nothing
+		    }
+		    //Table timeStamp/uiType
+		    if (tempTimeStamp == null || tempTimeStamp == 'undefined')
+		    {
+		   		 tempTimeStamp=FORM_DATA['timeStamp'];
+		   		 tempUIType=FORM_DATA['uiType'];
+		   	}
+		    var dynamicMenu = this.dynamicName;
+			var dynamicJPO =this.dynamicJPO;
+			var dynamicMethod = this.dynamicMethod;
+
+			//added for bug : 342600
+			var dynamicRMB = this.isRMB;
+
+			//For Dynamic Submenus
+			if(this.parent !=  null && this.parent != 'undefined')
+			{
+				//If the menu is Dynamic Ajax call is made to create the dynamic content
+				/*if (isMinIE55 && isWin)
+				{
+					eval(emxUICore.getData("emxUIDynamicMenu.jsp?strJPO="+dynamicJPO+"&strMethod="+dynamicMethod+"&strName="+dynamicMenu+"&timeStamp="+tempTimeStamp+"&objectId="+objectID+"&uiType="+tempUIType+"&dynamicRMB="+dynamicRMB));
+					objMenu.setListLinks((parent.ids && parent.ids.length > 1));
+					objThis.items = new Array();
+					for(var k = 0 ; k < objMenu.items.length ; k++)
+                 	{
+                 		objThis.addItem(objMenu.items[k]);
+                 	}
+                   	objThis.init();
+                  	objThis.popup.show(intX, intY, this.finalWidth + 4, this.finalHeight, objRef);
+				}
+				else
+				{*/
+					eval(emxUICore.getData("emxUIDynamicMenu.jsp?strJPO="+dynamicJPO+"&strMethod="+dynamicMethod+"&strName="+dynamicMenu+"&timeStamp="+tempTimeStamp+"&objectId="+objectID+"&uiType="+tempUIType+"&dynamicRMB="+dynamicRMB))
+					objMenu.displayWindow = objThis.displayWindow;
+					this.parent.addMenu(objMenu);
+					objMenu.init();
+					objMenu.setListLinks((parent.ids && parent.ids.length > 1));
+					objThis.hide();
+					objMenu.show1(objRef,strDir);
+				//}
+			}
+			else
+			{
+				//Dynamic menus and commands directly on toolbar
+				setTimeout(function() {
+				//objThis.layer.style.visibility = "hidden";
+				objThis.layer.style.display = "none";
+				eval(emxUICore.getData("emxUIDynamicMenu.jsp?strJPO="+dynamicJPO+"&strMethod="+dynamicMethod+"&strName="+dynamicMenu+"&timeStamp="+tempTimeStamp+"&objectId="+objectID+"&uiType="+tempUIType+"&dynamicRMB="+dynamicRMB))
+				objMenu.displayWindow = objThis.displayWindow;
+				objMenu.init();
+				objMenu.setListLinks((parent.ids && parent.ids.length > 1));
+				objThis.hide();
+				objMenu.show1(objRef, strDir);
+				emxUICore.objElem = objMenu;
+				},100);
+			}
+		}
+
+		emxUICore.objElem = this;
+};
+
+//! Class emxUICoreMenuItem
+//!     This object represents an item on a menu. This class is
+//!     not intended to be instantiated directly, but rather is used
+//!     as a base class for others to extend.
+function emxUICoreMenuItem() {
+        this.superclass = emxUIObject;
+        this.superclass();
+        delete this.superclass;
+        this.emxClassName = "emxUICoreMenuItem";
+        this.index = -1;
+        this.parent = null;
+        this.rowElement = null;
+        this.uniqueID = emxUICore.getUniqueID();
+}
+emxUICoreMenuItem.prototype = new emxUIObject;
+//! Private Method emxUICoreMenuItem.createDOM()
+//!     This methods creates the DOM for a given menu item.
+//!     objDoc (document) - document used to create elements.
+//!     The DOM element representing this menu item.
+emxUICoreMenuItem.prototype.createDOM = function _emxUICoreMenuItem_createDOM(objDoc) {
+        this.rowElement = objDoc.createElement("li");
+        if(this.icon && this.icon.indexOf('iconActionChecked.gif') >= 0) {
+        	if(this.rowElement.className.indexOf("selected") < 0 ){
+	        	emxUICore.addClass(this.rowElement, "selected");
+	        }
+        }
+        this.rowElement.setAttribute("menuUID", this.uniqueID);
+        this.rowElement.id = "li" + this.uniqueID;
+        var objThis = this;
+		if(isMoz){
+	        this.rowElement.onmouseup = function () { 
+	        	var objEvent = emxUICore.getEvent(objThis.parent && objThis.parent.displayWindow ? objThis.parent.displayWindow : null); 
+	        	objThis.fireEvent("mouseup", objEvent); 
+	        };
+	        this.onmouseup = function () { 
+	        	var objEvent = emxUICore.getEvent(objThis.parent && objThis.parent.displayWindow ? objThis.parent.displayWindow : null); 
+	        	objThis.handleEvent("mouseup", objEvent); 
+	        };
+		}else {
+        this.rowElement.onmousedown = function () {
+        	var objEvent = emxUICore.getEvent(objThis.parent && objThis.parent.displayWindow ? objThis.parent.displayWindow : null);
+			objEvent.cancelBubble = true;
+        	objThis.fireEvent("mousedown", objEvent);
+        };
+        this.onmousedown = function () {
+        	var objEvent = emxUICore.getEvent(objThis.parent && objThis.parent.displayWindow ? objThis.parent.displayWindow : null);
+        	objThis.handleEvent("mousedown", objEvent);
+        };
+		}
+        //this.rowElement.onmouseover = function () { objThis.fireEvent("mouseover"); };
+        //this.onmouseover = function (objEvent) { objThis.handleEvent("mouseover", objEvent); };
+                /*if(isIE){
+
+                	if(this.parent.treeMenuRevision)
+                	{
+                		 this.parent.displayWindow.attachEvent("onunload",
+			                    function(){
+			                        objThis.rowElement.onmouseover = null;
+			                        objThis.rowElement.onmousedown = null;
+			                        objThis.onmouseover = null;
+			                        objThis.onmousedown = null;
+			                        objThis = null;
+			                        });
+                	}else
+                	{
+                		 window.attachEvent("onunload",
+			                    function(){
+			                        objThis.rowElement.onmouseover = null;
+			                        objThis.rowElement.onmousedown = null;
+			                        objThis.onmouseover = null;
+			                        objThis.onmousedown = null;
+			                        objThis = null;
+			                        });
+                	}
+                }*/
+        return this.rowElement;
+};
+//! Private Method emxUICoreMenuItem.handleEvent()
+//!     This method handles the events for this object.
+emxUICoreMenuItem.prototype.handleEvent = function _emxUICoreMenuItem_handleEvent(strType, objEvent) {
+        if (objEvent && (strType=="mouseup" || strType=="mousedown")) {
+                objEvent.preventDefault();
+                objEvent.stopPropagation();
+        }
+};
+//! Private Method emxUICoreMenuItem.reset()
+//!     This methods resets the item to its original view.
+emxUICoreMenuItem.prototype.reset = function _emxUICoreMenuItem_reset() {
+};
+//! Private Method emxUICoreMenuItem.select()
+//!     This methods selects the item.
+emxUICoreMenuItem.prototype.select = function _emxUICoreMenuItem_select() {
+};
+//! Class emxUICoreMenuSeparator
+//!     This object represents a menu separator.
+function emxUICoreMenuSeparator() {
+        this.superclass = emxUICoreMenuItem;
+        this.superclass();
+        delete this.superclass;
+        this.emxClassName = "emxUICoreMenuSeparator";
+}
+emxUICoreMenuSeparator.prototype = new emxUICoreMenuItem;
+//! Method emxUICoreMenuSeparator.createDOM()
+//!     This method creates the DOM element for the separator.
+emxUICoreMenuSeparator.prototype.emxUICoreMenuItemCreateDOM = emxUICoreMenuSeparator.prototype.createDOM;
+emxUICoreMenuSeparator.prototype.createDOM = function _emxUICoreMenuSeparator_createDOM(objDoc) {
+        this.emxUICoreMenuItemCreateDOM(objDoc);
+        var objsep = objDoc.createElement("hr");
+        this.rowElement.appendChild(objsep);
+        return this.rowElement;
+};
+//! Class emxUICoreMenuLink
+function emxUICoreMenuLink (strIcon, strText, strURL, strTarget) {
+        this.superclass = emxUICoreMenuItem;
+        this.superclass();
+        delete this.superclass;
+        this.emxClassName = "emxUICoreMenuLink";
+        this.menu = null;
+        this.target = strTarget;
+        this.text = strText;
+        this.url = strURL || "javascript:;";
+        this.isJS = this.url.indexOf("javascript:") == 0;
+        this.icon = (strIcon ? emxUICore.getIcon(strIcon) : null);
+        this.dead = false;
+        this.grayout = false;
+        this.anchorElement = null;
+}
+emxUICoreMenuLink.prototype = new emxUICoreMenuItem;
+//! Method emxUICoreMenuLink.addMenu()
+//!     This method adds a popup menu to the menu link.
+emxUICoreMenuLink.prototype.addMenu = function _emxUICoreMenuLink_addMenu(objMenu) {
+        this.menu = objMenu;
+        this.menu.parent = this;
+};
+//! Method emxUICoreMenuLink.click()
+//!     This method handles the click event for this object.
+emxUICoreMenuLink.prototype.click = function _emxUICoreMenuLink_click() {
+        //if (!this.dead) {
+                this.parent.hide(true);
+                emxUICore.link(this.url, this.target);
+        //}
+};
+//! Private Method emxUICoreMenuLink.createDOM()
+//!     This method creates the DOM representation of the link.
+emxUICoreMenuLink.prototype.emxUICoreMenuItemCreateDOM = emxUICoreMenuLink.prototype.createDOM;
+emxUICoreMenuLink.prototype.createDOM = function _emxUICoreMenuLink_createDOM(objDoc, cntd) {
+        if (this.menu) {
+                /*if (isMinIE55 && isWin) {
+                        this.menu.ownerWindow = this.parent.popup.document.parentWindow;
+                } else {*/
+                        this.menu.displayWindow = this.parent.displayWindow;
+                //}
+        }
+        this.emxUICoreMenuItemCreateDOM(objDoc);
+        var objanchor = this.rowElement;
+        if(!this.menu){
+        	objanchor.className= "link";
+        	var hhref = this.url;
+	    	if(this.url.indexOf("javascript") < 0) {
+	    		hhref = "javascript:emxUICore.link(\"" + this.url + "\", '" +  this.target + "')";
+	    	}
+	    	if(this.icon && this.icon.indexOf('iconActionChecked.gif') >= 0) {
+	        	emxUICore.addClass(this.rowElement, "selected");
+	        }
+	    }
+
+    	var objspn = objDoc.createElement("span");
+    	objspn.className = "icon";
+    	objanchor.appendChild(objspn);
+    	//icon merge
+    	if(this.icon){
+    	var objimg = objDoc.createElement("img");
+    	objimg.src = this.icon;
+    	objspn.appendChild(objimg);
+    	 } else {
+    		 objspn.style.backgroundImage = "url('../common/images/utilMmenuBullets.gif')";
+    	 }
+    	//icon merge
+        var objspnt = objDoc.createElement("span");
+        if(cntd){
+        	objspnt.innerHTML = this.text;
+        	var objem = objDoc.createElement("em");
+        	objem.innerHTML = " ("+emxUIConstants.STR_CONTINUE+") ";
+        	objspnt.appendChild(objem);
+        } else {
+        	objspnt.innerHTML = this.text;
+        }
+        objanchor.appendChild(objspnt);
+       	if(this.grayout == "true"){
+        	this.disable();
+        }
+        return this.rowElement;
+};
+//! Private Method emxUICoreMenuLink.disable()
+//!     This method disables the menu item.
+emxUICoreMenuLink.prototype.disable = function _emxUICoreMenuLink_disable() {
+        this.dead = true;
+        if (this.rowElement) {
+           this.rowElement.className = "disabled";
+        }
+};
+//! Private Method emxUICoreMenuLink.enable()
+//!     This method enables the menu item.
+emxUICoreMenuLink.prototype.enable = function _emxUICoreMenuLink_enable() {
+        this.dead = false;
+        if (this.rowElement) {
+    		this.rowElement.className= "link";
+    	}
+};
+//! Method emxUICoreMenuLink.handleEvent()
+//!     This method handles the events for this object.
+emxUICoreMenuLink.prototype.handleEvent = function _emxUICoreMenuLink_handleEvent(strType, objEvent) {
+        switch(strType) {
+                case "mousedown":
+                case "mouseup":
+                        if (objEvent && !isIE) {
+                        	objEvent.cancelBubble = true;
+                        	objEvent.returnValue = false;
+                        	if (objEvent.stopPropagation) {
+                        		objEvent.stopPropagation();
+                        		objEvent.preventDefault();
+                        	}
+                        }
+                        if (!this.dead) {
+                        this.click();
+                        }
+                        break;
+                /*case "mouseover":
+                        if (isMinIE55 && isWin && this.parent.popup.document.parentWindow.event.srcElement.tagName != "TD") {
+                                return;
+                        }
+                        this.parent.selectItem(this);
+                        break;*/
+        }
+};
+//! Private Method emxUICoreMenuLink.reset()
+//!     This method resets the view of the menu link.
+emxUICoreMenuLink.prototype.reset = function _emxUICoreMenuLink_reset() {
+        if(this.rowElement){
+        	this.rowElement.className = (this.dead ? "disabled" : "link");
+        }
+};
+//! Private Method emxUICoreMenuLink.select()
+//!     This method selects the menu link.
+emxUICoreMenuLink.prototype.select = function _emxUICoreMenuLink_select() {
+        if (!this.dead) {
+                emxUICore.addClass(this.rowElement, "menu-item-selected");
+                /*if (this.menu) {
+                        emxUICore.addClass(this.rowElement, "submenu-selected");
+                        this.menu.show(this.rowElement, "right");
+                }*/
+        }
+};
+//! Class emxUICoreMenuTitle
+function emxUICoreMenuTitle (strText) {
+        this.superclass = emxUICoreMenuItem;
+        this.superclass(strText);
+        delete this.superclass;
+        this.emxClassName = "emxUICoreMenuTitle";
+        this.text = strText;
+}
+emxUICoreMenuTitle.prototype = new emxUICoreMenuItem;
+//! Private Method emxUICoreMenuTitle.getDOM()
+//!     This methods creates the DOM the menu title.
+//!     objDoc (document) - document used to create elements.
+//!     The DOM element representing this menu item.
+emxUICoreMenuTitle.prototype.emxUICoreMenuItemCreateDOM = emxUICoreMenuTitle.prototype.createDOM;
+emxUICoreMenuTitle.prototype.createDOM = function _emxUICoreMenuTitle_createDOM(objDoc) {
+        this.emxUICoreMenuItemCreateDOM(objDoc);
+        var objTD = objDoc.createElement("td");
+        this.rowElement.appendChild(objTD);
+        objTD.className = "menu-title";
+        objTD.innerHTML = this.text;
+        return this.rowElement;
+};
+//! Class emxUIMenu
+//!     This object represents a menu.
+function emxUIMenu() {
+        this.superclass = emxUICorePopupMenu;
+        this.superclass();
+        delete this.superclass;
+        this.emxClassName = "emxUIMenu";
+}
+emxUIMenu.prototype = new emxUICorePopupMenu;
+//! Class emxUIMenuSeparator
+//!     This object represents a menu separator.
+function emxUIMenuSeparator() {
+        this.superclass = emxUICoreMenuSeparator;
+        this.superclass();
+        delete this.superclass;
+        this.emxClassName = "emxUIMenuSeparator";
+}
+emxUIMenuSeparator.prototype = new emxUICoreMenuSeparator;
+//! Class emxUIMenuItem
+function emxUIMenuItem (strIcon, strText, strURL, strTarget) {
+        this.superclass = emxUICoreMenuLink;
+        this.superclass(strIcon, strText, strURL, strTarget);
+        delete this.superclass;
+        this.emxClassName = "emxUIMenuItem";
+        this.menu = null;
+        this.target = strTarget;
+        this.text = strText;
+        this.url = strURL || "";
+        this.isJS = this.url.indexOf("javascript:") == 0;
+        this.icon = (strIcon ? emxUICore.getIcon(strIcon) : null);
+        this.dead = false;
+}
+emxUIMenuItem.prototype = new emxUICoreMenuLink;
+//! Class emxUIMenuTitle
+function emxUIMenuTitle(strText) {
+        this.superclass = emxUICoreMenuTitle;
+        this.superclass(strText);
+        delete this.superclass;
+        this.emxClassName = "emxUIMenuTitle";
+}
+emxUIMenuTitle.prototype = new emxUICoreMenuTitle;
+
+//Method parses the document.location.search
+//and add the key - value pair in an Array
+function createRequestObject() {
+  FORM_DATA = new Object();
+  var separator = ',';
+  query = '' + this.location;
+  qu = query
+  query = query.substring((query.indexOf('?')) + 1);
+  if (query.length < 1) { return false; }
+  keypairs = new Object();
+  numKP = 1;
+  var keyName;
+  var keyValue;
+  while (query.indexOf('&') > -1) {
+    keypairs[numKP] = query.substring(0,query.indexOf('&'));
+    query = query.substring((query.indexOf('&')) + 1);
+    numKP++;
+  }
+  keypairs[numKP] = query;
+  for (i in keypairs) {
+    keyName = keypairs[i].substring(0,keypairs[i].indexOf('='));
+    keyValue = keypairs[i].substring((keypairs[i].indexOf('=')) + 1);
+    while (keyValue.indexOf('+') > -1) {
+      keyValue = keyValue.substring(0,keyValue.indexOf('+')) + ' ' + keyValue.substring(keyValue.indexOf('+') + 1);
+      }
+    keyValue = unescape(keyValue);
+    if (FORM_DATA[keyName] && keyName == "emxTableRowId")
+    {
+        FORM_DATA[keyName] = FORM_DATA[keyName] + separator + keyValue;
+    }
+    else if(!FORM_DATA[keyName])
+    {
+        FORM_DATA[keyName] = keyValue;
+    }
+  }
+  return FORM_DATA;
+}
+//Show method for Dynamic Menu/Commands
+emxUICorePopupMenu.prototype.show1 = function _emxUICorePopupMenu_show1(objRef, strDir) {
+        var objThis = this;
+        var intX, intY;
+        this.layer.className = "mmenu page";
+        /*if (isMinIE55 && isWin) {
+                switch(strDir) {
+                        case "down":
+                        case "down-left":
+                                intX = 0;
+                                intY = objRef.offsetHeight;
+                                this.reset();
+                                break;
+                        /*case "down-left":
+                                intX = -this.finalWidth + objRef.offsetWidth;
+                                intY = objRef.offsetHeight;
+                                break;
+                        case "right":
+                                intX = objRef.offsetWidth;
+                                intY = 0;
+                                break;
+                        default:
+                                throw new Error("Required argument strDirection is not valid (value='" + strDir + "'). (emxUICoreMenu.js::emxUICoreMenu.prototype.show)");
+                }
+                emxUICore.show(this.layer);
+        		if(this.doIEChange) {
+        			this.doIEChange = false;
+        			var templay = this.ownerWindow.document.createElement("div");
+	        		templay.className = "mmenu";
+	        		templay.innerHTML = this.layer.innerHTML;
+	        		this.ownerWindow.document.body.appendChild(templay);
+	        		var lh = templay.offsetHeight;
+	        		this.ownerWindow.document.body.removeChild(templay);
+	        		if(this.sbheight > 0) {
+	        			this.menuborder.style.height = "" + lh + "px";
+	        		}
+	        		this.finalHeight = Math.min(lh, this.winheight);
+        		}
+                this.popup.show(intX, intY, this.finalWidth + 18, this.finalHeight + 4 + this.sbheight, objRef);
+
+                //this.popup.show(intX, intY, this.finalWidth + 4, this.finalHeight, objRef);
+                this.timeoutID = setTimeout(function () {
+                        if (objThis.popup.isOpen) {
+                                objThis.timeoutID = setTimeout(arguments.callee, emxUICoreMenu.WATCH_DELAY);
+                        } else {
+                                objThis.hide();
+                        }
+                }, emxUICoreMenu.WATCH_DELAY);
+        } else {*/
+                if (this.ownerWindow != this.displayWindow) {
+                        switch(strDir) {
+                                case "down":
+                                case "down-left":
+                                        intX = emxUICore.getActualLeft(objRef) + this.displayWindow.document.body.scrollLeft;
+                                        intY = this.displayWindow.document.body.scrollTop;
+                                        this.reset();
+                                        break;
+                                /*case "down-left":
+                                        intX = emxUICore.getActualLeft(objRef) - this.templateInnerLayer.offsetWidth + objRef.offsetWidth + this.displayWindow.document.body.scrollLeft;
+                                        intY = this.displayWindow.document.body.scrollTop;
+                                        break;
+                                case "right":
+                                        intX = emxUICore.getActualLeft(objRef) + objRef.offsetWidth;
+                                        intY = emxUICore.getActualTop(objRef);
+                                        break;*/
+                                default:
+                                        throw new Error("Required argument strDirection is not valid (value='" + strDir + "'). (emxUICoreMenu.js::emxUICoreMenu.prototype.show)");
+                        }
+                        if (!this.displayWindow.document.getElementById("menu" + this.uniqueID)) {
+                                this.createDOM(this.displayWindow.document);
+                                this.layer.id = "menu" + this.uniqueID;
+                        }
+                } else {
+                        switch(strDir) {
+                                case "down":
+                                case "down-left":
+                                        intX = emxUICore.getActualLeft(objRef);
+                                        intY = emxUICore.getActualTop(objRef) + objRef.offsetHeight;
+                                        this.reset();
+                                        break;
+                                /*case "down-left":
+                                        intX = emxUICore.getActualLeft(objRef) - this.templateInnerLayer.offsetWidth + objRef.offsetWidth;
+                                        intY = emxUICore.getActualTop(objRef) + objRef.offsetHeight;
+                                        break;
+                                case "right":
+                                        intX = emxUICore.getActualLeft(objRef) + objRef.offsetWidth;
+                                        intY = emxUICore.getActualTop(objRef);
+                                        break;*/
+                                default:
+                                        throw new Error("Required argument strDirection is not valid (value='" + strDir + "'). (emxUICoreMenu.js::emxUICoreMenu.prototype.show)");
+                        }
+                }
+                var intFinalX = intX + this.templateInnerLayer.offsetWidth;
+                var intFinalY = intY + this.finalHeight;
+                if (intFinalX > emxUICore.getWinWidth(this.displayWindow) + this.displayWindow.document.body.scrollLeft) {
+                        intX = this.displayWindow.document.body.scrollLeft + emxUICore.getWinWidth(this.displayWindow) - this.layer.offsetWidth;
+                } else if (intX < 0) {
+                        intX = 0;
+                }
+                if (intFinalY > emxUICore.getWinHeight(this.displayWindow) + this.displayWindow.document.body.scrollTop) {
+                        intY = this.displayWindow.document.body.scrollTop + emxUICore.getWinHeight(this.displayWindow) - this.layer.offsetHeight;
+                } else if (intY < 0) {
+                        intY = 0;
+                }
+                emxUICore.moveTo(this.layer, intX, intY);
+                /* This logic is added just for IE for those pages which have ActiveX or Applets in their pages.
+            	   * To show the menu on top of the objects this logic is introduced. Once IE problem is fixed in the
+            	   * browser then this code needs to be removed
+            	   */
+	              //This Piece of code is commented out to fix issue related to false text in Navigator JSP 
+            	  /*if(isIE && !this.visible) {
+            		  var menu = this;
+            		  setTimeout(function(){
+            			  var doc = menu.displayWindow ? menu.displayWindow.document : document;
+            			  var ieMenuCoverForObjectTag = doc.createElement('iframe');
+            			  ieMenuCoverForObjectTag.id='ieMenuCoverForObjectTag';
+            			  ieMenuCoverForObjectTag.style.position='absolute';
+            			  ieMenuCoverForObjectTag.style.width = menu.layer.clientWidth + 'px';
+            			  ieMenuCoverForObjectTag.style.height = menu.layer.clientHeight + 'px';
+            			  ieMenuCoverForObjectTag.style.top = (menu.layer.offsetTop) + 'px';
+            			  ieMenuCoverForObjectTag.style.left = (menu.layer.offsetLeft) + 'px';
+						  //Added for IR-179823V6R2013x.
+            			  //Applying inline styling(minHeight) for this iFrame, this should be removed when the false frame is removed
+            			  ieMenuCoverForObjectTag.style.minHeight="auto";
+            			  ieMenuCoverForObjectTag.style.zIndex='99';
+            			  ieMenuCoverForObjectTag.setAttribute('frameborder','0');
+            			  ieMenuCoverForObjectTag.setAttribute('src','javascript:false;');
+            			  doc.body.appendChild(ieMenuCoverForObjectTag);
+            		  },30);
+            	  }*/
+            	  /*  Special Code for Activex and Obejcts End*/
+                //emxUICore.show(this.layer);
+                this.layer.style.display = "block";
+                this.fnTemp = fnTemp = function () { objThis.hide();};
+                emxUICore.iterateFrames(function (objFrame) {
+                	if(objFrame){
+                		if(isIE){
+                	    	objFrame.document.onmousedown = function () { objThis.hide();};
+                	    	if (!isUnix) {
+                	    		objFrame.document.onresize = function () { objThis.hide();};
+                	    	}
+                	    } else {
+                            objFrame.addEventListener("mousedown", fnTemp, false);
+                            if (!isUnix) objFrame.addEventListener("resize", fnTemp, false);
+                	    }
+                	}
+                });
+                	//}
+        this.visible = true;
+        this.fireEvent("show");
+   };
+

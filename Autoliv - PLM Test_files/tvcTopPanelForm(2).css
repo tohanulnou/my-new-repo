@@ -1,0 +1,35 @@
+body {
+    margin: 0;
+    padding: 5px 5px 10px 10px;
+}
+
+div.TopPanelDetailsField {
+	 padding: 4px 4px;
+}
+
+
+td.TopPanelDetailsField {
+	border-left: none;
+}
+
+
+td.TopPanelDetailsField2 {
+	border-left: none;
+	padding-left: 30px;
+}
+
+div.TopPanelDetailsFieldLabel {
+    color: #2a4757;
+}
+
+div.TopPanelDetailsFieldValue {
+    color: #656565;
+}
+
+.TopPanelTitle {
+    padding: 5px;
+}
+
+.TopPanelTitle span.title {
+    color: #2a4757;
+}

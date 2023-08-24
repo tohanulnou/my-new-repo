@@ -1,0 +1,25 @@
+/*
+ * JQuery UI styles overridden by TVC.
+ */
+@import "../../../styles/jquery-base/jquery.ui.base.css";
+@import "../../../styles/jquery-base/jquery.ui.theme.css";
+ 
+ /* Tabs */
+.ui-tabs { position: relative; padding: .2em; zoom: 1; } /* position: relative prevents IE scroll bug (element with position: relative inside container with overflow: auto appear as "fixed") */
+.ui-tabs .ui-tabs-nav { margin: 0; padding: .2em .2em 0; }
+.ui-tabs .ui-tabs-nav li { list-style: none; float: left; position: relative; top: 1px; margin: 0 .2em 1px 0; border-bottom: 0 !important; padding: 0; white-space: nowrap; }
+.ui-tabs .ui-tabs-nav li a { float: left; padding: .3em 1em; text-decoration: none; font-family: Tahoma,Verdana,Arial,Sans-Serif; font-weight: bold; font-size: 11px}
+.ui-tabs .ui-tabs-nav li a:hover { text-decoration: underline }
+.ui-tabs .ui-tabs-nav li.ui-tabs-selected { margin-bottom: 0; padding-bottom: 1px; }
+.ui-tabs .ui-tabs-nav li a, .ui-tabs.ui-tabs-collapsible .ui-tabs-nav li.ui-tabs-selected a { cursor: pointer; } /* first selector in group seems obsolete, but required to overcome bug in Opera applying cursor: text overall if defined elsewhere... */
+.ui-tabs .ui-tabs-panel { display: block; border: 0; padding: 0; background: none; overflow: auto;}
+.ui-tabs .ui-tabs-hide { display: none !important; }
+ul.tab-list { background:white; border-top: 0; border-left: 0; border-right: 0; border-bottom: 1px solid #aaaaaa }
+
+/* Accordion */
+.ui-accordion .ui-accordion-content { padding-top: 3px; padding-bottom: 0; border-top: 0; margin-top: -2px; position: relative; top: 1px; margin-bottom: 2px; overflow: auto; display: none; zoom: 1; }
+.ui-accordion .ui-accordion-content-active { display: block; }
+.ui-accordion .ui-accordion-header a { 
+	display: block; 
+	padding-left: 25px;
+}

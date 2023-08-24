@@ -1,0 +1,230 @@
+// Requires: tvcCommonScript.js (core)
+if (!tvc) {
+    alert("WARNING: tvcCommonScript.js NOT LOADED");
+}
+
+// Track the last selected checkbox to be able to perform range selections
+var __lastSelected = null;
+// Track the currently selected radio button
+var __selectedRadio = null;
+
+var __fakeEventArg = {
+    ctrlKey : false,
+    altKey : false,
+    shiftKey : false
+};
+
+// selecting row via script
+function fakeSelection(oElement) {
+    __lastSelected = __selectedRadio = null;
+    s(__fakeEventArg, oElement, 0);
+}
+
+// Changes the apperance of a table row when selected/deselected
+function s(event, oElement, behavior) {
+    if (behavior) {
+        var checked = oElement.checked;
+        oElement.checked = !checked;
+        var id = oElement.getAttribute("dataId");
+        parent.table.setSelected(parent.getTableBeanName(), id, checked, {
+            ctrlKey : event.ctrlKey,
+            altKey : event.altKey,
+            shiftKey : event.shiftKey
+        }, function(ret, ok) {
+            if (ok) {
+                __selectionChange(ret);
+            } else {
+                // alert(ret.message);
+            }
+        });
+    } else {
+        // Toggle row highlight
+        if (!(oElement.type == "radio" && oElement == __selectedRadio && __selectedRadio.checked)) {
+            __hl(oElement);
+        }
+        // Enable/disable the data input element
+        __data(oElement, oElement.checked);
+        // Select range between last selected element
+        // and current element if shift key was pressed
+        if (oElement.type != "radio") {
+            if (event.shiftKey && __lastSelected != null && __lastSelected != oElement) {
+                __selectRange(__lastSelected, oElement);
+            }
+            __lastSelected = oElement;
+        }
+        // Initialize the toolbar when the selection is complete
+        window.parent.updateSelections();
+        // If the element is a radiobutton, make sure previous
+        // radiobutton is de-selected and de-highlighted.
+        if (oElement.type == "radio") {
+            if (__selectedRadio) {
+                var oTemp = __selectedRadio;
+                __selectedRadio = null;
+                if (oTemp != oElement) {
+                    s(event, oTemp, behavior);
+                }
+            }
+            __selectedRadio = oElement;
+        } else {
+            parent.tvcUpdateSelectAll();
+        }
+    }
+}
+
+// Selects/deselects all checkboxes depending on if
+// all should be selected or not.
+function a(event, oElement, behavior) {
+    if (behavior) {
+        parent.table.setAllSelected(parent.getTableBeanName(), oElement.checked, {
+            ctrlKey : event.ctrlKey,
+            altKey : event.altKey,
+            shiftKey : event.shiftKey
+        }, function(ret, ok) {
+            if (ok) {
+                __selectionChange(ret);
+            } else {
+                // alert(ret.message);
+            }
+        });
+    } else {
+        var bSelected = oElement.checked;
+        var selectAll = window.parent.tvcGetSelectAllElement();
+        if (selectAll) {
+            for (var i = 0; i < selectAll.length; i++) {
+                if (selectAll[i].checked != bSelected) {
+                    selectAll[i].checked = bSelected;
+                }
+            }
+        }
+        var oElements = window.parent.tvcGetSelectionElements();
+        for (var i = 0; i < oElements.length; i++) {
+            if (!oElements[i].disabled) {
+                if (oElements[i].checked != bSelected) {
+                    oElements[i].checked = bSelected;
+                    __hl(oElements[i]);
+                    __data(oElements[i], oElements[i].checked);
+                }
+            }
+        }
+
+        window.parent.updateSelections();
+    }
+}
+
+// Select a range of rows
+function __selectRange(from, to) {
+    var start = null;
+    var elements = window.parent.tvcGetSelectionElements();
+    for (var i = 0; i < elements.length; i++) {
+        var oElement = elements[i];
+        if (start == null && (oElement == from || oElement == to)) {
+            start = oElement;
+        }
+        if (start != null) {
+            if (!oElement.disabled) {
+                if (oElement.checked != from.checked) {
+                    oElement.checked = from.checked;
+                    __hl(oElement);
+                    __data(oElement, oElement.checked);
+                }
+            }
+            if (start != oElement && (oElement == from || oElement == to)) {
+                break;
+            }
+        }
+    }
+}
+
+function __selectionChange(x) {
+    if (x) {
+        var d = document;
+        if (!parent.tvcIsSingleBodyFrameLayout()) {
+            var rightFrame = parent.tvcGetTableBodyRightFrame();
+            if (rightFrame.tvcGetForm().elements["emxTableRowId"] != null) {
+                d = rightFrame.document;
+            }
+        }
+        for (var i = 0; i < x.selected.length; i++) {
+            var e = d.getElementById("id" + x.selected[i]);
+            if (e) {
+                __change(e, true);
+            }
+        }
+        for (var i = 0; i < x.unselected.length; i++) {
+            var e = d.getElementById("id" + x.unselected[i]);
+            if (e) {
+                __change(e, false);
+            }
+        }
+    }
+    window.parent.updateSelections();
+}
+
+function __change(e, select) {
+    e.checked = select;
+    __hl(e);
+    __data(e);
+}
+
+// Highlights the specified element
+function __togglehl(elem, on) {
+    if (on) {
+        elem.highlighted = true;
+        if (elem.className.indexOf("even") != -1 || elem.className.indexOf("odd") != -1) {
+            $(elem).addClass("h");
+        }
+    } else {
+        elem.highlighted = false;
+        $(elem).removeClass("h");
+    }
+}
+
+// Enables the data ID element...
+function __data(element, enable) {
+    var dataElement = element.nextSibling;
+    if (dataElement != null) {
+        dataElement.disabled = !enable;
+    }
+}
+
+//Highlight the selected row
+function __hl(elem) {
+    var oTR = elem;
+    if (oTR.parentNode != undefined) {
+        while (oTR.parentNode.parentNode.className != "contentTable") {
+            oTR = oTR.parentNode;
+        }
+        __hl2(oTR, elem.checked);
+    }
+}
+
+function __hl2(oTR, on) {
+    if (oTR != null) {
+        __togglehl(oTR, on);
+        if (!parent.tvcIsSingleBodyFrameLayout()) {
+            var sId = oTR.id;
+            var sOtherId = null;
+            var oFrame = null;
+            if (sId.indexOf("r") == 0) {
+                sOtherId = sId.replace("r", "l");
+                oFrame = window.parent.tvcGetTableBodyRightFrame();
+            } else if (sId.indexOf("l") == 0) {
+                sOtherId = sId.replace("l", "r");
+                oFrame = window.parent.tvcGetTableBodyRightFrame();
+            }
+            if (oFrame != null) {
+                var oOtherTR = oFrame.document.getElementById(sOtherId);
+                if (oOtherTR != null) {
+                    oFrame.__togglehl(oOtherTR, on);
+                }
+            }
+        }
+    }
+}
+
+// Highlight the current clicked Element
+function _highlightCurrentClickedElement(element) {
+    element.checked = true;
+    __hl(element);
+    window.parent.updateSelections();
+}

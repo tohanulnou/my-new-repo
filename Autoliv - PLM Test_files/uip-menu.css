@@ -1,0 +1,6 @@
+.drop-element,.drop-element:after,.drop-element:before,.drop-element *,.drop-element *:after,.drop-element *:before{box-sizing:border-box}.drop-element{position:absolute;display:none}.drop-element.drop-open{display:block}.drop-element.drop-theme-basic{max-width:100%;max-height:100%}.drop-element.drop-theme-basic .drop-content{border-radius:5px;box-shadow:0 2px 8px rgba(0,0,0,0.2);font-family:inherit;background:#eee;color:#444;padding:1em;font-size:1.1em;line-height:1.5em}
+
+.uip-menu{max-width:40em}.uip-menu i.dropdown{transform:rotate(-90deg)}.uip-menu .divider{height:0;border-top:1px solid rgba(34,36,38,0.1);margin:0}.uip-menu.ui.vertical.menu{width:inherit;min-width:10em}.uip-menu.ui.menu .item>img:not(.ui){width:1.5em}.uip-menu .item{max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.drop-uip-menu.drop-element{z-index:1900}.drop-uip-menu.drop-element.drop{max-height:100%;overflow:auto}.drop-uip-menu.drop-element{transition:opacity 0.2s;opacity:0}.drop-uip-menu.drop-element.drop-open{display:none}.drop-uip-menu.drop-element.drop-open-transitionend{display:block}.drop-uip-menu.drop-element.drop-after-open{opacity:1}
+
+
+/*# sourceMappingURL=uip-menu.css.map*/

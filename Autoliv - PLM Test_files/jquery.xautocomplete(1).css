@@ -1,0 +1,32 @@
+div.AutoCompleteList {
+    background-color: white;
+    border: 1px solid #333;
+    box-shadow: #888 2px 2px 2px;
+}
+
+div.AutoCompleteListItem {
+    color: black;
+    border-bottom: 1px solid #eee;
+}
+
+div.AutoCompleteListItemSeparator {
+    color: white;
+    background-color: black;
+}
+
+div.AutoCompleteListItemSelected {
+    color: white;
+    background-color: #777;
+    border-bottom: 1px solid #777;
+}
+div.AutoCompleteListItemSelected *  {
+    color: white !important;
+    border-color: white !important;
+}
+
+div.AutoCompleteLoading {
+    color: black;
+    background-image: url('../../../images/ac_indicator.gif');
+    background-repeat: no-repeat;
+    background-position: center left;
+}

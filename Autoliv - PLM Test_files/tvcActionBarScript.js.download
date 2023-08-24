@@ -1,0 +1,319 @@
+function tvcMenuItemClicked(oItem, bSkipCheck) {
+    if (
+        (oItem.serviceURL == '' || oItem.serviceURL == null) &&
+        (oItem.formInput && !Object.keys(oItem.formInput).length) &&
+        (oItem.href == null || oItem.href == '')
+    ) {
+        return;
+    }
+    var bPopup = oItem.openPopup;
+    if (oItem.showProgress) {
+        try {
+            var sPM = oItem.progressMessage;
+            if (sPM != null && sPM.length > 0) {
+                showProgressMessage(sPM);
+            } else {
+                showProgress();
+            }
+        } catch (E) {} // in case the progress gizmo isn't available
+    }
+    if (oItem.submit) {
+        var cardDetails = null;
+        if (oItem.openCard) {
+            cardDetails = {
+                href: oItem.href,
+                cardID: oItem.cardID,
+                cardWidth: oItem.cardWidth,
+                cardTitle: oItem.cardTitle,
+                cardLoadScript: oItem.cardLoadScript,
+                cardReloadable: true
+            };
+        }
+        var result = false;
+        var href = oItem.href;
+        if (oItem.addCSRFToken && typeof getTopWindow().getCSRFToken === 'function') {
+            var token = JSON.parse(getCSRFToken());
+            var tokenParams = $.param(token, true);
+            if (tokenParams) {
+                var separator = href.indexOf('?') > 0 ? '&' : '?';
+                href = href + separator + tokenParams;
+            }
+        }
+        if (bSkipCheck) {
+            result = tvcSubmitAfterCheck(
+                href,
+                oItem.targetLocation,
+                oItem.rowSelect,
+                bPopup,
+                oItem.windowWidth,
+                oItem.windowHeight,
+                oItem.confirmMessage,
+                cardDetails,
+                1,
+                oItem.popupModal
+            );
+        } else {
+            result = tvcSubmitWithCheck(
+                href,
+                oItem.targetLocation,
+                oItem.rowSelect,
+                bPopup,
+                oItem.windowWidth,
+                oItem.windowHeight,
+                oItem.confirmMessage,
+                cardDetails,
+                oItem.popupModal
+            );
+        }
+        if (!result && oItem.showProgress) {
+            try {
+                hideProgress();
+            } catch (E) {}
+        }
+    } else {
+        if (oItem.serviceURL || oItem.formInput) {
+            tvc.invoke.service(oItem);
+        } else if (oItem.href.substring(0, 11) == 'javascript:') {
+            var script = oItem.href.substring(11);
+            eval(script);
+        } else {
+            if (oItem.openCard) {
+                parent.tvc.inlineFrame.load(
+                    oItem.cardID,
+                    oItem.href,
+                    oItem.cardWidth,
+                    oItem.cardTitle,
+                    oItem.cardLoadScript,
+                    oItem.cardReloadable
+                );
+            } else if (bPopup) {
+                tvc.popup(oItem.href, oItem.windowWidth, oItem.windowHeight, oItem.popupModal);
+            } else {
+                var target = null;
+                if (oItem.targetLocation != null) {
+                    try {
+                        if (oItem.targetLocation != 'content') {
+                            if (tvc.agent.isChrome && oItem.targetLocation === 'tableHiddenFrame') {
+                                var suffix = window.frameElement.id;
+                                var hiddenFrameName = 'tableHiddenFrame';
+                                var attributeConfig = 'configname';
+                                if (window.frameElement.getAttribute(attributeConfig)) {
+                                    suffix = window.frameElement.getAttribute(attributeConfig);
+                                }
+                                var renameHiddenFrame = hiddenFrameName.concat('_').concat(suffix);
+                                var frames = window.parent.frames;
+                                var len = frames.length;
+                                for (var i = 0; i < len; i++) {
+                                    if (frames[i].name === hiddenFrameName) {
+                                        frames[hiddenFrameName].name = renameHiddenFrame;
+                                        break;
+                                    }
+                                }
+                                oItem.targetLocation = renameHiddenFrame;
+                            }
+                            target = eval(oItem.targetLocation);
+                        }
+                    } catch (e) {
+                        target = null;
+                    }
+                    if (target == null) {
+                        window.open(oItem.href, oItem.targetLocation);
+                        return;
+                    }
+                }
+                if (target == null) {
+                    target = self;
+                }
+                target.location.href = oItem.href;
+            }
+        }
+    }
+}
+
+/**
+ * Builds a function name based on the passed 'id' string
+ * and invokes the function with the parameters
+ *
+ * @param {String}   id, Name of the function
+ * @param {boolean}  isMultipleAllowed, multiple selections
+ */
+
+function setFieldValue(id, isMultipleAllowed) {
+    var tableContentFrame = parent.frames['tableContentFrame'];
+    var selectedObjectIds = tableContentFrame.getSelectedObjectIds();
+
+    if (selectedObjectIds.length) {
+        var args = [selectedObjectIds, null, isMultipleAllowed];
+        tvc.execFunction('top.opener.set' + id, window, this, args);
+        top.close();
+    }
+}
+
+// Submits the table form
+function tvcSubmit(sURL, sTarget, sRowSelect, bPopup, iWidth, iHeight, sCM, oCardDetails, bModal) {
+    // Delegate that doesn't return a boolean (for backwards compatibility)
+    tvcSubmitWithCheck(
+        sURL,
+        sTarget,
+        sRowSelect,
+        bPopup,
+        iWidth,
+        iHeight,
+        sCM,
+        oCardDetails,
+        bModal
+    );
+}
+
+function _getWindow() {
+    var tWin = null;
+    try {
+        tWin = window.parent.frames['tableContentFrame'];
+    } catch (E) {}
+    if (!tWin) {
+        try {
+            tWin = window.parent.frames[1];
+        } catch (E) {}
+    }
+    return tWin;
+}
+
+function tvcSubmitWithCheck(
+    sURL,
+    sTarget,
+    sRowSelect,
+    bPopup,
+    iWidth,
+    iHeight,
+    sCM,
+    oCardDetails,
+    bModal
+) {
+    var tWin = _getWindow();
+    if (!tWin) {
+        alert('Unable to find table frame!');
+        return false;
+    }
+    var iChecks = tWin.tvcGetSelectionCount();
+    if (sRowSelect == 'single' && iChecks > 1) {
+        alert(parent.M_STR_SELECT_ONE);
+        return false;
+    } else if (sRowSelect == 'prevent' && iChecks > 0) {
+        alert(parent.M_STR_PREVENT_SELECTION);
+        return false;
+    } else if (iChecks == 0 && sRowSelect != 'none' && sRowSelect != 'prevent') {
+        alert(parent.M_STR_NONE_SELECTED);
+        return false;
+    }
+    tWin.tvcPrepareFormElementsForSubmit(sURL, true, null);
+    return tvcSubmitAfterCheck(
+        sURL,
+        sTarget,
+        sRowSelect,
+        bPopup,
+        iWidth,
+        iHeight,
+        sCM,
+        oCardDetails,
+        iChecks,
+        bModal
+    );
+}
+
+function tvcSubmitAfterCheck(
+    sURL,
+    sTarget,
+    sRowSelect,
+    bPopup,
+    iWidth,
+    iHeight,
+    sCM,
+    oCardDetails,
+    iChecks,
+    bModal
+) {
+    if (sCM != null && sCM != 'undefined' && sCM != 'null') {
+        if (sCM.indexOf('${TABLE_SELECTED_COUNT}') > 0) {
+            sCM = sCM.replace(new RegExp('\\$\\{TABLE_SELECTED_COUNT\\}', 'g'), iChecks);
+        }
+        if (!window.confirm(sCM)) {
+            return false;
+        }
+    }
+    if (oCardDetails != null) {
+        var isWidgetAvailable = false;
+        var oCardDetailsHref = oCardDetails.href;
+        if (oCardDetailsHref && oCardDetailsHref.indexOf('widgetConfigName') > -1) {
+            isWidgetAvailable = true;
+        }
+        parent.tvc.inlineFrame.load(
+            oCardDetails.cardID,
+            parent.U_SUBMIT_ACTION + '?card=true',
+            oCardDetails.cardWidth,
+            oCardDetails.cardTitle,
+            oCardDetails.cardLoadScript,
+            oCardDetails.cardReloadable,
+            isWidgetAvailable
+        );
+    } else {
+        if (sURL.indexOf('javascript:') == 0) {
+            eval(sURL.substring(11));
+        } else {
+            if (bPopup) {
+                _submitPopup(iWidth, iHeight, bModal);
+            } else {
+                _doSubmit(sTarget);
+            }
+        }
+    }
+    return true;
+}
+
+function _doSubmit(sTarget) {
+    try {
+        // This direct approach to submit the
+        // form will not always work, need a backup
+        _getWindow().tvcDoSubmitForm(sTarget);
+    } catch (oError) {
+        // Alternative approach when the first one fails
+        _submitFrame(sTarget);
+    }
+}
+
+// Returns the frame to which submit requests will
+// be sent when the direct submit fails. There seems
+// to be a problem with the submit() function on a
+// form on netscape under certain conditions.
+function _submitFrame(sTarget) {
+    var f = document.getElementById('tvcSubmitActionFrame');
+    if (!f) {
+        var e = document.createElement('DIV');
+        e.id = 'tvcSubmitActionDiv';
+        e.style.position = 'absolute';
+        e.style.top = '0px';
+        e.style.left = '0px';
+        e.style.height = '0px';
+        e.style.width = '0px';
+        e.style.visibility = 'hidden';
+        f = document.createElement('IFRAME');
+        f.id = 'tvcSubmitActionFrame';
+        f.name = 'tvcSubmitActionFrame';
+        f.src = parent.U_BLANK;
+        f.height = '1px';
+        f.width = '1px';
+        f.border = '0';
+        f.frameBorder = '0';
+        e.appendChild(f);
+        document.body.appendChild(f);
+    }
+    f.contentWindow.document.location.href =
+        parent.U_SUBMIT_ACTION + '?target=' + encodeURIComponent(sTarget);
+}
+
+// Opens a dialog window that will submit the form to itself
+function _submitPopup(iWidth, iHeight, bModal) {
+    if (typeof bModal == undefined) {
+        var bModal = true;
+    }
+    tvc.popup(parent.U_SUBMIT_ACTION + '?popup=true', iWidth, iHeight, bModal);
+}

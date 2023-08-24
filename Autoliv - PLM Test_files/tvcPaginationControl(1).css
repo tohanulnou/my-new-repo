@@ -1,0 +1,13 @@
+/*table#tvcPageControl {
+	background-image: url('../../../../core/images/pagination/utilPaginationBG.gif');
+}*/
+select#tvcPageControlSelect {
+    color: black;
+    background-color: #505050;
+    border-color: #828177 #FFFFFF #FFFFFF #828177;
+    border-style: solid;
+    border-width: 1px;
+    color: #FFFFFF;
+    font-size: 9px;
+    margin-top: 2px;
+}

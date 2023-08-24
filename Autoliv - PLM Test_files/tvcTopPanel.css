@@ -1,0 +1,110 @@
+table.TopPanelTable {
+	padding: 0px;
+	margin: 0px;
+	width: 100%;
+	border-collapse: separate;
+}
+
+tr.TopPanelMinimizedRow {
+	
+}
+
+tr.TopPanelMaximizedRow {
+	display: none;
+}
+
+td.TopPanelControlColumn {
+	width: 25px;
+	vertical-align: top;
+}
+
+td.TopPanelInfoColumn {
+	vertical-align: top;
+	align: left;
+}
+
+table.TopPanelInfoColumnTable {
+	width: 100%;
+}
+
+td.TopPanelHeaderMinimized {
+	padding: 3px 2px 2px 6px;
+	margin: 0px 0px 0px 0px;
+	font-family: Arial, Verdana, Sans-Serif;
+	font-size: 12pt;
+	font-style: normal;
+	font-weight: bold;
+	text-decoration: none;
+	letter-spacing: -0.2pt;
+	word-spacing: 0pt;
+	white-space: nowrap;
+}
+
+img.TopPanelButton {
+	width: 16px;
+	height: 16px;
+	margin: 0px 0px 0px 0px;
+}
+
+img.TopPanelButtonHover {
+	width: 16px;
+	height: 16px;
+	margin: 0px 0px 0px 0px;
+}
+
+img.TopPanelButtonToggled,img.TopPanelButtonPressed {
+	width: 16px;
+	height: 16px;
+	margin: 0px 0px 0px 0px;
+}
+
+div.TopPanelLoad {
+	text-align: center;
+}
+
+div.TopPanelLoad div {
+	padding: 25px;
+	font-family: arial, verdana, sans-serif;
+	font-size: 10pt;
+	font-weight: normal;
+	font-style: normal;
+}
+
+div.TopPanelLoad img {
+	margin: 0px 2px -2px 2px;
+}
+
+iframe.TopPanelContentFrame {
+	height: 10px;
+	width: 100%;
+	border: 0px;
+	padding: 0px;
+	margin: 0px;
+}
+
+td.TopPanelControlColumn table tr td {
+	padding: 0px;
+	cursor: pointer;
+}
+
+div.page-content {
+	position:absolute;
+	left:0px;
+	right:0px;
+	top:0px;
+	bottom:0px;
+}
+
+div.page-content-container {
+	position:relative;
+	width:100%;
+	height:100%;
+}
+
+div.page-content-occupier {
+	position:absolute;
+	left:0px;
+	right:0px;
+	top:0px;
+	bottom:0px;
+}

@@ -1,0 +1,55 @@
+table#tvcPageControl {
+	font-family: verdana,sans-serif,arial;
+    font-size: 8pt;
+    font-weight: normal;
+	display: none;
+	border: 0px;
+    -moz-user-select: none;
+    -moz-user-focus: none;
+    -moz-box-sizing: border-box;
+    cursor: default;
+}
+select#tvcPageControlSelect {
+	font-family: verdana,sans-serif,arial;
+    font-size: 8pt;
+    font-weight: normal;
+    white-space: nowrap;
+    cursor: default;
+    height: 17px;
+	margin-left: 4px;
+	margin-right: 4px;
+    -moz-user-select: none;
+    -moz-user-focus: none;
+    -moz-box-sizing: border-box;
+}
+span#tvcPageControlCount {
+	margin-left: 5px;
+	border: 0px;
+}
+img#tvcPageControlPrev {
+	margin-right: 6px;
+	border: 0px;
+	height: 16px;
+	width: 16px;
+}
+img#tvcPageControlNext {
+	margin-left: 6px;
+	margin-right: 6px;
+	border: 0px;
+	height: 16px;
+	width: 16px;
+}
+img#tvcPageControlOn {
+	border: 0px;
+}
+img#tvcPageControlOff {
+	margin-right: 6px;
+	border: 0px;
+}
+img#tvcPageControlLeft {
+	margin-right: 6px;
+	border: 0px;
+}
+td.pagCol {
+	white-space: nowrap;
+}

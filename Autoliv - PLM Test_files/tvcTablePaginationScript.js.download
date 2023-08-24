@@ -1,0 +1,53 @@
+// pagination
+function setCurrentPage(page) {
+    showProgressMessage(parent.M_LOADINGDATA_WAIT);
+    table.setCurrentPage(getTableBeanName(),page,handleAjaxResponse(function(ret,ok) {
+        if (ok && ret) {
+            window.setTimeout(tvcReloadPageNoScroll, 50);
+            return false;
+        } else {
+            updatePageControl();
+            return false;
+        }
+    }));
+}
+
+function setPaginated(on) {
+    showProgressMessage(parent.M_LOADINGDATA_WAIT);
+    table.setPaginated(getTableBeanName(),on,handleAjaxResponse(function(ret,ok) {
+        if (ok && ret!=null) {
+            try {
+                if (ret.pageCount==PAGINATION.pageCount) {
+                    PAGINATION=ret;
+                    updatePageControl();
+                    return false;
+                }
+            } catch (E) {}
+            window.setTimeout(tvcReloadPageNoScroll, 50);
+            return false;
+        } else {
+            updatePageControl();
+            return false;
+        }
+    }));
+}
+
+function getRowCount() {
+    return ROWCOUNT;
+}
+
+function setRowCount(iRowCount) {
+    ROWCOUNT = iRowCount;
+}
+
+function setPaginationInfo(paginationInfo) {
+    PAGINATION = paginationInfo;
+}
+
+function updatePageControl() {
+    try {
+        tvcGetBottomFrame().updatePageControl();
+    } catch (x) {
+        window.setTimeout(updatePageControl,1000);
+    }
+}

@@ -1,0 +1,34 @@
+div#tabPageCfgPane_inner {
+    background-color: #f6f6f6;
+    border: none;
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-top: 7px;
+}
+
+div#tabPageCfgPane {
+	border-radius: 0 0 6px 6px;
+	border: none;
+}
+
+.pane-shadow {
+    border: 1px solid #aaa;
+	border-radius: 0 0 6px 6px;
+	box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
+}
+
+.tabCfgDiv i {
+	color: #888;
+    margin-left: -5px;
+    margin-right: 3px;
+}
+
+.selectedTabCfg {
+    background-color: #ffffff !important;
+    border-top: 1px solid #aaa !important;
+    border-right: 1px solid #aaa !important;
+    border-left: 1px solid #aaa !important;
+    margin-top: -1px !important;
+    height: 27px !important;
+    box-shadow: 0 1px 1px #ffffff;
+}

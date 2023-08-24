@@ -1,0 +1,139 @@
+div.calendar {
+	background-color: #666666;
+	border: 3px solid #666666;
+	padding-bottom: 1px;
+	padding-right: 1px;
+	padding-top: 1px;
+	padding-left: 1px;
+	cursor: default;
+}
+
+table.calendar td.month {
+	background-color: #DADADA;
+	border-color: #FFFFFF #737373 #737373 #FFFFFF;
+	border-style: solid;
+	border-width: 1px;
+	margin-bottom: 1px;
+	cursor: pointer;
+	padding-bottom: 2px;
+	padding-right: 0px;
+	padding-top: 2px;
+	padding-left: 4px;
+	text-align: left;
+	vertical-align: middle;
+	font-weight: bold;
+	color: #333333;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 11px;
+}
+
+table.calendar td.year {
+	background-color: #DADADA;
+	border-color: #FFFFFF #737373 #737373 #FFFFFF;
+	border-style: solid;
+	border-width: 1px;
+	margin-bottom: 1px;
+	cursor: pointer;
+	padding-bottom: 3px;
+	padding-right: 0px;
+	padding-top: 3px;
+	padding-left: 5px;
+	text-align: left;
+	vertical-align: middle;
+	font-weight: bold;
+	color: #333333;
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 11px;
+}
+
+table.calendar td.header {
+	background-color: #666666;
+	color: #FFFFFF;
+	font-family: Verdana, Arial, Helvetica, Geneva, Swiss, SunSans-Regular;
+	font-size: 13px;
+	font-weight: bold;
+	text-align: center;
+	cursor: default;
+}
+
+table.calendar td.header-left {
+	
+}
+
+table.calendar td.left {
+	
+}
+
+table.calendar td,table.calendar-select td {
+	font-family: Verdana, Arial, Helvetica, sans-serif;
+	font-size: 11px;
+	text-align: center;
+	padding-left: 7px;
+	padding-right: 7px;
+	padding-top: 3px;
+	padding-bottom: 3px;
+	-moz-user-select: none;
+	color: #333333;
+}
+
+table.calendar td.day {
+	background-color: #FFFFFF;
+	border-bottom: 1px solid #C8C8C8;
+	border-right: 1px solid #C8C8C8;
+	cursor: pointer;
+}
+
+table.calendar td.empty {
+	background-color: #EEEEEE;
+	border-bottom: 1px solid #C8C8C8;
+	border-right: 1px solid #C8C8C8;
+	cursor: default;
+}
+
+table.calendar td.hover {
+	background-color: #FFCC66;
+}
+
+table.calendar td.selected {
+	background-color: #FFCC66;
+}
+
+table.calendar-select {
+	width: 100%;
+	border: 4px solid #676767;
+	background: url("../../../../../common/images/bgnd-mmenu.gif") repeat-x
+		scroll left top #DEDFDF;
+}
+
+table.calendar-select td.select {
+	/*background: url("../../../../../common/images/utilMmenuBullets.gif") no-repeat scroll left center;*/
+	background: url("../images/menu/menuBulletBlue.gif") no-repeat 6px 3px
+		transparent;
+	text-align: left !important;
+	border-left: 3px solid #DEDFDF;
+	border-right: 3px solid #DEDFDF;
+	cursor: pointer;
+	padding-left: 22px;
+}
+
+table.calendar-select td.select-top {
+	border-top: 3px solid #DEDFDF;
+}
+
+table.calendar-select td.select-bottom {
+	border-bottom: 3px solid #DEDFDF;
+}
+
+table.calendar-select td.select-current {
+	background: url("../images/menu/menuBulletOrange.gif") no-repeat 6px 3px
+		transparent;
+}
+
+table.calendar-select td.select-hover {
+	background: url("../../../../../common/images/bgnd-mmenu-hover.png")
+		repeat-x left top transparent;
+	padding-left: 22px;
+	cursor: pointer;
+	display: block;
+	color: #FFFFFF;
+}

@@ -1,0 +1,26 @@
+/*
+* Add only minor jQuery utility plugins here. Store in separate files if bigger.
+*/
+
+/*
+ * Measure DOM elements.
+ * 
+ * Example getting width:
+ * var width = $('#ToMeasure').measure(function() { return this.width() });
+ */
+(function($) {
+    $.fn.measure = function(fn) {
+        var $clone = $(this).clone(false).css({
+            'position' : 'absolute',
+            'visibility' : 'hidden',
+            'height' : 'auto',
+            'width' : 'auto',
+            'font-family' : $(this).css('font-family'),
+            'font-size' : $(this).css('font-size'),
+            'font-weight' : $(this).css('font-weight')
+        }).appendTo('body');
+        var result = fn.apply($clone);
+        $clone.remove();
+        return result;
+    };
+}(jQuery));

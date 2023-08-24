@@ -1,0 +1,171 @@
+/*
+ * Sets up the context menu for the columns
+ */
+var TVCColumnCtxMenu = (function(_super, $, tvc, objectCtxMenu) {
+    TVCColumnCtxMenu.inherits(_super);
+
+    function TVCColumnCtxMenu() {
+        _super.apply(this, arguments);
+
+        this.ref = null;
+        this.ctxMenuCounter = 0;
+        this.resizer = null;
+        this.htmlBuffer = null;
+        this.ctxColumns = null;
+    }
+
+    var behaviours = {
+        init: function(ref, resizer) {
+            this.ref = ref;
+            this.resizer = resizer;
+
+            var createMenu = this.createMenu.bind(this);
+            var callback = this.executeAction.bind(this);
+
+            this.htmlBuffer = [];
+            this.ctxColumns = [];
+
+            this.ref.$headers.$thl.each(createMenu);
+            this.ref.$headers.$thr.each(createMenu);
+
+            $(document.body).append(this.htmlBuffer.join(''));
+
+            var timeout = 0;
+            while (this.ctxColumns.length) {
+                var ctxColumn = this.ctxColumns.shift();
+                (function(column) {
+                    setTimeout(function() {
+                        column.$header.contextMenu(
+                            {
+                                menu: column.id,
+                                onOpen: function() {
+                                    if (objectCtxMenu) {
+                                        objectCtxMenu.hideMenus();
+                                    }
+                                }
+                            },
+                            callback
+                        );
+                    }, (timeout += 25));
+                })(ctxColumn);
+            }
+
+            this.htmlBuffer = null;
+            this.ctxColumns = null;
+        },
+
+        createMenu: function(index, header) {
+            var $header = $(header);
+
+            var html = this.htmlBuffer;
+
+            var r = $header.attr('resizable') == 'true';
+            var s = $header.attr('sortable') == 'true';
+            var m = $header.attr('massupdateable') == 'true';
+            var h = $header.attr('hideable') == 'true';
+            var g = $header.attr('groupable') == 'true';
+            var rh = $header.attr('rotatable') == 'true';
+
+            if (r || s || m || h || g || rh) {
+                var id = 'tvcColumnCtxMenu_' + ++this.ctxMenuCounter;
+                html.push('<ul id="');
+                html.push(id);
+                html.push('" class="contextMenu">');
+                if (s) {
+                    this.addItem(html, 'sortasc', parent.parent.MSG_SORT_ASC, false);
+                    this.addItem(html, 'sortdesc', parent.parent.MSG_SORT_DESC, false);
+                }
+                if (g) {
+                    this.addItem(html, 'group', parent.parent.MSG_GROUP, s);
+                }
+                if (m) {
+                    this.addItem(html, 'massupdate', parent.parent.MSG_MASS_UPDATE, s || g);
+                }
+                if (h) {
+                    this.addItem(html, 'hidecol', parent.parent.MSG_HIDE_COL, s || g || m);
+                }
+                if (r) {
+                    this.addItem(
+                        html,
+                        'resetwidth',
+                        parent.parent.MSG_RESET_WIDTH,
+                        s || g || m || h
+                    );
+                    this.addItem(html, 'resetwidths', parent.parent.MSG_RESET_WIDTHS, true);
+                }
+                if (rh) {
+                    this.addItem(html, 'rotatecolhdr', parent.parent.MSG_ROT_HDR, true);
+                }
+                html.push('</ul>');
+
+                this.ctxColumns.push({
+                    id: id,
+                    $header: $header
+                });
+            }
+        },
+
+        executeAction: function(action, header, pos) {
+            var $header = $(header);
+            var colName = $header.attr('colname');
+            if (action == 'sortasc') {
+                parent.tvcOrderColumn(colName, true);
+            } else if (action == 'sortdesc') {
+                parent.tvcOrderColumn(colName, false);
+            } else if (action == 'group') {
+                parent.tvcQuickGroup(colName);
+            } else if (action == 'massupdate') {
+                var colIndex = parseInt($header.attr('colindex'));
+                parent.tvcMassUpdate(colIndex);
+            } else if (action == 'hidecol') {
+                parent.tvcHideColumn(colName);
+            } else if (action == 'rotatecolhdr') {
+                if (this.resizer) {
+                    this.resizer.setGroupHeadersMinWidth();
+                }
+                parent.rotateColumnHeader($header, colName);
+                if (this.resizer) {
+                    this.resizer.setGroupHeadersAutoWidth();
+                }
+            } else if (action == 'resetwidth') {
+                var $draggable = this.resizer.findDraggable($header);
+                this.resizer.resizeColumn($draggable, null);
+                this.resizer.resizeGroupHeader($draggable);
+            } else if (action == 'resetwidths') {
+                this.resizer.resetColumnsWidth();
+                this.resizer.setGroupHeadersWidth();
+            }
+        },
+
+        addItem: function(buffer, action, text, sep, className) {
+            buffer.push('<li');
+            if (sep) {
+                className = (className ? className + ' ' : '') + 'separator';
+            }
+            if (className) {
+                buffer.push(' class="');
+                buffer.push(className);
+                buffer.push('"');
+            }
+            buffer.push('><a href="#');
+            buffer.push(action);
+            buffer.push('">');
+            buffer.push(text);
+            buffer.push('</a></li>');
+        }
+    };
+
+    TVCColumnCtxMenu.behaves(behaviours);
+
+    return TVCColumnCtxMenu;
+})(Function.Super, window.$, window.tvc || (window.tvc = {}), window.parent.ctxMenu);
+
+if (!tvc.sbColumnCtxMenu) {
+    tvc.sbColumnCtxMenu = new TVCColumnCtxMenu();
+}
+
+function bootstrapColumnCtxMenu() {
+    tvc.sbColumnCtxMenu.init(tvc.sbTableRef, tvc.sbTableResizeMgr);
+}
+
+tvc.onDocumentRendered(bootstrapColumnCtxMenu, 500);

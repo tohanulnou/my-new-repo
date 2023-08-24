@@ -1,0 +1,26 @@
+table.filterlist {
+    background-color: #ffffff; 
+}
+td.filtername {
+    border-bottom: 1px solid rgb(225,225,225);
+}
+td.filtercheck {
+	border-bottom: 1px solid rgb(225,225,225); 
+}
+tr.filteritemselected td.filtername, 
+tr.filteritembelowselected td.filtername,
+tr.filteritemselected td.filtercheck,
+tr.filteritembelowselected td.filtercheck {
+	border-bottom: 1px solid rgb(151,209,244); 
+}
+tr.filteritem,
+tr.filteritembelowselected {
+	background-color: #ffffff!important;
+}
+tr.filteritemselected {
+	background-color: rgb(196,229,249)!important;
+}
+div.filterlistcontainer {
+	border: 1px solid #aaa;
+	background-color: #ffffff!important;
+}

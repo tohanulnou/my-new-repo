@@ -1,0 +1,78 @@
+(function(topTVCWindow) {
+    if (topTVCWindow.TVCbroker) {
+        var tempEvent = topTVCWindow.TVCbroker.eventHandlers;
+        var prevousEvent = false;
+        var previouseventHandlers = {};
+        if (tempEvent) {
+            prevousEvent = true;
+
+            var tempKeys = Object.keys(tempEvent);
+            for (let i = 0; i < tempKeys.length; i++) {
+                var tempKey = tempKeys[i];
+                var subElements = tempEvent[tempKeys];
+                for (let subElement in subElements) {
+                    var subEle = subElements[subElement];
+                    previouseventHandlers[tempKey] = [];
+                    previouseventHandlers[tempKey].push({
+                        configId: subEle.configId,
+                        callback: subEle.callback
+                    });
+                }
+            }
+        }
+    }
+    topTVCWindow.TVCbroker = {
+        eventHandlers: {},
+        additional_ContextMenuHolder: {},
+        customAppList: {},
+
+        subscribe: function(eventName, configId, fn) {
+            this.eventHandlers[eventName] = this.eventHandlers[eventName] || [];
+            this.eventHandlers[eventName].push({
+                configId: configId,
+                callback: fn
+            });
+        },
+        removeEvent: function(subscribers, configId) {
+            if (subscribers) {
+                subscribers.forEach(function(subscriber, index) {
+                    if (subscriber.configId === configId) {
+                        subscribers.splice(index, 1);
+                    }
+                });
+            }
+        },
+
+        unsubscribe: function(configId, currentEventName) {
+            for (var eventName in this.eventHandlers) {
+                if (currentEventName) {
+                    this.removeEvent(this.eventHandlers[currentEventName], configId);
+                    break;
+                } else {
+                    this.removeEvent(this.eventHandlers[eventName], configId);
+                }
+            }
+        },
+
+        publish: function(eventName, parameters) {
+            var publishHandlers = this.eventHandlers[eventName] || [];
+            publishHandlers.forEach(function(publishHandler) {
+                try {
+                    if (parameters) {
+                        publishHandler.callback(parameters);
+                    } else {
+                        publishHandler.callback();
+                    }
+                } catch (e) {
+                    console.error(
+                        'An error occurs while refreshing the Gadget outside of the current Tab Menu',
+                        publishHandler['configId']
+                    );
+                }
+            });
+        }
+    };
+    if (prevousEvent) {
+        Object.assign(topTVCWindow.TVCbroker.eventHandlers, previouseventHandlers);
+    }
+})(window.top);

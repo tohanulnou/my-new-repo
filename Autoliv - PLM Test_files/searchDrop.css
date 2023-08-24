@@ -1,0 +1,16 @@
+div.search-drop .row {
+    margin-top: 0.3em;
+}
+
+.search-drop .row select, .search-drop .row input[type="text"] {
+    width: 100%;
+}
+
+.search-drop .fullstructure {
+    display: flex;
+    align-items: center;
+}
+
+.search-drop .fullstructure label {
+    margin-left: 0.2em;
+}

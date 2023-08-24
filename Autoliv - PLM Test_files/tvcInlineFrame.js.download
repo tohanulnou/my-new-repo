@@ -1,0 +1,820 @@
+if (!window.tvc) {
+    window.tvc = {};
+}
+if (!window.tvc.inlineFrame) {
+    window.tvc.inlineFrame = {};
+}
+
+// fields
+tvc.inlineFrame._topMargin = 2;
+tvc.inlineFrame._bottomMargin = 2;
+tvc.inlineFrame._frameHolder = null;
+tvc.inlineFrame._imageNames = ['close.gif', 'load-blue-gray.gif'];
+tvc.inlineFrame._images = [];
+tvc.inlineFrame._cards = [];
+tvc.inlineFrame._activeCardIndex = -1;
+tvc.inlineFrame._showPageControl = false;
+tvc.inlineFrame._nonStickyCard = null;
+
+tvc.inlineFrame.CLOSE = 0;
+tvc.inlineFrame.LOAD = 1;
+tvc.inlineFrame.PREV_DISABLED = 2;
+tvc.inlineFrame.PREV_ENABLED = 3;
+tvc.inlineFrame.NEXT_DISABLED = 4;
+tvc.inlineFrame.NEXT_ENABLED = 5;
+
+tvc.inlineFrame.NON_STICKY_ID = 'non-sticky';
+tvc.inlineFrame.NEW_ID = 'new';
+tvc.inlineFrame.SOURCE_EXTERNAL = false;
+
+(function() {
+    var imgbase = '../tvc/structurebrowser/images/';
+    for (var i = 0; i < tvc.inlineFrame._imageNames.length; i++) {
+        var img = new Image();
+        img.src = imgbase + tvc.inlineFrame._imageNames[i];
+        tvc.inlineFrame._images.push(img);
+    }
+    for (var i = 0; i < inlineFrame_paginationImages.length; i++) {
+        var img = new Image();
+        img.src = inlineFrame_paginationImages[i];
+        tvc.inlineFrame._images.push(img);
+    }
+})();
+
+// public
+tvc.inlineFrame.load = function(id, url, width, title, loadScript, reloadable, sourceExternal) {
+    tvc.inlineFrame.SOURCE_EXTERNAL = sourceExternal || false;
+    tvc.inlineFrame._ensureInitialized();
+    var index = -1;
+    var card = null;
+    if (id != tvc.inlineFrame.NON_STICKY_ID) {
+        var cards = tvc.inlineFrame._cards;
+        if (id != tvc.inlineFrame.NEW_ID) {
+            for (var i = 0; i < cards.length; i++) {
+                if (cards[i].getID() == id) {
+                    card = cards[i];
+                    index = i;
+                }
+            }
+        }
+        if (width < 100) {
+            width = 100;
+        }
+        if (card == null) {
+            index = cards.length;
+            card = new tvc.inlineFrame.Card(id, width, title, reloadable, index);
+            cards.push(card);
+        } else {
+            card.setWidth(width);
+            card.setTitle(title);
+        }
+    } else {
+        card = new tvc.inlineFrame.Card(id, width, title, true, -1);
+        tvc.inlineFrame._nonStickyCard = card;
+    }
+    tvc.inlineFrame._displayCard(index, url, loadScript);
+    return card;
+};
+tvc.inlineFrame.show = function(id) {
+    if (id != null && id != tvc.inlineFrame.NEW_ID) {
+        if (id == tvc.inlineFrame.NON_STICKY_ID) {
+            if (tvc.inlineFrame._nonStickyCard != null) {
+                tvc.inlineFrame._displayCard(-1, null, null);
+            }
+        } else {
+            var cards = tvc.inlineFrame._cards;
+            for (var i = 0; i < cards.length; i++) {
+                if (cards[i].getID() == id) {
+                    tvc.inlineFrame._displayCard(i, null, null);
+                    break;
+                }
+            }
+        }
+    }
+};
+tvc.inlineFrame.setCurrentTitle = function(title) {
+    var index = tvc.inlineFrame._activeCardIndex;
+    if (index >= 0) {
+        var cards = tvc.inlineFrame._cards;
+        cards[index].setTitle(title);
+        tvc.inlineFrame._setTitle(index, title);
+    }
+};
+tvc.inlineFrame.setTopMargin = function(pixels) {
+    if (tvc.inlineFrame._topMargin != pixels) {
+        tvc.inlineFrame._topMargin = pixels;
+        tvc.inlineFrame._syncTopAndBottom();
+    }
+};
+tvc.inlineFrame.setBottomMargin = function(pixels) {
+    if (tvc.inlineFrame._bottomMargin != pixels) {
+        tvc.inlineFrame._bottomMargin = pixels;
+        tvc.inlineFrame._syncTopAndBottom();
+    }
+};
+tvc.inlineFrame.isVisible = function() {
+    if (tvc.inlineFrame._frameHolder == null) {
+        return false;
+    }
+    var o = document.getElementById('tvcInlineContent');
+    return o != null && o.style.display != 'none';
+};
+tvc.inlineFrame.getWidth = function() {
+    if (SIDEPANEL_MAXIMIZE_REAL_ESTATE) {
+        return 0;
+    }
+    if (!tvc.inlineFrame.isVisible()) {
+        return 0;
+    }
+    var margin =
+        typeof SIDEPANEL_ADDITIONAL_MARGIN == 'undefined' ? 15 : SIDEPANEL_ADDITIONAL_MARGIN;
+    return document.getElementById('tvcInlineContent').offsetWidth + margin;
+};
+tvc.inlineFrame.close = function() {
+    tvc.inlineFrame._releaseNonStickyCard();
+    var o = document.getElementById('tvcInlineContent');
+    if (o) {
+        o.style.display = 'none';
+        tvc.inlineFrame._syncTableContentFrames();
+    }
+    tvc.inlineFrame._maybeMaximizeRealEstate(0);
+};
+tvc.inlineFrame.syncPageControl = function() {
+    tvc.inlineFrame._updatePageControl(true, 0, -1);
+};
+// private
+tvc.inlineFrame._displayCard = function(index, url, loadScript) {
+    var cards = tvc.inlineFrame._cards;
+    var card = null;
+    if (index == -1) {
+        card = tvc.inlineFrame._nonStickyCard;
+    } else if (index >= 0 && index < cards.length) {
+        card = cards[index];
+    }
+    if (tvc.inlineFrame._activeCardIndex >= 0) {
+        var current = cards[tvc.inlineFrame._activeCardIndex];
+        current.hide();
+    }
+    if (card == null) {
+        throw new Error('Illegal card index: ' + index);
+    }
+    tvc.inlineFrame._activeCardIndex = index;
+    tvc.inlineFrame._setWidth(card.getWidth());
+    tvc.inlineFrame._setTitle(index, card.getTitle());
+    card.show(url, loadScript);
+
+    document.getElementById('tvcInlineContent').style.display = 'inline';
+    tvc.inlineFrame._syncTableContentFrames();
+    tvc.inlineFrame._updatePageControl(false, 0, -1);
+
+    // IE CSS Workaround
+    if (tvc.inlineFrame._IE_HandleResize != null) {
+        window.setTimeout(tvc.inlineFrame._IE_HandleResize, 20);
+    }
+};
+tvc.inlineFrame._setWidth = function(width) {
+    document.getElementById('tvcInlineContent').style.width = width + 'px';
+    if (!tvc.inlineFrame.SOURCE_EXTERNAL) {
+        document.getElementById('tvcTitleText').style.width = width - 24 + 'px';
+        document.getElementById('tvcTitleText2').style.width =
+            width - 24 - (tvc.agent.isMSIE ? 4 : 0) + 'px';
+    }
+    tvc.inlineFrame._maybeMaximizeRealEstate(width);
+};
+tvc.inlineFrame._maybeMaximizeRealEstate = function(width) {
+    if (SIDEPANEL_MAXIMIZE_REAL_ESTATE) {
+        var iframes = ['tableTopFrame', 'tableContentFrame', 'tableBottomFrame'];
+        for (var i = 0; i < iframes.length; i++) {
+            var frame = frames[iframes[i]];
+            var div = frame.frameElement.offsetParent;
+            var margin =
+                typeof SIDEPANEL_ADDITIONAL_MARGIN == 'undefined'
+                    ? 15
+                    : SIDEPANEL_ADDITIONAL_MARGIN;
+            if (width < 1) {
+                div.style.right = margin + 'px';
+                div.style.width = '100%';
+            } else {
+                div.style.right = width + 'px';
+                div.style.width = 'auto';
+            }
+        }
+    }
+};
+tvc.inlineFrame._setTitle = function(index, title) {
+    if (!tvc.inlineFrame.SOURCE_EXTERNAL) {
+        var select = document.getElementById('tvcTitleText');
+        var nonStickyTitle = document.getElementById('tvcTitleText2');
+        select.style.display = index >= 0 ? 'block' : 'none';
+        nonStickyTitle.style.display = index >= 0 ? 'none' : 'block';
+        if (title == null || title.length == 0) {
+            title = 'No title';
+        }
+        if (index >= 0) {
+            var option = null;
+            var x = 0;
+            for (var i = 0; i < select.options.length; i++) {
+                if (select.options[i].value == index) {
+                    option = select.options[i];
+                    x = i;
+                    break;
+                }
+            }
+            if (option == null) {
+                option = document.createElement('OPTION');
+                option.value = index;
+                select.appendChild(option);
+                x = select.options.length - 1;
+            }
+            if (option.text != title) {
+                while (option.childNodes.length > 0) {
+                    option.removeChild(option.firstChild);
+                }
+                option.appendChild(document.createTextNode(title));
+            }
+            if (tvc.agent && tvc.agent.isMSIE_10_0) {
+                select.selectedIndex = -1; //reset to redraw
+            }
+            select.selectedIndex = x;
+        } else {
+            nonStickyTitle.value = title;
+        }
+    }
+};
+tvc.inlineFrame._setCloseIcon = function(index) {
+    if (!tvc.inlineFrame.SOURCE_EXTERNAL) {
+        document.getElementById('tvcCloseIcon').src = tvc.inlineFrame._images[index].src;
+    }
+};
+tvc.inlineFrame._setDefaultCloseIcon = function() {
+    tvc.inlineFrame._setCloseIcon(tvc.inlineFrame.CLOSE);
+};
+tvc.inlineFrame._syncTableContentFrames = function() {
+    if (!SIDEPANEL_MAXIMIZE_REAL_ESTATE) {
+        window.setTimeout(function() {
+            // for firefox
+            try {
+                frames['tableContentFrame'].tvcSyncWithInlineFrame();
+            } catch (E) {}
+        }, 50);
+    }
+};
+tvc.inlineFrame._syncTopAndBottom = function() {
+    var tvcInlineContent = document.getElementById('tvcInlineContent');
+    if (tvcInlineContent != null) {
+        if (SIDEPANEL_MAXIMIZE_REAL_ESTATE) {
+            tvcInlineContent.style.top = '0px';
+            tvcInlineContent.style.bottom = '0px';
+            tvcInlineContent.style.right = '0px';
+        } else {
+            var topFrame = frames['tableTopFrame'];
+            var bottomFrame = frames['tableBottomFrame'];
+            var top = tvc.inlineFrame._topMargin;
+            var bottom = tvc.inlineFrame._bottomMargin;
+            if (tvc.agent.isMSIE) {
+                top += topFrame.frameElement.offsetHeight;
+                tvcInlineContent.style.top = top + 'px';
+            } else {
+                top += topFrame.innerHeight;
+                bottom += bottomFrame.innerHeight;
+                tvcInlineContent.style.top = top + 'px';
+                tvcInlineContent.style.bottom = bottom + 'px';
+            }
+        }
+    }
+};
+tvc.inlineFrame._handleCardSelect = function() {
+    var select = document.getElementById('tvcTitleText');
+    var index = select.selectedIndex;
+    tvc.inlineFrame._displayCard(parseInt(select.options[index].value), null, null);
+};
+tvc.inlineFrame._ensureInitialized = function() {
+    var tvcInlineContent = document.getElementById('tvcInlineContent');
+    if (tvcInlineContent == null) {
+        tvcInlineContent = document.createElement('DIV');
+        tvcInlineContent.id = 'tvcInlineContent';
+        if (tvc.agent.isGecko) {
+            // If Firefox; change position to fixed.
+            // This is a workaround to a bug in FF on OS X.
+            tvcInlineContent.style.position = 'fixed';
+        }
+        document.body.appendChild(tvcInlineContent);
+        var tvcInlineInnerContent = document.createElement('DIV');
+        tvcInlineInnerContent.id = 'tvcInlineInnerContent';
+        tvcInlineContent.appendChild(tvcInlineInnerContent);
+        var tvcTitleBar = document.createElement('DIV');
+        tvcTitleBar.id = 'tvcTitleBar';
+        tvcInlineInnerContent.appendChild(tvcTitleBar);
+        var tvcTitleText = document.createElement('SELECT');
+        tvcTitleText.id = 'tvcTitleText';
+        tvc.handleEvent(tvcTitleText, 'change', tvc.inlineFrame._handleCardSelect);
+        tvcTitleBar.appendChild(tvcTitleText);
+
+        var tvcTitleText2 = document.createElement('INPUT');
+        tvcTitleText2.id = 'tvcTitleText2';
+        tvcTitleText2.setAttribute('type', 'text');
+        tvcTitleText2.setAttribute('size', '20');
+        tvcTitleText2.setAttribute('readonly', 'readonly');
+        tvcTitleText2.setAttribute('disabled', 'disabled');
+        tvcTitleBar.appendChild(tvcTitleText2);
+
+        var tvcCloseIcon = document.createElement('IMG');
+        tvcCloseIcon.id = 'tvcCloseIcon';
+        tvcCloseIcon.src = tvc.inlineFrame._images[tvc.inlineFrame.CLOSE].src;
+        tvcCloseIcon.border = 0;
+        tvc.handleEvent(tvcCloseIcon, 'click', tvc.inlineFrame.close);
+        tvcTitleBar.appendChild(tvcCloseIcon);
+
+        var tvcIframeContent = document.createElement('DIV');
+        tvcIframeContent.id = 'tvcIframeContent';
+        tvcInlineInnerContent.appendChild(tvcIframeContent);
+
+        var tvcBelowFrame = document.createElement('DIV');
+        tvcBelowFrame.id = 'tvcBelowFrame';
+        tvcInlineInnerContent.appendChild(tvcBelowFrame);
+        var clearButtonHTML =
+            "<img id='tvcClearButton'" +
+            " style='position:absolute;top:-1px;left:4px;cursor:pointer;border:1px solid #e4e4e4;'" +
+            " width='18'" +
+            " height='18'" +
+            " border='0'" +
+            " title='" +
+            MSG_CLIPBOARD_CLEAR_TOOLTIP +
+            "'" +
+            " src='../tvc/structurebrowser/card/images/clear.gif'" +
+            " onclick='tvc.inlineFrame._clearClicked()'" +
+            " onmouseover='try{tvc.inlineFrame.Button.over(this);}catch(E){}'" +
+            " onmousedown='try{tvc.inlineFrame.Button.down(this);}catch(E){}'" +
+            " onmouseup='try{tvc.inlineFrame.Button.up(this);}catch(E){}'" +
+            " onmouseout='try{tvc.inlineFrame.Button.out(this);}catch(E){}'" +
+            '/>';
+        tvcBelowFrame.innerHTML =
+            clearButtonHTML +
+            "<DIV style='float:right;position:absolute;right:" +
+            "0px;top:0px;display:none;' id='tvcPageControl'>" +
+            '<TABLE cellspacing=0 cellpadding=0><TR>' +
+            "<TD><IMG TITLE='" +
+            MSG_PAGINATION_TOOLTIP_PREVIOUS +
+            "' ID=tvcPrevPage HEIGHT=16 BORDER=0 SRC='" +
+            tvc.inlineFrame._images[tvc.inlineFrame.PREV_DISABLED].src +
+            "' WIDTH=16 onclick='tvc.inlineFrame._setPreviousPage()'></TD>" +
+            '<TD><IMG HEIGHT=1 BORDER=0 SRC=../tvc/core/images/utilSpace.gif WIDTH=6></TD>' +
+            '<TD class=inlineFramePagination>' +
+            MSG_PAGINATION_PAGE +
+            '&nbsp;</TD>' +
+            "<TD><SELECT ID=tvcPageSelect onchange='tvc.inlineFrame._setSelectPage()'></SELECT></TD>" +
+            '<TD class=inlineFramePagination>&nbsp;' +
+            MSG_PAGINATION_OF +
+            '&nbsp;<SPAN ID=tvcPageCount></SPAN></TD>' +
+            '<TD><IMG HEIGHT=1 BORDER=0 SRC=../tvc/core/images/utilSpace.gif WIDTH=6></TD>' +
+            "<TD><IMG TITLE='" +
+            MSG_PAGINATION_TOOLTIP_NEXT +
+            "' ID=tvcNextPage HEIGHT=16 BORDER=0 SRC=" +
+            tvc.inlineFrame._images[tvc.inlineFrame.NEXT_DISABLED].src +
+            " WIDTH=16 onclick='tvc.inlineFrame._setNextPage()'></TD>" +
+            '</TR></TABLE></DIV>';
+
+        // IE CSS Workaround
+        if (tvc.agent.isMSIE) {
+            tvc.inlineFrame._IE_Release();
+            tvc.inlineFrame._IE_HandleResize = function() {
+                tvc.inlineFrame._syncTopAndBottom();
+
+                var height = tvc.inlineFrame._IE_GetPreferredHeight();
+                tvcInlineContent.style.height = Math.max(height, 0) + 'px';
+
+                var width = tvcInlineContent.offsetWidth;
+
+                height -= 26;
+                if (tvc.inlineFrame._showPageControl) {
+                    height -= 25;
+                }
+                tvcIframeContent.style.height = Math.max(height, 0) + 'px';
+                var index = tvc.inlineFrame._activeCardIndex;
+                if (index >= 0) {
+                    var iframe = tvc.inlineFrame._cards[index].frame;
+                    iframe.style.height = Math.max(height, 0) + 'px';
+                    iframe.style.width = Math.max(width - 8, 0) + 'px';
+                }
+                tvcBelowFrame.style.left = '1px';
+                tvcBelowFrame.style.width = Math.max(width - 8, 0) + 'px';
+            };
+            window.setTimeout(tvc.inlineFrame._IE_HandleResize, 100);
+            tvc.handleEvent(window, 'resize', tvc.inlineFrame._IE_HandleResize);
+        }
+        tvc.inlineFrame._frameHolder = tvcIframeContent;
+
+        /*
+         * Initialize resizable sidepanel
+         */
+        // Add draghandle
+        var tvcInlineDragHandle = document.createElement('DIV');
+        tvcInlineDragHandle.id = 'tvcInlineDragHandle';
+        tvcInlineContent.appendChild(tvcInlineDragHandle);
+        // Drag
+        $(tvcInlineDragHandle).mousedown(function(e) {
+            $(tvcInlineContent).addClass('dragging');
+            $(tvcInlineInnerContent).addClass('dragging');
+            $(tvcInlineDragHandle).addClass('dragging');
+            e.preventDefault(); // Prevent mark text
+            $(tvcInlineContent).mousemove(function(e) {
+                var w = $(window).width() - e.pageX;
+                if (w < 5) {
+                    w = 5;
+                }
+                $(tvcInlineContent).width(w);
+            });
+        });
+        // Drop
+        $(tvcInlineContent).mouseup(function(e) {
+            $(tvcInlineContent).unbind('mousemove');
+            $(tvcInlineContent).removeClass('dragging');
+            $(tvcInlineInnerContent).removeClass('dragging');
+            $(tvcInlineDragHandle).removeClass('dragging');
+            if (tvc.agent.isMSIE) {
+                // Make the inner frame resize for IE
+                tvc.inlineFrame._IE_HandleResize();
+            }
+            tvc.inlineFrame._setWidth($(tvcInlineContent).width());
+            tvc.inlineFrame._syncTableContentFrames();
+        });
+    }
+    tvc.inlineFrame._syncTopAndBottom();
+    tvc.inlineFrame._releaseNonStickyCard();
+    if (tvc.inlineFrame.SOURCE_EXTERNAL) {
+        $('#tvcTitleBar').display = 'none';
+        tvc.inlineFrame._frameHolder.style.top = '0px';
+    } else {
+        $('#tvcTitleBar').display = 'block';
+        tvc.inlineFrame._frameHolder.style.top = '27px';
+    }
+    return tvcInlineContent;
+};
+tvc.inlineFrame._releaseNonStickyCard = function() {
+    if (tvc.inlineFrame._nonStickyCard != null) {
+        tvc.inlineFrame._nonStickyCard.release();
+        tvc.inlineFrame._nonStickyCard = null;
+    }
+};
+tvc.inlineFrame._updatePageControl = function(resize, moveBy, moveTo) {
+    var cards = tvc.inlineFrame._cards;
+    var index = tvc.inlineFrame._activeCardIndex;
+    var oldshow = tvc.inlineFrame._showPageControl;
+    var show = false;
+    var next = false;
+    var previous = false;
+    var pageCount = 0;
+    var currentPage = 0;
+    var pageControl = false;
+    var clearButton = false;
+    var card;
+    if (index >= 0 && index < cards.length) {
+        card = cards[index];
+    } else if (index == -1) {
+        card = tvc.inlineFrame._nonStickyCard;
+    }
+    if (card) {
+        var frame = card.frame.contentWindow;
+        pageCount = frame.PAGE_COUNT;
+        var clear = frame.CLEAR_BUTTON;
+        if (typeof clear != 'undefined') {
+            show = clearButton = clear;
+        }
+        if (typeof pageCount != 'undefined' && pageCount > 1) {
+            show = pageControl = true;
+            currentPage = frame.CURRENT_PAGE;
+            var newPage = currentPage;
+            if (moveBy != 0) {
+                newPage = currentPage + moveBy;
+                if (newPage < 0) {
+                    newPage = 0;
+                } else if (newPage >= pageCount) {
+                    newPage = pageCount - 1;
+                }
+            } else if (moveTo >= 0) {
+                newPage = moveTo;
+            }
+            if (newPage != currentPage) {
+                currentPage = frame.setCurrentPage(newPage);
+            }
+        }
+    }
+    var belowFrame = document.getElementById('tvcBelowFrame');
+    var innerContent = document.getElementById('tvcIframeContent');
+    if (show) {
+        belowFrame.style.display = 'block';
+        innerContent.style.bottom = '25px';
+
+        var pageControlDiv = document.getElementById('tvcPageControl');
+        pageControlDiv.style.display = pageControl ? 'block' : 'none';
+        if (pageControl) {
+            // update page select
+            var select = document.getElementById('tvcPageSelect');
+            while (select.options.length > pageCount) {
+                select.removeChild(select.lastChild);
+            }
+            while (select.options.length < pageCount) {
+                var opt = document.createElement('OPTION');
+                opt.appendChild(document.createTextNode(select.options.length + 1));
+                select.appendChild(opt);
+            }
+            select.selectedIndex = currentPage;
+
+            // update page count
+            var countSpan = document.getElementById('tvcPageCount');
+            countSpan.innerHTML = pageCount;
+
+            // update previous button
+            var prevImg = document.getElementById('tvcPrevPage');
+            var prevSrc =
+                tvc.inlineFrame._images[
+                    currentPage > 0 ? tvc.inlineFrame.PREV_ENABLED : tvc.inlineFrame.PREV_DISABLED
+                ].src;
+            if (prevImg.src != prevSrc) {
+                prevImg.src = prevSrc;
+            }
+            prevImg.style.cursor = currentPage > 0 ? 'pointer' : 'default';
+
+            // update next button
+            var nextImg = document.getElementById('tvcNextPage');
+            var nextSrc =
+                tvc.inlineFrame._images[
+                    currentPage + 1 < pageCount
+                        ? tvc.inlineFrame.NEXT_ENABLED
+                        : tvc.inlineFrame.NEXT_DISABLED
+                ].src;
+            if (nextImg.src != nextSrc) {
+                nextImg.src = nextSrc;
+            }
+            nextImg.style.cursor = currentPage + 1 < pageCount ? 'pointer' : 'default';
+        }
+
+        // update clear button
+        var clearImg = document.getElementById('tvcClearButton');
+        if (clearButton) {
+            clearImg.style.display = 'inline';
+        } else {
+            clearImg.style.display = 'none';
+        }
+    } else {
+        belowFrame.style.display = 'none';
+        innerContent.style.bottom = '1px';
+    }
+    tvc.inlineFrame._showPageControl = show;
+    if (resize && tvc.inlineFrame._IE_HandleResize != null && oldshow != show) {
+        window.setTimeout(tvc.inlineFrame._IE_HandleResize, 20);
+    }
+};
+tvc.inlineFrame._setNextPage = function() {
+    tvc.inlineFrame._updatePageControl(true, 1, -1);
+};
+tvc.inlineFrame._setPreviousPage = function() {
+    tvc.inlineFrame._updatePageControl(true, -1, -1);
+};
+tvc.inlineFrame._setPage = function(num) {
+    tvc.inlineFrame._updatePageControl(true, 0, num);
+};
+tvc.inlineFrame._setSelectPage = function() {
+    var select = document.getElementById('tvcPageSelect');
+    tvc.inlineFrame._setPage(select.selectedIndex);
+};
+tvc.inlineFrame._clearClicked = function() {
+    var cards = tvc.inlineFrame._cards;
+    var index = tvc.inlineFrame._activeCardIndex;
+    var card;
+    if (index >= 0 && index < cards.length) {
+        card = cards[index];
+    } else if (index == -1) {
+        card = tvc.inlineFrame._nonStickyCard;
+    }
+    if (card) {
+        var frame = card.frame.contentWindow;
+        if (frame.clear) {
+            frame.clear();
+        }
+    }
+};
+// IE CSS Workaround
+tvc.inlineFrame._IE_HandleResize = null;
+tvc.inlineFrame._IE_GetPreferredHeight = function() {
+    try {
+        if (SIDEPANEL_MAXIMIZE_REAL_ESTATE) {
+            return document.documentElement.offsetHeight - 2;
+        } else {
+            var topFrame = frames['tableTopFrame'].frameElement;
+            var bottomFrame = frames['tableBottomFrame'].frameElement;
+            var top = tvc.inlineFrame._topMargin + topFrame.offsetHeight;
+            var bottom = tvc.inlineFrame._bottomMargin + bottomFrame.offsetHeight;
+            var availHeight = document.documentElement.offsetHeight;
+            var ret = availHeight - (top + bottom) - 5;
+            return ret;
+        }
+    } catch (E) {
+        return 0;
+    }
+};
+tvc.inlineFrame._IE_Release = function() {
+    if (tvc.inlineFrame._IE_HandleResize != null) {
+        tvc.unhandleEvent(window, 'resize', tvc.inlineFrame._IE_HandleResize);
+    }
+    tvc.inlineFrame._IE_HandleResize = null;
+};
+/*
+ * tvc.inlineFrame._IE_HandleUnload = function() {
+ * tvc.inlineFrame._IE_Release(); tvc.unhandleEvent(window, "unload",
+ * tvc.inlineFrame._IE_Release); };
+ */
+if (tvc.agent.isMSIE) {
+    tvc.handleEvent(window, 'unload', tvc.inlineFrame._IE_Release);
+}
+tvc.inlineFrame.getParentFramePrefix = function() {
+    var framePrefix = '';
+    var winName = window.name;
+    if (winName && winName.indexOf('_') > -1) {
+        framePrefix = winName.split('_')[1];
+        framePrefix = framePrefix.replace('contentFrame', '_');
+    }
+    return framePrefix;
+};
+// CLASS: Card
+tvc.inlineFrame.Card = function(id, width, title, reloadable, index) {
+    this.id = id;
+    this.width = width;
+    this.reloadable = reloadable;
+    this.index = index;
+    this.loaded = false;
+    this.runOnce = null;
+    this.title = null;
+    this.setTitle(title);
+    this.initialize();
+};
+tvc.inlineFrame.Card.prototype.getID = function() {
+    return this.id;
+};
+tvc.inlineFrame.Card.prototype.getIndex = function() {
+    return this.index;
+};
+tvc.inlineFrame.Card.prototype.isReloadable = function() {
+    return this.reloadable;
+};
+tvc.inlineFrame.Card.prototype.getWidth = function() {
+    return this.width;
+};
+tvc.inlineFrame.Card.prototype.getTitle = function() {
+    return this.title;
+};
+tvc.inlineFrame.Card.prototype.setWidth = function(width) {
+    this.width = width;
+};
+tvc.inlineFrame.Card.prototype.setTitle = function(title) {
+    if (title == 'auto') {
+        if (this.reloadable || this.title == null) {
+            this.title = 'Loading...';
+            this.autoTitle = true;
+        }
+    } else {
+        this.title = title;
+        this.autoTitle = false;
+    }
+};
+tvc.inlineFrame.Card.prototype.initialize = function() {
+    this.release();
+    this.frame = document.createElement('IFRAME');
+    this.frame.id = 'tvcInlineFrame_' + tvc.inlineFrame.getParentFramePrefix() + this.index;
+    this.frame.className = 'tvcInlineFrame';
+    this.frame.name = 'tvcInlineFrame_' + tvc.inlineFrame.getParentFramePrefix() + this.index;
+    this.frame.frameBorder = 0;
+    this.frame.scrolling = 'auto';
+    this.frame.marginWidth = 0;
+    this.frame.marginHeight = 0;
+    var myself = this;
+    this.___frameLoadHandler = function() {
+        myself.handleLoad();
+    };
+    tvc.handleEvent(this.frame, 'load', this.___frameLoadHandler);
+    tvc.inlineFrame._frameHolder.appendChild(this.frame);
+};
+tvc.inlineFrame.Card.prototype.show = function(url, loadScript) {
+    this.runOnce = null;
+    this.frame.style.display = 'block';
+    if (url != null) {
+        if (!this.loaded || this.reloadable) {
+            tvc.inlineFrame._setCloseIcon(tvc.inlineFrame.LOAD);
+            this.frame.src = url;
+            this.loaded = true;
+            this.runOnce = loadScript;
+        } else {
+            var myself = this;
+            window.setTimeout(function() {
+                myself.frame.contentWindow.eval(loadScript);
+            }, 50);
+        }
+    }
+};
+tvc.inlineFrame.Card.prototype.hide = function() {
+    this.frame.style.display = 'none';
+    this.runOnce = null;
+};
+tvc.inlineFrame.Card.prototype.release = function() {
+    if (this.frame != null) {
+        if (this.___frameLoadHandler != null) {
+            tvc.unhandleEvent(this.frame, 'load', this.___frameLoadHandler);
+            this.___frameLoadHandler = null;
+        }
+        tvc.inlineFrame._frameHolder.removeChild(this.frame);
+        this.frame = null;
+    }
+    this.loaded = false;
+    this.runOnce = null;
+};
+tvc.inlineFrame.Card.prototype.handleLoad = function() {
+    tvc.inlineFrame._setDefaultCloseIcon();
+    tvc.inlineFrame._updatePageControl(true, 0, -1);
+    if (this.autoTitle) {
+        try {
+            var doctitle = this.frame.contentWindow.document.title;
+            if (doctitle != null) {
+                this.title = doctitle;
+                tvc.inlineFrame._setTitle(this.index, this.title);
+            }
+        } catch (E) {}
+    }
+    this.frame.contentWindow.name = this.frame.name;
+    if (this.runOnce != null) {
+        var s = this.runOnce;
+        this.runOnce = null;
+        this.frame.contentWindow.eval(s);
+    }
+};
+
+tvc.inlineFrame.Button = {};
+tvc.inlineFrame.Button.raiseButton = function(button) {
+    button.style.borderTop = '1px solid #ffffff';
+    button.style.borderRight = '1px solid #8e8e8e';
+    button.style.borderBottom = '1px solid #8e8e8e';
+    button.style.borderLeft = '1px solid #ffffff';
+    button.style.backgroundColor = '';
+    button.style.cursor = 'pointer';
+};
+tvc.inlineFrame.Button.lowerButton = function(button) {
+    button.style.borderTop = '1px solid #8e8e8e';
+    button.style.borderRight = '1px solid #ffffff';
+    button.style.borderBottom = '1px solid #ffffff';
+    button.style.borderLeft = '1px solid #8e8e8e';
+    button.style.backgroundColor = '#d5d5d5';
+    button.style.cursor = 'pointer';
+};
+tvc.inlineFrame.Button.resetButton = function(button) {
+    button.style.borderTop = '1px solid #e4e4e4';
+    button.style.borderRight = '1px solid #e4e4e4';
+    button.style.borderBottom = '1px solid #e4e4e4';
+    button.style.borderLeft = '1px solid #e4e4e4';
+    button.style.backgroundColor = '';
+    button.style.cursor = '';
+};
+tvc.inlineFrame.Button.over = function(button) {
+    if (!button.pushed) {
+        tvc.inlineFrame.Button.raiseButton(button);
+    }
+};
+tvc.inlineFrame.Button.out = function(button) {
+    if (button.pushed) {
+        tvc.inlineFrame.Button.lowerButton(button);
+    } else {
+        tvc.inlineFrame.Button.resetButton(button);
+    }
+};
+tvc.inlineFrame.Button.down = function(button) {
+    tvc.inlineFrame.Button.lowerButton(button);
+};
+tvc.inlineFrame.Button.up = function(button) {
+    if (!button.pushed) {
+        tvc.inlineFrame.Button.resetButton(button);
+    }
+};
+tvc.inlineFrame.Button.push = function(button) {
+    button.pushed = true;
+    tvc.inlineFrame.Button.lowerButton(button);
+};
+tvc.inlineFrame.Button.release = function(button) {
+    button.pushed = false;
+    tvc.inlineFrame.Button.resetButton(button);
+};
+tvc.inlineFrame.fireTableStateChanged = function(kind, oldValue, newValue) {
+    var cards = tvc.inlineFrame._cards;
+    var active = tvc.inlineFrame._activeCardIndex;
+    for (var i = 0; i < cards.length; i++) {
+        var frame = cards[i].frame;
+        if (frame != null) {
+            var frameWindow = frame.contentWindow;
+            if (frameWindow != null) {
+                try {
+                    var handler = frameWindow.tvcHandleTableStateChanged;
+                    if (typeof handler == 'function') {
+                        handler(kind, oldValue, newValue, i == active);
+                    }
+                } catch (E) {}
+            }
+        }
+    }
+};

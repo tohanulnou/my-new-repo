@@ -1,0 +1,32 @@
+var Subscriptions =
+    Subscriptions ||
+    (function() {
+        var subscribe = function(subscribeIds, configId, callback, currentTvc) {
+            var subscribeList = subscribeIds.split(',');
+            subscribeList.forEach(function(subscribeId) {
+                if (currentTvc.getCurrentTvcBroker) {
+                    try {
+                        currentTvc.getCurrentTvcBroker().subscribe(subscribeId, configId, callback);
+                    } catch (err) {}
+                }
+            });
+        };
+
+        var unsubscribe = function(configId, currentTvc) {
+            if (currentTvc.getCurrentTvcBroker) {
+                try {
+                    currentTvc.getCurrentTvcBroker().unsubscribe(configId);
+                } catch (err) {}
+            }
+        };
+
+        var isEqual = function(storeConfigId, compareConfigId) {
+            return storeConfigId === compareConfigId;
+        };
+
+        return {
+            subscribe: subscribe,
+            unsubscribe: unsubscribe,
+            isEqual: isEqual
+        };
+    })();

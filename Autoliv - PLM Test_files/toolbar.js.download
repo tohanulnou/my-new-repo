@@ -1,0 +1,74 @@
+if (!tvc) {
+    tvc = {};
+}
+
+tvc.toolbar = (function() {
+
+    var instance;
+
+    function init() {
+
+        if (!window.toolbarCustomization) {
+            alert('Unable to find toolbar customization ajax service. Is the page including the correct resources?');
+        }
+        
+        var save = function save(persistId, customizations, showProgress, tableBeanName) {
+            customizations = JSON.stringify(customizations);
+            var deferred = new $.Deferred();
+            var resultCallback = function(ret, success) {
+                success ? deferred.resolve() : deferred.reject(ret);
+                if (showProgress) {
+                    progress.hide();
+                }
+            };
+            if (showProgress) {
+                progress.show('Saving toolbar customizations')
+            }
+            if (tableBeanName) {
+                toolbarCustomization.saveTable(persistId, customizations, tableBeanName, resultCallback);
+            } else {
+                toolbarCustomization.save(persistId, customizations, resultCallback);
+            }
+            return deferred.promise();
+        };
+        
+        var progress = {
+            show: function(message) {
+                if (showProgressMessage) {
+                    showProgressMessage(message);
+                }
+            },
+            
+            hide: function() {
+                if (hideProgress) {
+                    hideProgress();
+                }
+            }
+        };
+
+        return {
+            saveCustomizations: function(persistId, customizations) {
+                return save(persistId, customizations, false);
+            },
+            resetCustomizations: function(persistId) {
+                return save(persistId, null, true);
+            },
+            saveTableCustomizations: function(tableBeanName, persistId, customizations) {
+                return save(persistId, customizations, false, tableBeanName);
+            },
+            resetTableCustomizations: function(tableBeanName, persistId) {
+                return save(persistId, null, true, tableBeanName);
+            }
+        };
+    }
+
+    return {
+        getInstance: function() {
+            if (!instance) {
+                instance = init();
+            }
+
+            return instance;
+        }
+    };
+})();

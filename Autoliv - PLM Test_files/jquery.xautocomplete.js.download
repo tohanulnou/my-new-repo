@@ -1,0 +1,471 @@
+(function($) {
+    $.fn.xautocomplete = function(options) {
+        var options = options || {};
+        options.editable = options.editable || false;
+        options.required = options.required || false;
+        options.singleFrame = options.singleFrame || false;
+
+        if (options.singleFrame) {
+            var context = window;
+        } else {
+            var context = window.parent;
+        }
+        var $$ = context.$;
+        var $ctx = $$(context);
+        var $doc = $$(context.document.body);
+        if (!options.singleFrame) {
+            var $frame = $$(window.frameElement);
+        }
+        var $list = $doc.append("<div class='AutoCompleteList'>").children("div:last");
+        var $self = $(window);
+
+        $(window).bind('unload', function() {
+            $list.remove();
+        });
+
+        var KEY = {
+            UP : 38,
+            DOWN : 40,
+            LEFT : 37,
+            RIGHT : 39,
+            DEL : 46,
+            TAB : 9,
+            RETURN : 13,
+            ESC : 27,
+            COMMA : 188,
+            PAGEUP : 33,
+            PAGEDOWN : 34,
+            HOME : 35,
+            END : 36,
+            BACKSPACE : 8,
+            SHIFT : 16,
+            CTLR : 17,
+            ALT : 18,
+            CAPSLOCK : 20,
+            INSERT : 45,
+            WINDOWS : 91,
+            SPACE : 32,
+            V : 86
+        };
+
+        return this.each(function() {
+
+            var $this = $(this);
+            $this.attr('autocomplete', 'off');
+            // if this input has focus
+            var hasFocus = false;
+            var hasFocusOnList = false;
+            var isListClicked = false;
+
+            $list.bind('mouseover', function() {
+                hasFocusOnList = true;
+            });
+            $list.bind('mouseout', function() {
+                hasFocusOnList = false;
+            });
+            $list.bind('mousedown', function() {
+                hasFocusOnList = true;
+                isListClicked = true;
+            });
+
+            // the selected index
+            var selected = -1;
+
+            // the auto-complete data
+            var autoCompleteData = null;
+            var autoCompleteItem = null;
+
+            var autoCompleteArgs = {};
+            $.each(this.attributes, function(i, attrib) {
+                var name = attrib.name;
+                if (name.indexOf("ac_arg_") == 0) {
+                    var arg = attrib.value
+                    var pipe = arg.indexOf("|");
+                    if (pipe != -1) {
+                        var name = arg.substring(0, pipe);
+                        var value = arg.substring(pipe + 1);
+                        eval("autoCompleteArgs." + name + "='" + value + "'");
+                    }
+                }
+            });
+
+            // select list api
+            var select = {
+                visible : function() {
+                    return $list.is(":visible");
+                },
+                show : function() {
+                    // position list
+                    var position = $this.offset();
+                    if (options.singleFrame) {
+                        var adjustBy = {
+                            top : 0,
+                            left : 0
+                        };
+                    } else {
+                        var adjustBy = $frame.offset();
+                    }
+                    var left = position.left + adjustBy.left - $self.scrollLeft();
+                    var fieldHeight = $this.outerHeight();
+                    var top = position.top + fieldHeight + adjustBy.top + 3 - $self.scrollTop();
+                    var availHeight = Math.max($ctx.height() - top - 5, 25);
+                    var availHeightAbove = top - fieldHeight - 8;
+                    var showAbove = availHeight < 200 && availHeightAbove > availHeight;
+                    if (showAbove) {
+                        // show list above field
+                        $list.css({
+                            top : "0px",
+                            left : left + "px",
+                            height : "auto",
+                            width : "auto",
+                            'min-width' : $this.outerWidth() + "px",
+                            'max-height' : availHeightAbove + "px",
+                            overflow : "auto"
+                        });
+                    } else {
+                        // show list below field
+                        $list.css({
+                            top : top + "px",
+                            left : left + "px",
+                            height : "auto",
+                            width : "auto",
+                            'min-width' : $this.outerWidth() + "px",
+                            'max-height' : availHeight + "px",
+                            overflow : "auto"
+                        });
+                    }
+                    $list.show();
+                    if (showAbove) {
+                        // if shown above, adjust top/height after shown
+                        var listHeight = $list.height();
+                        if ($.browser.msie) {
+                            listHeight = $list.outerHeight();
+                        }
+                        if (listHeight > availHeightAbove) {
+                            $list.css({
+                                height : availHeightAbove + "px",
+                                width : $list.outerWidth() + "px"
+                            });
+                        } else if (listHeight < availHeightAbove) {
+                            $list.css({
+                                top : (availHeightAbove - listHeight) + "px",
+                                height : listHeight + "px",
+                                width : $list.outerWidth() + "px"
+                            });
+                        }
+                    } else {
+                        // if shown below and browser=IE adjust height/width (IE
+                        // display bug workaround)
+                        if ($.browser.msie) {
+                            if ($list.height() > availHeight) {
+                                $list.css({
+                                    height : availHeight + "px",
+                                    width : $list.outerWidth() + "px"
+                                });
+                            }
+                        }
+                    }
+                },
+                abort : function() {
+                    select.hide();
+
+                    // call function to restore original value
+                    options.abort($this[0]);
+                },
+                hide : function() {
+                    $list.fadeOut();
+                    select.none();
+                },
+                prev : function() {
+                    var index = selected - 1;
+                    while (select.validIndex(index) || index == -1) {
+                        if (index >= 0 && autoCompleteData[index].separator) {
+                            index--;
+                        } else {
+                            select.focus(index);
+                            break;
+                        }
+                    }
+                },
+                next : function() {
+                    var index = selected + 1;
+                    while (select.validIndex(index)) {
+                        if (autoCompleteData[index].separator) {
+                            index++;
+                        } else {
+                            select.focus(index);
+                            break;
+                        }
+                    }
+                },
+                none : function() {
+                    select.focus(-1);
+                },
+                save : function() {
+                    var text = $this.val();
+                    if (select.visible() && select.validIndex(selected)) {
+                        var value = autoCompleteData[selected].value;
+                        var displayValue = autoCompleteData[selected].displayValue || autoCompleteData[selected].label;
+                        $this.val(displayValue);
+                        $list.hide();
+                        selected = -1;
+
+                        // call function to save new value
+                        options.save($this[0], value, displayValue);
+                        return true;
+                    } else if (text == "" || options.editable) {
+                        $list.hide();
+                        selected = -1;
+
+                        // call function to save new value
+                        if ($this[0].defaultValue != text) {
+                            options.save($this[0], text, text);
+                            return true;
+                        }
+                        return false;
+                    }
+                    return false;
+                },
+                focus : function(index) {
+                    if (select.validIndex(selected)) {
+                        autoCompleteItem[selected].removeClass("AutoCompleteListItemSelected");
+                    }
+                    selected = index;
+                    if (select.validIndex(index) && !autoCompleteData[index].separator) {
+                        autoCompleteItem[index].addClass("AutoCompleteListItemSelected");
+                        var scrollTop = $list.scrollTop();
+                        var listHeight = $list.height();
+                        var itemTop = autoCompleteItem[index].position().top + scrollTop;
+                        var itemHeight = autoCompleteItem[index].outerHeight();
+                        if (itemTop + itemHeight > scrollTop + listHeight) {
+                            scrollTop = itemTop + itemHeight - listHeight;
+                            $list.scrollTop(scrollTop);
+                        } else if (itemTop < scrollTop) {
+                            scrollTop = itemTop;
+                            $list.scrollTop(scrollTop);
+                        }
+                    }
+                },
+                validIndex : function(index) {
+                    return autoCompleteData != null && index >= 0 && index < autoCompleteData.length;
+                },
+                focusOnMatch : function(text) {
+                    text = text.toLowerCase();
+                    var isMatch = function(value) {
+                        value = value.toLowerCase();
+                        return value.indexOf(text) != -1;
+                    };
+                    if (autoCompleteData != null) {
+                        for (var i = 0, length = autoCompleteData.length; i < length; i++) {
+                            if (isMatch(autoCompleteData[i].displayValue || autoCompleteData[i].label)) {
+                                select.focus(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+            };
+
+            // variables for timeouts
+            var timeout = null;
+            var globalTimeoutCounter = 0;
+
+            // initialize timeout
+            var initTimeout = function() {
+                clearTimeout(timeout);
+                timeout = setTimeout(getQueryTimeout(++globalTimeoutCounter), 1500);
+                $list.html("<div class='AutoCompleteLoading'>Loading...</div>");
+                select.none();
+                select.show();
+            };
+
+            // abort current timeout
+            var abortTimeout = function() {
+                clearTimeout(timeout);
+                ++globalTimeoutCounter;
+            };
+
+            // returns the function that will be called when the timeout has
+            // passed
+            var getQueryTimeout = function(callId) {
+                return function() {
+                    onChange(callId);
+                };
+            }
+
+            // function that gets data and shows the selection list
+            var onChange = function(callId) {
+
+                // check if any later calls have been made
+                if (globalTimeoutCounter > callId) {
+                    return;
+                }
+
+                // check if we still have focus
+                if (!hasFocus) {
+                    return;
+                }
+                var inputText = $this.val();
+
+                /*
+                 * "q" is the field we look for on the server...
+                 */
+                autoCompleteArgs.q = inputText;
+                // todo: remove this
+                if (typeof autoCompleteArgs.input == "undefined") {
+                    autoCompleteArgs.input = inputText;
+                }
+                // if(inputText.length == 0) {
+                // select.hide();
+                // } else {
+                // Do an AJAX call
+                $.getJSON(options.url, autoCompleteArgs, function(data) {
+
+                    // Check if any more calls have been made
+                    if (globalTimeoutCounter > callId) {
+                        return;
+                    }
+
+                    // check if we still have focus
+                    if (!hasFocus) {
+                        return;
+                    }
+
+                    if (data.length == 0) {
+                        select.hide();
+                        return;
+                    }
+
+                    // clear list
+                    $list.html('');
+
+                    // for each data item returned...
+                    var items = [];
+                    $.each(data, function() {
+                        if (this.separator) {
+                            var item = $list.append("<div class='AutoCompleteListItemSeparator'></div>").children(
+                                    "div:last");
+                            item.text(this.displayValue || this.label);
+                            item.data('index', items.length);
+                            items.push(item);
+                        } else {
+                            var item = $list.append("<div class='AutoCompleteListItem'></div>").children("div:last");
+                            if (this.htmlDisplayValue != null) {
+                                item.html(this.htmlDisplayValue);
+                            } else {
+                                item.text(this.displayValue || this.label);
+                            }
+                            item.data('index', items.length);
+                            item.bind('mouseover', function() {
+                                select.focus($$(this).data('index'));
+                            });
+                            item.bind('mousedown', function(event) {
+                                event.preventDefault();
+                                select.focus($$(this).data('index'));
+                                select.save();
+                            });
+                            items.push(item);
+                        }
+                    });
+
+                    // save auto-complete data
+                    autoCompleteData = data;
+                    autoCompleteItem = items;
+                    selected = -1;
+
+                    // show the list
+                    select.show();
+
+                    // select best match item
+                    if (items.length > 0) {
+                        // select.next();
+                        select.focusOnMatch($this.val());
+                    }
+                });
+
+                // }
+            };
+
+            // register key down event
+            $this.bind('keydown', function(event) {
+                hasFocus = true;
+                if ($this[0].readOnly) {
+                    return;
+                }
+                if (event.ctrlKey || event.altKey) {
+                    if (event.ctrlKey && event.keyCode == KEY.SPACE) {
+                        initTimeout();
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                    } else if (event.ctrlKey && event.keyCode == KEY.V) {
+                        // start timer on paste
+                        initTimeout();
+                    }
+                    return;
+                }
+                switch (event.keyCode) {
+                    case KEY.UP:
+                        event.preventDefault();
+                        if (select.visible()) {
+                            select.prev();
+                        }
+                        break;
+                    case KEY.DOWN:
+                        event.preventDefault();
+                        if (select.visible()) {
+                            select.next();
+                        }
+                        break;
+                    case KEY.RETURN:
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                    case KEY.TAB: // fall thru
+                        if (select.save()) {
+                            abortTimeout();
+                            return false;
+                        }
+                        break;
+                    case KEY.PAGEDOWN:
+                    case KEY.PAGEUP:
+                    case KEY.LEFT:
+                    case KEY.RIGHT:
+                    case KEY.SHIFT:
+                    case KEY.CTLR:
+                    case KEY.ALT:
+                    case KEY.CAPSLOCK:
+                    case KEY.INSERT:
+                    case KEY.WINDOWS:
+                    case KEY.HOME:
+                    case KEY.END:
+                        break;
+                    case KEY.ESC:
+                        select.abort();
+                        break;
+                    default:
+                        initTimeout();
+                        break;
+                }
+            });
+
+            $this.bind('focus', function() {
+                hasFocus = true;
+            });
+            $this.bind('blur', function() {
+                hasFocus = false;
+                abortTimeout();
+                if (isListClicked && select.visible()) {
+                    isListClicked = false;
+                    window.setTimeout(function() {
+                        $this.focus();
+                    }, 10);
+                } else {
+                    if ($this.val() == "" || options.editable) {
+                        select.save();
+                    } else {
+                        select.abort();
+                    }
+                }
+            });
+        });
+    }
+})(jQuery);

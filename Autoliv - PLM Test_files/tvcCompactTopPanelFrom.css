@@ -1,0 +1,369 @@
+td.DefaultTopPanelMenu {
+    width: 1%;
+    vertical-align: top;
+    background-color: #f7f7f7;
+    padding-top: 5px;
+}
+
+td.TopPanelControlColumn.MaximizeToggle {
+    width: 25px;
+    padding: 4px;
+}
+
+div.tvcExtendedHeaderDiv {
+    display: block;
+    line-height: 23px;
+    white-space: nowrap;
+}
+
+div.tvcHeaderImage {
+    float: left;
+    height: 62px;
+    margin: 2px 0px;
+    float: left;
+    padding-right: 5px;
+    display: block;
+}
+
+div.tvcHeaderImage img {
+    max-width: none;
+}
+
+div.tvcHeaderImage iframe {
+    width: 190px;
+    height: 180px;
+    border: hidden;
+}
+
+div.tvcHeaderContent {
+    border-left: 1px solid #aaa;
+    float: left;
+    margin: 2px 0px;
+    padding: 0px;
+    font-size: 12px;
+    height: 70px;
+}
+
+div.tvcHeaderContent.document {
+    display: block;
+}
+
+div.tvcHeaderContent.status {
+    display: block;
+}
+
+div.tvcHeaderContent.title {
+    display: block;
+    border-left: 0;
+    padding: 0px 15px 0px 0px;
+}
+
+span.tvcExtendedHeader {
+    display: block;
+    line-height: 23px;
+    white-space: nowrap;
+}
+
+span.tvcExtendedHeader.name {
+    font-size: 14px;
+    font-weight: bold;
+    max-width: 250px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+span.tvcExtendedHeader.state {
+    margin-top: -1px;
+    display: flex;
+}
+
+span.tvcExtendedHeader.minimizedState {
+    padding: 5px 15px;
+    border-left: 1px solid #aaa;
+    font-size: 12pt;
+}
+
+span.tvcExtendedHeader.title {
+    padding: 4px 15px 0px 10px;
+}
+
+span.tvcExtendedHeader.tvcContent {
+    max-width: 200px;
+    min-width: 50px;
+    white-space: normal;
+    overflow: hidden;
+    height: inherit;
+}
+
+span.tvcExtendedHeader.type-name {
+    max-width: 150px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+span.tvcExtendedHeader img {
+    height: 16px;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+span.tvcExtendedHeader i.higherRevision {
+    cursor: pointer;
+    width: 12px;
+    height: 12px;
+}
+
+span.tvcExtendedHeader.counter {
+    display: inline;
+    padding: 2px 4px;
+    margin-left: 4px;
+    border: solid 1px #ff0000;
+    border-radius: 4px;
+}
+
+span.tvcDocumentName {
+    max-width: 150px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+
+span.tvcExtendedHeader.tvcDocument {
+    color: rgb(0, 0, 0);
+}
+
+span.tvcExtendedHeader.tvcDocument form {
+    margin: 0px;
+}
+
+span.tvcExtendedHeader.name {
+    font-size: 16px;
+    font-weight: bold;
+    max-width: 250px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+button.tvcStatus,
+div.tvcStatus {
+    cursor: pointer;
+    background-color: #3c98cf;
+    background-image: linear-gradient(to bottom, #3c98cf, #42a2da);
+    border-color: #f6f9fb;
+    color: #ffffff;
+    margin-left: 5px;
+    padding: 0 12px;
+    border: solid 1px;
+    border-radius: 3px;
+    padding: 0px 6px;
+    font-size: 12px;
+    margin-left: 5px;
+    height: 24px;
+    margin-top: -4px;
+}
+
+button.tvcStatusNext,
+div.tvcStatusNext {
+    background-color: #f5f6f7;
+    background-image: linear-gradient(to bottom, #f5f6f7, #e2e4e3);
+    border-color: #b4b6ba;
+    color: #77797c;
+    font-size: 12px;
+    margin-left: 5px;
+    padding: 0 12px;
+    border: solid 1px;
+    border-radius: 3px;
+    padding: 0px 6px;
+    margin-left: 5px;
+    height: 24px;
+    margin-top: -4px;
+}
+
+div.tvcStatus i {
+    cursor: pointer;
+    width: 10px;
+    height: 10px;
+}
+
+span.tvcExtendedHeader.tvcDocumentCount {
+    max-width: 250px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 4px;
+    cursor: pointer;
+    color: #04a3cf;
+}
+
+.field.button button {
+    display: inline-block;
+    position: relative;
+    background-color: #f5f6f7;
+    background-image: -moz-linear-gradient(top, #f5f6f7, #e2e4e3);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f5f6f7), to(#e2e4e3));
+    background-image: -webkit-linear-gradient(top, #f5f6f7, #e2e4e3);
+    background-image: linear-gradient(to bottom, #f5f6f7, #e2e4e3);
+    border-color: #b4b6ba;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+    width: 24px;
+    height: 24px;
+    border: 1px solid #b4b6ba;
+}
+
+.field.button button:hover {
+    background-color: #f5f6f7;
+    background-color: #e6e8ea;
+    background-image: -moz-linear-gradient(top, #e6e8ea, #d1d4d4);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#e6e8ea), to(#d1d4d4));
+    background-image: -webkit-linear-gradient(top, #e6e8ea, #d1d4d4);
+    background-image: linear-gradient(to bottom, #e6e8ea, #d1d4d4);
+    border-color: #5b5d5e;
+    color: #77797c;
+    padding: 6px 12px;
+}
+
+.field.button button:active {
+    border-color: #5b5d5e;
+    background-color: #e7e8e9;
+    background-image: -moz-linear-gradient(top, #e7e8e9, #f0f1f2);
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#e7e8e9), to(#f0f1f2));
+    background-image: -webkit-linear-gradient(top, #e7e8e9, #f0f1f2);
+    background-image: linear-gradient(to bottom, #e7e8e9, #f0f1f2);
+}
+
+.field.my-desk.button {
+    margin-right: 3px;
+}
+
+.field.home.button {
+    padding-right: 6px;
+    border-right: solid 1px;
+    margin-right: 6px;
+    border-right: solid 1px #d1d4d4;
+}
+
+.field.refresh.button {
+    margin-left: 6px;
+    padding-left: 6px;
+    border-left: solid 1px #d1d4d4;
+}
+
+.field.refresh-with-cache.button {
+    margin-left: 6px;
+    padding-left: 6px;
+    border-left: solid 1px #d1d4d4;
+}
+
+.field.resize-Xheader.button {
+    margin-left: 3px;
+}
+
+.field.button button:before {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    content: '';
+}
+
+span.actions {
+    float: right;
+}
+
+span.formAction {
+    display: block;
+    float: right;
+}
+
+.field.button button.my-desk:before {
+    background: url(../../../images/MyDesk_btn.png) center center no-repeat;
+}
+
+.field.button button.next:before {
+    background: url(../../../images/Next_btn.png) center center no-repeat;
+}
+
+.field.button button.previous:before {
+    background: url(../../../images/Previous_btn.png) center center no-repeat;
+}
+
+.field.button button.home:before {
+    background: url(../../../images/Home_btn.png) center center no-repeat;
+}
+
+.field.button button.refresh:before {
+    background: url(../../../images/Refresh_btn.png) center center no-repeat;
+}
+
+.field.button.disabled {
+    opacity: 0.3;
+    cursor: default;
+    pointer-events: none;
+}
+
+td.buttons input[type='button'] button {
+    border-radius: 4px;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.42857;
+    margin-bottom: 0;
+    padding: 6px 12px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+td.TopPanelControlColumn i {
+    margin-left: 5px;
+    margin-top: 5px;
+}
+
+body {
+    background-color: inherit !important;
+    padding: 0px;
+}
+
+span.tvcExtendedTitle {
+    border-left: 1px solid #aaa;
+    margin: 10px 10px;
+    padding: 10px;
+}
+
+#TopPanelMinimizedRow .TopPanelInfoColumnTable {
+    font-size: 14px;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+td.TopPanelControlColumn table tr td {
+    padding: 0px;
+}
+
+td.TopPanelDetailsField2 {
+    padding-left: 0px;
+}
+
+.actions i {
+    width: 20px;
+    height: 20px;
+    margin: 0px 5px;
+}
+
+div.CategoryTopPanelForm {
+    position: absolute;
+}

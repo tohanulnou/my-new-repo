@@ -1,0 +1,455 @@
+// Requires: tvcCommonScript.js (core)
+if (!tvc) {
+    alert('WARNING: tvcCommonScript.js NOT LOADED');
+}
+
+// A link in a cell was clicked
+function l(id, col, i) {
+    parent.table.getCellLink(parent.getTableBeanName(), id, col, i, tvc.agent.isMSIE, function(
+        ret,
+        s
+    ) {
+        if (window.tvc.getTopWindow().IS_CROSS_DOMAIN) {
+            var topWindow = window.tvc.getTopWindow();
+            var referrer = topWindow.document.referrer;
+            var publisher = topWindow.parent;
+            var functionName = publisher.postMessage;
+            ret.subscriber = 'tvcDashboardPublishSubscribe';
+            ret.widgetId = topWindow.WIDGET_ID;
+            var data = getDataToPublish(ret, id);
+            window.tvc.publisher(publisher, functionName, data, referrer);
+        } else if (window.top.tvc && window.top.tvc._3ddashboard && ret.target !== 'card') {
+            // Adding widgetId to the parameter so only that widget should publish the data in which element is clicked.
+            // this is a minor finding of TVC-5929 reported.
+            var tvcWidgetWindow = tvc.getTvcWidgetWindow(window, 'tvcwidget');
+            if (tvcWidgetWindow) {
+                ret.widgetId = tvcWidgetWindow.frameElement.id;
+            }
+            var functionName = window.top.TVCbroker.publish;
+            var data = getDataToPublish(ret, id);
+            window.tvc.publisher(
+                window.top.TVCbroker,
+                functionName,
+                'tvcDashboardPublishSubscribe',
+                data
+            );
+        } else if (s && ret != null) {
+            _open(ret);
+            if (
+                parent.SEARCH_RESULT &&
+                ret.target !== 'card' &&
+                ret.target !== 'popup' &&
+                top.tvc
+            ) {
+                top.blur();
+            }
+        }
+    });
+}
+
+function getDataToPublish(ret, id) {
+    if (ret.href.indexOf('objectId=') > 0) {
+        ret.objectId = getObjectId(ret.href);
+    }
+
+    var ootbData = {};
+    var path = findPathsInStructureMode(id);
+    if (path && path.length > 0) {
+        ootbData.paths = [];
+        ootbData.paths[0] = path[0].split('/');
+        ootbData.attributes = {};
+        ootbData.tenant = 'OnPremise';
+        ootbData.version = '1.1';
+    }
+    var data = {};
+    data.ret = ret;
+    data.ootbData = ootbData;
+    return data;
+}
+
+function getObjectId(href) {
+    var v = href.substring(href.indexOf('objectId=') + 9, href.length);
+    return v.indexOf('&') >= 0 ? v.substring(0, v.indexOf('&')) : v;
+}
+
+function findPathsInStructureMode(rowId) {
+    var $inputs = $('.play-path[data-rowid="' + rowId + '"]');
+    if ('undefined' === typeof viewerInfo) {
+        return;
+    }
+    var topRowId = viewerInfo.topRowId;
+    return $inputs
+        .map(function() {
+            var id = this.id;
+            if (!topRowId || _.startsWith(id, topRowId)) {
+                return id;
+            }
+            return id.slice(id.lastIndexOf(topRowId));
+        })
+        .get();
+}
+
+// A gothere link was clicked
+var GO_THERE_IN_PROGRESS = false;
+function g(id, a, t, n) {
+    if (GO_THERE_IN_PROGRESS) {
+        return false;
+    }
+    GO_THERE_IN_PROGRESS = true;
+    showProgressMessage(parent.parent.M_LOADINGDATA_WAIT);
+    if (!n) {
+        n = null;
+    }
+    parent.table.getGoThereLink(parent.getTableBeanName(), id, a, t, n, tvc.agent.isMSIE, function(
+        ret,
+        s
+    ) {
+        GO_THERE_IN_PROGRESS = false;
+        if (s && ret != null) {
+            _open(ret);
+        }
+    });
+}
+
+function _perform(sHref, sTarget, iWindowWidth, iWindowHeight, bModal) {
+    var sUrl = sHref;
+    if (sUrl.indexOf('?') == -1) {
+        sUrl += '?';
+    } else {
+        sUrl += '&';
+    }
+    sUrl += 'object=' + parent.getTableBeanName();
+    _open({
+        href: sUrl,
+        target: sTarget,
+        windowWidth: iWindowWidth,
+        windowHeight: iWindowHeight,
+        modal: bModal
+    });
+}
+
+function _open(link) {
+    if (link.target == 'popup') {
+        tvc.popup(link.href, link.windowWidth, link.windowHeight, link.modal);
+    } else if (link.target == 'card') {
+        parent.parent.tvc.inlineFrame.load(
+            link.cardID,
+            link.href,
+            link.cardWidth,
+            link.cardTitle,
+            link.cardLoadScript,
+            link.cardReloadable
+        );
+    } else {
+        var tgt = null;
+        try {
+            if (link.target != 'content') {
+                tgt = eval('self.' + link.target);
+            }
+        } catch (E) {}
+        if (tgt == null) {
+            tgt = tvc.findFrame(window, link.target, true);
+        }
+        if (tgt == null) {
+            tgt = window.open(link.href, link.target);
+            tgt.opener = window;
+        } else {
+            tgt.location.href = link.href;
+            tgt.top.focus();
+            // tgt.opener = window;
+        }
+    }
+}
+
+var _cellValue = null;
+if (parent.TVCPane) {
+    _cellValue = new parent.TVCPane(parent.parent, true);
+    _cellValue.setPadding('3px');
+}
+
+/**
+ * @deprecated As of 2018.5.0 use showMoreTooltip instead.
+ */
+function m(id, c, v) {
+    if (window.console) {
+        console.warn('function m is @deprecated As of 2018.5.0. Use showMoreTooltip instead.');
+    }
+    parent.table.getPopupCellValue(parent.getTableBeanName(), id, c, v, function(ret, ok) {
+        if (ok && ret != null) {
+            _showMore(ret.substring(1, ret.length));
+        }
+    });
+}
+
+function showMoreTooltip(e, tableDataID, colIndex, cvIndex, configOptions) {
+    var $target = $(e);
+    var tableBean = parent.getTableBeanName();
+    var callback = function(ret, ok) {
+        if (ok && ret != null) {
+            tvc.tooltip.launch($target, ret.substring(1, ret.length), configOptions);
+        }
+    };
+    parent.table.getPopupCellValue(tableBean, tableDataID, colIndex, cvIndex, callback);
+}
+
+function _showMoreHandler(event, sText) {
+    tvc.stopBubbleEvent(event);
+    return _showMore(sText);
+}
+
+function _showMore(sText) {
+    if (parent.IS_SIDE_PANEL) {
+        var p = parent,
+            inlineFrame = null;
+        for (var i = 0; p != null && i < 10; i++) {
+            if (p.name.indexOf('tvcInlineFrame_') == 0) {
+                inlineFrame = p;
+                break;
+            }
+            p = p.parent;
+        }
+        if (inlineFrame != null) {
+            inlineFrame.parent.frames['tableContentFrame']
+                .tvcGetTableBodyRightFrame()
+                ._showMore(sText);
+            return;
+        }
+    }
+
+    if (_cellValue) {
+        try {
+            var html =
+                "<div style='position:relative;" +
+                'background-color:white;' +
+                'padding:7px;' +
+                'border:1px solid #b4b4b4;' +
+                'overflow:auto;' +
+                'white-space:pre;' +
+                'height:100%;' +
+                'font-family:verdana,arial,sans-serif;' +
+                'font-size: 9pt;' +
+                'box-sizing:border-box;' +
+                "word-wrap:break-word;'>" +
+                sText +
+                '</div>';
+            _cellValue.setHTML(html);
+            var frame = parent.parent;
+            var fDoc = frame.document;
+            var availWidth = frame.innerWidth
+                ? frame.innerWidth
+                : Math.max(fDoc.body.clientWidth, fDoc.documentElement.clientWidth);
+            var availHeight = frame.innerHeight
+                ? frame.innerHeight
+                : Math.max(fDoc.body.clientHeight, fDoc.documentElement.clientHeight);
+            frame.document.body.clientHeight;
+            _cellValue.show(
+                -1,
+                -1,
+                Math.min(600, Math.round(availWidth * 0.9)),
+                Math.min(600, Math.round(availHeight * 0.9))
+            );
+            var ie = _cellValue._ie_popup;
+            if (ie != null) {
+                ie.document.parentWindow.mxLink = self.mxLink;
+            }
+        } catch (E) {
+            alert(E.message);
+        }
+    }
+}
+
+function showProgress() {
+    parent.showProgress();
+}
+
+function showProgressMessage(message) {
+    parent.showProgressMessage(message);
+}
+
+function hideProgress() {
+    parent.hideProgress();
+}
+
+function mxLink(type, name, revision, vault) {
+    parent.mxLink(type, name, revision, vault);
+}
+
+function sh1(id) {
+    parent.showHistory(id, false);
+}
+
+function sh2(id) {
+    parent.showHistory(id, true);
+}
+
+function emxTableColumnLinkClick(url, width, height, modal, target, action) {
+    parent.emxTableColumnLinkClick(url, width, height, modal, target, action);
+}
+
+function openContextMenu(posX, posY, dataId, selectionElement, closeHandler) {
+    /*
+     * Determine what components in the context menu that are enabled for the
+     * current row.
+     */
+    var enabledItems = null;
+    if (parent.CTX_MENU_IS_DYNAMIC) {
+        /*
+         * The dynamic context menu hasn't been disabled, we will now get the
+         * list of valid components in the context menu that *this* row allows.
+         * Note that we do an AJAX request the first time the context menu is
+         * opened for a row. This info is stored, so opening the context menu a
+         * second time on a row will not result in any AJAX calls.
+         */
+        /*
+         * TODO: How can we cache this information in the best way possible?
+         * Since the user could promote/demote an object, this possibly affects
+         * the context menu... but this caching will require the user to reload
+         * the table content in order to force a clear of this caching... hmm.
+         * the only solution, that is safe, is to not cache. That however would
+         * result in that we always need to do the AJAX request... Anyhow, until
+         * we find a better solution, it is possible to turn off the caching
+         * feature via TVC init parameter.
+         */
+        var attrElement = null,
+            cacheKey = null,
+            sEnabledItems = null;
+        if (parent.CTX_MENU_ENABLE_CACHE) {
+            var objectId = parent.getSelectedObjectIds()[0];
+            cacheKey = 'ctxmenu_' + objectId;
+            attrElement = parent.tvcGetTableBodyRightFrame().document.body;
+            sEnabledItems = attrElement.getAttribute(cacheKey);
+        }
+        if (sEnabledItems == null) {
+            showProgressMessage(parent.parent.M_LOADING_CONTEXT_MENU);
+            window.setTimeout(function() {
+                // this timeout is just here to
+                // allow the progress msg to appear
+                // :P
+                parent.table.getEnabledContextMenuComponents(
+                    parent.getTableBeanName(),
+                    dataId,
+                    function(r, s) {
+                        if (attrElement != null) {
+                            attrElement.setAttribute(cacheKey, r != null ? r.join(',') : '');
+                        }
+                        hideProgress();
+                        parent.ctxMenu.selectionElement = selectionElement;
+                        window.openwithOption(selectionElement, parent.ctxMenu, r);
+                        parent.ctxMenu.show(posX, posY, closeHandler, r);
+                    }
+                );
+            }, 150);
+            return false;
+        } else {
+            enabledItems = sEnabledItems.split(',');
+        }
+        parent.ctxMenu.selectionElement = selectionElement;
+        parent.ctxMenu.show(posX, posY, closeHandler, enabledItems);
+    } else {
+        parent.ctxMenu.selectionElement = selectionElement;
+        this.openwithOption(selectionElement, parent.ctxMenu, []);
+        parent.ctxMenu.show(posX, posY, closeHandler, null);
+    }
+}
+
+function openwithOption(selElement, currentMenu, enableItems) {
+    var topWindow = window.tvc.getTopWindow();
+    if (topWindow.IS_CROSS_DOMAIN || (topWindow.tvc && topWindow.tvc._3ddashboard)) {
+        parent.tvc.WidgetDashboardTable.createOpenWithSubMenu(selElement, currentMenu, enableItems);
+    }
+}
+
+function _getTR(e) {
+    var x = e;
+    while (
+        x != null &&
+        x.parentNode != null &&
+        x.parentNode.parentNode.className != 'contentTable'
+    ) {
+        x = x.parentNode;
+    }
+    return x;
+}
+
+function _getTD(e) {
+    return $(e).parents('td')[0];
+}
+
+function showMore(t) {
+    var text = $(t.parentNode)
+        .find('.h_v')
+        .text();
+    _showMore(text);
+}
+
+function handleClipedText() {
+    $("span[data-show-cliped-text='true']").each(function() {
+        var textLength = this.getAttribute('data-cliped-length');
+        var dataValue = this.getAttribute('data-cliped-text');
+        var truncateDirection = this.getAttribute('data-cliped-direction');
+        var truncateText = window.textClip(dataValue, textLength, {
+            side: truncateDirection,
+            ellipsis: ''
+        });
+        $(this).text(truncateText);
+    });
+}
+
+function textClip(str, maxLength, truncateConfig) {
+    if (str.length > maxLength) {
+        switch (truncateConfig.side) {
+            case 'Left':
+                return (
+                    truncateConfig.ellipsis +
+                    str.slice(-(maxLength - truncateConfig.ellipsis.length))
+                );
+            case 'Right':
+            default:
+                return (
+                    str.slice(0, maxLength - truncateConfig.ellipsis.length) +
+                    truncateConfig.ellipsis
+                );
+        }
+    }
+    return str;
+}
+
+function handleMoreLink() {
+    var $contentTable = $('.contentTable')[0];
+    var wrapContent = $contentTable.getAttribute('wrapcontent');
+    $("span[data-showmore='true']").each(function() {
+        var $parent = $(this.parentNode);
+        var availableWidth = $parent.width();
+        var paddingLeftValue = parseFloat($parent.css('padding-left'));
+        if (wrapContent === 'unwrap') {
+            if ($(this).hasClass('truncated')) {
+                $(this).removeClass('truncated');
+                $(this).addClass('cliped');
+            }
+            var $text = $(this);
+            var textVal = $text.text();
+            var textValWidth = $text.measure(function() {
+                return this.innerWidth();
+            });
+        }
+        if (wrapContent === 'unwrap' && textValWidth > availableWidth + paddingLeftValue) {
+            if (!$parent.find('i.ti-more-blue-c').length) {
+                var showMoreIcon = document.createElement('i');
+                showMoreIcon.className = 'ti-c ti-more-blue-c';
+                showMoreIcon.onclick = function(e) {
+                    e.preventDefault();
+                    var $target = $(e.currentTarget);
+                    var qtipClasses = 'qtip-bootstrap qtip-content-wrap';
+                    window.tvc.tooltip.launch($target, this.toolTip, {
+                        style: { tip: true, classes: qtipClasses }
+                    });
+                }.bind({ toolTip: this.getAttribute('data-showmore-popup-text') });
+                $parent.append(showMoreIcon);
+                $parent.addClass('nowrap_ShowMore');
+            }
+        } else {
+            $parent.find('i.ti-more-blue-c').remove();
+            $parent.removeClass('nowrap_ShowMore');
+        }
+    });
+}

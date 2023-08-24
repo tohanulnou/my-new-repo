@@ -1,0 +1,84 @@
+/* LEGACY:TOOLBAR */
+DIV.MenuBar-Outer,
+DIV.MenuBar-Outer_MSIE {
+    background: url("../../../../../common/images/bgnd-toolbar.png") repeat-x scroll left top #C6CED1;
+    border: 1px solid #959595;
+/*
+    background-color: #e4e4e4;
+    border-top: 1px solid #b4b4b4;
+    border-right: 1px solid #8e8e8e;
+    border-left: 1px solid #b4b4b4;
+    border-bottom: 1px solid #8e8e8e;
+*/
+}
+DIV.MenuBar-Inner,
+DIV.MenuBar-Inner_MSIE {
+/*
+    border-top: 1px solid white;
+    border-right: 1px solid #C1C1C1;
+    border-left: 1px solid white;
+    border-bottom: 1px solid #C1C1C1;
+*/
+    border-top: 1px solid white;
+    border-right: 1px solid white;
+    border-left: 1px solid white;
+    border-bottom: 1px solid transparent;
+}
+TD.ContextButton,
+TD.MenubarItem {
+    border-left: 1px solid transparent;
+    border-right: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    border-top: 1px solid transparent;
+}
+TD.disabledLbl {
+    color: #9a9a9a;
+}
+TD.arrow2 {
+    border-left: 1px solid #e4e4e4;
+    border-right: 1px solid #e4e4e4;
+    border-bottom: 1px solid #e4e4e4;
+    border-top: 1px solid #e4e4e4;
+}
+TABLE.SubMenu TD.icon,
+TABLE.SubMenu TD.disabledIcon {
+    background-color: rgb(226,223,219);
+}
+DIV.MenuItemLayer {
+    border-bottom: 1px solid #b4b4b0;
+    border-left: 1px solid #eeeeee;
+    border-right: 1px solid #b4b4b0;
+    border-top: 1px solid #eeeeee;
+    background-color: #eeeeee;
+}
+.XSeparator {
+    background-image: url('../../classic/images/menubar/Separator_X.gif');
+    background-repeat: repeat-x;
+    background-position: center left;
+}
+.YSeparator {
+    background-image: url('../../classic/images/menubar/Separator_Y.gif');
+    background-repeat: repeat-y;
+    background-position: center center;
+    overflow: hidden;
+}
+DIV.updownscroller {
+    background-color: #C9C9C9;
+    /*background-color: rgb(226,223,219);*/
+    background-position: center;
+    background-repeat: no-repeat;
+}
+DIV#downScroller {
+    background-image: url('../../classic/images/menubar/ScrollDown.gif');
+}
+DIV#upScroller {
+    background-image: url('../../classic/images/menubar/ScrollUp.gif');
+}
+
+.menuItemLeft {
+    background-color: #e2dfdb;
+}
+
+.menuItemHover {
+    background-color: #b6cbe4 !important;
+}

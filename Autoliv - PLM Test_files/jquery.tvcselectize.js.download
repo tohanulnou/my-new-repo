@@ -1,0 +1,109 @@
+/**
+ * TVC Autocmplete extending Selectize
+ */
+;
+(function($) {
+
+    /**
+     * Data fetching
+     */
+    var query = function(query, callback) {
+        if (!query.length) {
+            return callback();
+        }
+
+        var qs = $.extend(true, {}, this.settings.handler, {
+            q : query
+        });
+
+        $.ajaxSettings.traditional = true;
+
+        $.ajax({
+            url : this.settings.jsonUrl + '/autocomplete/perform',
+            dataType : 'json',
+            data : qs
+        }).done(function(data) {
+            callback(data);
+        }).fail(function(jqXHR, textStatus, errorThrown) {
+            errorThrown && alert(errorThrown);
+            callback();
+        });
+    };
+
+    $.fn.tvcselectize = function(options) {
+        var settings = getSettings(options);
+
+        this.each(function() {
+            var $settings = $.extend(true, {}, settings);
+            var self = $(this)
+            self.selectize($settings);
+        });
+
+        return this;
+    };
+
+    function getSettings(options) {
+        var settings = $.extend(true, {}, $.fn.tvcselectize.defaults, options);
+
+        // Ranges handler, use only option for the select element available on
+        // client side
+        if (settings.handler.name.toLowerCase() === 'ranges') {
+            settings.load = '';
+        }
+
+        // Use remove plugin if maxitems > 1
+        if (settings.maxItems && settings.maxItems > 1) {
+            settings.plugins.push('remove_button');
+        }
+
+        if (settings.debug) {
+            console.log('Autocomplete settings', settings);
+        }
+
+        return settings;
+    }
+
+    var ctxPath = typeof CONTEXT_PATH !== 'undefined' ? CONTEXT_PATH : '/enovia';
+
+    /**
+     * Default options.
+     */
+    $.fn.tvcselectize.defaults = {
+        /*
+         * Selectize settings
+         */
+        maxItems : 1,
+        dropdownParent : 'body',
+        openOnFocus : true,
+        valueField : 'value',
+        labelField : 'label',
+        searchField : 'label',
+        create : false,
+        delimiter : '|',
+        selectOnTab : true,
+        render : {
+            option : function(item, escape) {
+                return '<div>' + escape(item.label) + '</div>';
+            }
+        },
+        plugins : [ 'fix_dropdown_click_outside_item', 'fix_blur_focus_navigation', 'fix_tab_focus_navigation',
+                'tvc-scrollfix' ],
+        load : query,
+
+        // URL to json tvc-action, ex. /enovia/tvc-action/json
+        jsonUrl : ctxPath + '/tvc-action/json',
+
+        debug : false,
+
+        // Settings passed to AutoCompleteHandler on server side.
+        handler : {
+            // Name of handler providing values
+            name : 'user',
+            limit : 50,
+            caseSensitive : false,
+            contains : true,
+            localize : true
+        }
+    };
+
+}(jQuery));

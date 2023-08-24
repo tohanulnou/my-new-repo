@@ -1,0 +1,34 @@
+var onMessageReceived = function(event) {
+    if (event.data.widgetId) {
+        window.tvc.getTopWindow().WIDGET_ID = event.data.widgetId;
+        window.tvc.getTopWindow().IS_CROSS_DOMAIN = event.data.crossDomain;
+    } else if (event.data.functionName) {
+        var functionInvoke = window.parent.query[event.data.functionName];
+        if (event.data.functionName === CLEAR_FUNCTION) {
+            functionInvoke(event.data.tableBeanName, callBackAfterSearch);
+        } else {
+            functionInvoke(
+                event.data.tableBeanName,
+                event.data.search,
+                event.data.colName,
+                false,
+                false,
+                false,
+                false,
+                callBackAfterSearch
+            );
+        }
+    }
+    if (event.data.func === UNCHECK_ROW_SELECT) {
+        unCheckRowSelect();
+    } else if (event.data.func === HIGHLIGHT_ROW_BY_PATH) {
+        highlightRowByPath(event.data.path, true);
+    } else if (event.data.func === OPENWITH_OPTION) {
+        var topWindow = window.tvc.getTopWindow();
+        topWindow.additional_ContextMenuHolder = {};
+        topWindow.additional_ContextMenuHolder[event.data.type] = JSON.parse(
+            JSON.stringify(event.data.optionList)
+        );
+    }
+};
+window.addEventListener(MESSAGE, onMessageReceived, false);

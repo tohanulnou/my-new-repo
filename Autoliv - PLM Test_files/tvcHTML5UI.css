@@ -1,0 +1,131 @@
+#tvcFileManagerOverlay {
+    position: absolute;
+    font-size: 1.3em;
+    z-index: 15002;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+}
+
+#tvcFileManagerOverlayContent {
+    position: absolute;
+    background-color: white;
+}
+
+#tvcFileManagerDropZone {
+    height: 100%;
+    overflow-y: scroll;
+    border: dashed 4px #ddd;
+    box-sizing: border-box;
+    padding: 10px;
+}
+
+#tvcFileManagerDropZoneLabel {
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3em;
+    line-height: 1em;
+    white-space: nowrap;
+    color: #ddd;
+}
+
+#tvcFileManagerSelectedFile {
+    margin-top: 10px;
+    display: none;
+}
+#tvcFileManagerSelectedFile .tvcFileManagerFileItemRemoveIcon {
+    display: none;
+}
+#tvcFileManagerSelectedFile.multipleFilesAllowed .tvcFileManagerFileItemRemoveIcon,
+#tvcFileManagerSelectedFile.singleFileOnly .tvcFileManagerFileItemRemoveIcon {
+    display: table-cell;   
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAfElEQVR42mNgGFRAVVXVCIifA3EXFrkuIH4IUoNP80cg/g/E35ENgWr+DpV7i9UQoOAbqIL/yIagaYbhh9gMWIhF4W8g/oXNYFzewGYIcZrRDPmNRfMvgpqRDPhLlgEUeQGH5l9EByI0kVAUjUbQREJeQkIy5CFZSXnAAADRq5M9sm55aAAAAABJRU5ErkJggg==');
+    background-repeat: no-repeat; 
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+#tvcFileManagerSelectedFile.multipleFilesAllowed .tvcFileManagerFileItem,
+#tvcFileManagerSelectedFile.singleFileOnly .tvcFileManagerFileItem {
+    display: table-row;
+    height: 20px;
+}
+#tvcFileManagerSelectedFile.multipleFilesAllowed .tvcFileManagerFileItemName,
+#tvcFileManagerSelectedFile.singleFileOnly .tvcFileManagerFileItemName {
+    display: table-cell;
+    white-space: nowrap;
+    padding-left: 10px;
+}
+#tvcFileManagerSelectedFile.multipleFilesAllowed .tvcFileManagerFileItemSize,
+#tvcFileManagerSelectedFile.singleFileOnly .tvcFileManagerFileItemSize {
+    display: table-cell;
+    white-space: nowrap;
+    padding-left: 10px;
+    text-align: right;
+}
+#tvcFileManagerSelectedFile.multipleFilesAllowed .tvcFileManagerFileError,
+#tvcFileManagerSelectedFile.singleFileOnly .tvcFileManagerFileError {
+    display: table-cell;
+    white-space: nowrap;
+    padding-left: 10px;
+    text-align: right;
+    color: red;
+}
+#tvcFileManagerSelectedFile.multipleFilesAllowed .tvcFileManagerUserInputHolder {
+    display: table-cell;
+    padding-left: 10px;
+}
+#tvcFileManagerSelectedFile.multipleFilesAllowed .tvcFileManagerFileItemStatus {
+    display: table-cell;
+    padding-left: 10px;
+    max-width: 500px;
+}
+#tvcFileManagerSelectedFile.multipleFilesAllowed .tvcFileManagerFileItemStatus.error {
+    color: #BF0000;
+}
+#tvcFileManagerSelectedFile.multipleFilesAllowed .tvcFileManagerFileItemStatus.info {
+    color: #00AF00;
+}
+#tvcFileManagerSelectedFile.multipleFilesAllowed .tvcFileManagerFileItemProgress {
+    display: table-cell;
+    padding-left: 10px;
+}
+#tvcFileManagerSelectedFile.singleFileOnly {
+}
+
+#tvcFileManagerOverlay .buttonContainer {
+    margin-top: 20px;
+    clear:both;
+}
+
+#tvcFileManagerOverlay progress {
+    -webkit-appearance: progress-bar;
+    box-sizing: border-box;
+    display: none;
+    width: 250px;
+    /*height: 20px;*/
+}
+
+#tvcFileManagerSubmitButton {
+    margin-right: 5px;
+}
+
+#tvcFileManagerCancelButton {
+
+}
+
+#tvcFileManagerOverlay .tvcUserInputField {
+    margin-top: 10px;
+}
+#tvcFileManagerOverlay .tvcUserInputField label.required {
+    color: red;
+}
+#tvcFileManagerOverlay .tvcUserInputField .inputFieldContainer {
+    margin-top: 5px;
+}

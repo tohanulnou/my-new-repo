@@ -1,0 +1,168 @@
+(function(window) {
+    if (!window.tvc) {
+        window.tvc = {};
+    }
+    if (!window.tvc.fileManager) {
+        window.tvc.fileManager = {};
+    }
+
+    window.tvc.fileManager.webExtension = {
+        init: function(data) {
+            console.log('About to initialize the File Manager Web-extension...', data);
+            this._doDispatch(data);
+            var topWindow;
+            if (typeof getTopWindow === 'function') {
+                topWindow = getTopWindow();
+            } else {
+                topWindow = top;
+            }
+            topWindow.addEventListener('message', this._onMessage.bind(this));
+            tvc.fileManager.api.install(this.createAPI());
+        },
+
+        _onMessage: function(event) {
+            if (
+                event.data.tvcFileManagerMessage &&
+                event.data.destination &&
+                event.data.destination == 'page'
+            ) {
+                var msg = event.data.tvcFileManagerMessage;
+                switch (msg.messageType) {
+                    case 'showInBrowser':
+                        tvc.fileManager.services.showInBrowser(msg.messageData.url);
+                        break;
+                    case 'entryChanged':
+                        tvc.fileManager.listeners.entryChanged(
+                            msg.messageData.objectId,
+                            msg.messageData.event
+                        );
+                        break;
+                    case 'handleError':
+                        alert(msg.messageData.message);
+                        break;
+                    default:
+                        console.warn('Unhandled message:', msg);
+                        break;
+                }
+            }
+        },
+
+        _doDispatch: function(data) {
+            top.postMessage(
+                {
+                    tvcFileManagerMessage: data,
+                    destination: 'native'
+                },
+                '*'
+            );
+        },
+
+        _sendMessage: function(type, data) {
+            this._doDispatch({
+                messageType: type,
+                messageData: data
+            });
+        },
+
+        createAPI: function() {
+            var self = this;
+            return {
+                callMXCheckout: function(e, objectId, action, format, fileName) {
+                    tvc.fileManager.enovia.checkoutFile(e, objectId, action, format, fileName);
+                },
+                callMXViewer: function(e, viewerURL, objectId, format, fileName) {
+                    tvc.fileManager.enovia.openViewer(e, viewerURL, objectId, format, fileName);
+                },
+                view: function(e, objectId, format, fileName, callback) {
+                    self._sendMessage('downloadFile', {
+                        objectId: objectId,
+                        format: format,
+                        fileName: fileName,
+                        lock: false,
+                        open: true
+                    });
+                },
+                download: function(e, objectId, format, fileName, callback) {
+                    self._sendMessage('downloadFile', {
+                        objectId: objectId,
+                        format: format,
+                        fileName: fileName,
+                        lock: false,
+                        open: false
+                    });
+                },
+                checkout: function(e, objectId, format, fileName, callback) {
+                    tvc.fileManager.listeners.register(e, objectId, callback);
+                    self._sendMessage('downloadFile', {
+                        objectId: objectId,
+                        format: format,
+                        fileName: fileName,
+                        lock: true,
+                        open: true
+                    });
+                },
+                checkin: function(e, objectId, format, fileName, tryFindExisting, callback) {
+                    tvc.fileManager.listeners.register(e, objectId, callback);
+                    self._sendMessage('checkinFile', {
+                        objectId: objectId,
+                        format: format,
+                        fileName: fileName,
+                        tryFindExisting: tryFindExisting
+                    });
+                },
+                checkinFiles: function(e, objectId, formats, fileNames, allowUpdateExisting) {
+                    self._sendMessage('checkinFiles', {
+                        objectId: objectId,
+                        formats: formats,
+                        fileNames: fileNames,
+                        allowUpdateExisting: allowUpdateExisting
+                    });
+                },
+                checkinNew: function(e, objectId, callback) {
+                    tvc.fileManager.listeners.register(e, objectId, callback);
+                    self._sendMessage('checkinNew', {
+                        objectId: objectId
+                    });
+                },
+                lock: function(e, objectId, objectIdOnRow, callback) {
+                    tvc.fileManager.services.lockOrUnlock(
+                        e,
+                        objectId,
+                        objectIdOnRow,
+                        true,
+                        callback
+                    );
+                },
+                unlock: function(e, objectId, objectIdOnRow, callback) {
+                    tvc.fileManager.services.lockOrUnlock(
+                        e,
+                        objectId,
+                        objectIdOnRow,
+                        false,
+                        callback
+                    );
+                },
+                deleteFile: function(e, objectId, format, fileName, callback) {
+                    tvc.fileManager.services.deleteFile(e, objectId, format, fileName, callback);
+                },
+                deleteVersion: function(e, objectId, objectIdOnRow, callback) {
+                    tvc.fileManager.services.deleteVersion(e, objectId, objectIdOnRow, callback);
+                },
+                fpdStart: function(packageId) {
+                    self._sendMessage('downloadPackage', {
+                        packageId: packageId
+                    });
+                },
+                fpdCancel: function(packageId) {
+                    fpdService.cancel(packageId);
+                },
+                showWindow: function() {
+                    self._sendMessage('showWindow', {});
+                },
+                hideWindow: function() {
+                    self._sendMessage('hideWindow', {});
+                }
+            };
+        }
+    };
+})(window);

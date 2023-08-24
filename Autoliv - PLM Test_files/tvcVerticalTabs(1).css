@@ -1,0 +1,53 @@
+div.tabContainer {
+    margin-top: -3px;
+    border: 1px solid #dadada !important;
+    margin-right: -1px;
+}
+
+div.tabContainer li a.tablink {
+    border-bottom: 0px;
+}
+
+div.tabContainer li {
+    border-bottom: 0px;
+}
+.selectedTab {
+    border:none !important;
+}
+
+.tabContainer div.tabcontent {
+    margin-top: 7px !important;
+}
+
+
+.tabContainer a.tablink:hover {
+    background:none !important;
+    text-decoration: none;
+    color: #ffffff !important;
+}
+
+.tabContainer .selectedTab div.tabcontent {
+    background-color: #005496 !important;
+    border-radius: 5px;
+}
+
+.tabContainer .selectedTab a.tablink {
+    color: #fff!important;
+    text-decoration: none; 
+    font-weight: bold;
+}
+
+.tabContainer .closetab {
+    display: none;
+}
+
+.tabContainer div.tabcontent:hover {
+    background-color: #5290ce !important;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.tabContainer div.tabcontent:hover a.tablink{
+    text-decoration: none;
+    color: #fff!important;
+}

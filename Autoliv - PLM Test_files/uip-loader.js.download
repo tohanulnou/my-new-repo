@@ -1,0 +1,133 @@
+/**
+ * Shows a Loader animation
+ * **Example**
+ * ```javascript
+ * var loader = new UIP.Loader({ 'container': '#mydiv' });
+ * loader.start('Please wait...');
+ * // do your work
+ * loader.stop();
+ * ```
+ */
+'use strict';
+
+var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+(function (window, $, UIP) {
+    'use strict';
+
+    var defaults = {
+        // Selector where of place loader or jquery instance of element.
+        container: 'body',
+
+        // Delay before showing the loader. Used to prevent flicking loaders when starting/stopping quickly
+        delay: 10,
+
+        // The loader stops when stop() is called the same number of times as start(), If false, the loader stops upon the first call to stop().
+        matchStartStop: false
+    };
+
+    var Loader = (function () {
+        function Loader(options) {
+            _classCallCheck(this, Loader);
+
+            this.options = $.extend(true, {}, defaults, options);
+            this.$container = $(this.options.container);
+            this.setupHtml();
+            this.startCount = 0;
+        }
+
+        // Crap code below to support rotation in IE9
+
+        _createClass(Loader, [{
+            key: 'setupHtml',
+            value: function setupHtml() {
+                this.$loader = $('<div class="uip-loader">').addClass(this.isFullscreen() ? 'uip-fullscreen' : '');
+                this.$text = $('<div class="uip-loader-text">').appendTo(this.$loader);
+                this.$spinner = $('<div class="uip-loader-spinner">').appendTo(this.$loader);
+
+                this.$container.append(this.$loader);
+            }
+        }, {
+            key: 'start',
+            value: function start(text) {
+                this.setText(text);
+                this.openTimeout = window.setTimeout((function () {
+                    this.$loader.addClass('uip-loading');
+                }).bind(this), this.options.delay);
+
+                this.startCount++;
+
+                // IE9 doesn't support animations :(
+                if (isIE() == 9) {
+                    startRotate(this.$spinner);
+                }
+
+                return this;
+            }
+        }, {
+            key: 'stop',
+            value: function stop(forceStop) {
+                if (this.startCount > 0) {
+                    this.startCount--;
+                }
+                window.clearTimeout(this.openTimeout);
+
+                if (!this.options.matchStartStop || this.startCount === 0 || forceStop) {
+                    this.$loader.stop(true, true).removeClass('uip-loading');
+                    this.startCount = 0;
+
+                    if (isIE() == 9) {
+                        stopRotate();
+                    }
+                }
+
+                return this;
+            }
+        }, {
+            key: 'setText',
+            value: function setText(text) {
+                this.$text.text(text);
+                return this;
+            }
+        }, {
+            key: 'isFullscreen',
+            value: function isFullscreen() {
+                return this.options.container === 'body';
+            }
+        }, {
+            key: 'isLoading',
+            value: function isLoading() {
+                return this.$loader.hasClass('uip-loading');
+            }
+        }]);
+
+        return Loader;
+    })();
+
+    var rotateInterval = undefined;
+
+    function startRotate($spinner) {
+        var deg = 0;
+        rotateInterval = window.setInterval(function () {
+            $spinner.css('transform', 'rotate(' + deg + 'deg)');
+
+            deg += 10;
+        }, 20);
+    }
+
+    function stopRotate() {
+        if (rotateInterval) {
+            window.clearInterval(rotateInterval);
+            rotateInterval = undefined;
+        }
+    }
+
+    function isIE() {
+        var ua = navigator.userAgent.toLowerCase();
+        return ua.indexOf('msie') != -1 ? parseInt(ua.split('msie')[1]) : false;
+    }
+
+    UIP.Loader = Loader;
+})(window, $, window.UIP = window.UIP || {});

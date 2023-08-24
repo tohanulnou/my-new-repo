@@ -1,0 +1,25 @@
+#TopPanelMinimizedRow .TopPanelInfoColumnTable {
+    margin:9px 0 7px 10px;
+}
+
+#TopPanelMinimizedRow img.TopPanelButton {
+    margin:9px 10px 7px 10px;   
+}
+
+#TopPanelMinimizedRow img.TopPanelButtonHover {
+    margin:9px 10px 7px 10px;   
+}
+
+#TopPanelMinimizedRow .TopPanelInfoColumnTable {
+    font-family: Arial, Verdana, Sans-Serif;
+    font-size: 12pt;
+    font-style: normal;
+    font-weight: bold;
+    letter-spacing: -0.2pt;
+    text-decoration: none;
+    white-space: nowrap;
+    word-spacing: 0;
+    padding-left: 5px;
+    color: #003366;
+    padding: 5px;    
+}

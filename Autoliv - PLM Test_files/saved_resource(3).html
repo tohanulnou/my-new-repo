@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<!-- saved from url=(0125)https://plmtest.autoliv.int:12090/enovia/common/alvUserRecentActionsLayout.jsp?&suiteKey=&targetLocation=slidein&openerFrame= -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <link rel="stylesheet" type="text/css" href="./quickaccessmenu.css">
+    <link rel="stylesheet" href="./font-awesome.min(1).css">
+    <script type="text/javascript" src="./jquery.js(1).download"></script>
+    <script type="text/javascript">    
+        function resetSlideInWidth(){
+            $rightSlideIn = top.document.getElementById('rightSlideIn');
+            $rightSlideIn.style.width = '350px';
+        }
+        
+        function updatePref(){
+            $preference = document.getElementById('preference');
+            if ($preference.checked) {
+                var params = {
+                    urlAction: "UpdatePreference",
+                    prefValue: $preference.value,
+                }
+                $.ajax({
+                    type: 'POST',
+                    url: "../common/alvUserRecentActions.jsp",
+                    data: params,
+                    async: true,
+                });
+            }
+        }
+    </script>
+</head>
+
+<body style="background: #f8f8f8 !important;">
+<div class="titlebar">
+    <p class="titleText" id="tvctitleText2">Quick Access Menu</p>
+    <a href="javascript:void(0)" onclick="javascript:top.showSlideInDialog(&#39;../common/alvUserRecentActionsLayout.jsp?&amp;suiteKey=&#39;,false , &#39;&#39;);" class="refreshIcon" title="Refresh Quick Access Menu"><i class="fa fa-refresh" aria-hidden="true"></i></a>
+    <a href="javascript:setTimeout(top.closeSlideInDialog(), 100);resetSlideInWidth();" class="closeIcon" title="Hide Quick Access Menu"><i class="fa fa-window-close-o" aria-hidden="true"></i></a>
+</div>
+<div class="formBody">
+    <br>
+        
+       <a href="javascript:void(0)" name="MyLastSearchResult" id="MyLastSearchResult" onclick="javascript:alert(&#39;No Search performed since login.&#39;);" class="actionLink">My Last Search Result</a>
+       <br>
+        
+    <table>
+        <tbody><tr><th class="sectionHeader">Recent Actions</th>
+        
+        </tr><tr>
+            <td>
+                <a href="javascript:top.showModalDialog(&quot;../tvc-action/initForm?submit=true&amp;formName=tvc%3Aform%2F%2Ftvc%2Feng%2Fdocument%2FHcertForm.xml&amp;formMode=create&amp;renderMode=dialog&quot;,&quot;812&quot;,&quot;500&quot;,true ,&quot;Medium&quot;)" class="actionLink">Create H-Cert...
+                </a>
+            </td>
+        </tr>
+
+
+        
+        <tr>
+            <td>
+                <a href="javascript:top.showModalDialog(&quot;../components/emxCommonDocumentPreCheckin.jsp?objectAction=create&amp;suiteKey=Components&amp;StringResourceFileId=emxComponentsStringResource&amp;SuiteDirectory=components&quot;,&quot;812&quot;,&quot;500&quot;,true ,&quot;Medium&quot;)" class="actionLink">Create Document...
+                </a>
+            </td>
+        </tr>
+
+
+        
+        <tr>
+            <td>
+                <a href="javascript:top.showModalDialog(&quot;../engineeringcentral/emxpartCreatePartDialogFS.jsp?cloneMode=true&amp;suiteKey=EngineeringCentral&amp;StringResourceFileId=emxEngineeringCentralStringResource&amp;SuiteDirectory=engineeringcentral&quot;,&quot;812&quot;,&quot;500&quot;,true ,&quot;Medium&quot;)" class="actionLink">Create Engineering Part Clone...
+                </a>
+            </td>
+        </tr>
+
+
+        
+        <tr>
+            <td>
+                <a href="javascript:top.showNonModalDialog(&quot;../tvc-action/initForm?submit=true&amp;formName=tvc%3Aform%2F%2Ftvc%2Fccb%2FccbCreateForm.xml&amp;formMode=create&amp;renderMode=dialog&quot;,&quot;812&quot;,&quot;500&quot;,true ,&quot;&quot;,&quot;Medium&quot;)" class="actionLink">Create Change Control Board...
+                </a>
+            </td>
+        </tr>
+
+
+        
+        <tr>
+            <td>
+                <a href="javascript:top.showModalDialog(&quot;../engineeringcentral/alvCreatePartFS.jsp?suiteKey=EngineeringCentral&amp;StringResourceFileId=emxEngineeringCentralStringResource&amp;SuiteDirectory=engineeringcentral&quot;,&quot;1800&quot;,&quot;900&quot;,true ,&quot;ExtraLarge&quot;)" class="actionLink">Create Part...
+                </a>
+            </td>
+        </tr>
+
+
+        
+    </tbody></table>
+    <br>
+    <table>
+        <tbody><tr><th class="sectionHeader">Recent Searches</th>
+        
+        </tr><tr>
+            <td>
+                <a href="javascript:top.showNonModalDialog(&quot;../tvc-action/beginSearch/dummy.jsp?searchConfig=tvc%3Asearchconfig%2F%2Ftvc%2Fchgmgmt%2Fecr%2FECRSearchConfig.xml&amp;suiteKey=EngineeringCentral&amp;StringResourceFileId=emxEngineeringCentralStringResource&amp;SuiteDirectory=engineeringcentral&quot;,&quot;812&quot;,&quot;500&quot;,true ,&quot;&quot;,&quot;Medium&quot;)" class="actionLink">Legacy ECR Search...
+                </a>
+            </td>
+        </tr>
+        
+        <tr>
+            <td>
+                <a href="javascript:top.showNonModalDialog(&quot;../tvc-action/beginSearch/dummy.jsp?searchConfig=tvc%3Asearchconfig%2F%2Ftvc%2Fcar%2Fmodel%2FCarModelSearchConfig.xml&amp;suiteKey=ProgramCentral&amp;StringResourceFileId=emxProgramCentralStringResource&amp;SuiteDirectory=programcentral&quot;,&quot;812&quot;,&quot;500&quot;,true ,&quot;&quot;,&quot;Medium&quot;)" class="actionLink">Car Models...
+                </a>
+            </td>
+        </tr>
+        
+        <tr>
+            <td>
+                <a href="javascript:top.showNonModalDialog(&quot;../tvc-action/beginSearch/dummy.jsp?searchConfig=tvc%3Asearchconfig%2F%2Ftvc%2Fproject%2FProjectSearchConfig.xml&amp;suiteKey=ProgramCentral&amp;StringResourceFileId=emxProgramCentralStringResource&amp;SuiteDirectory=programcentral&quot;,&quot;812&quot;,&quot;500&quot;,true ,&quot;&quot;,&quot;Medium&quot;)" class="actionLink">Projects...
+                </a>
+            </td>
+        </tr>
+        
+        <tr>
+            <td>
+                <a href="javascript:top.showNonModalDialog(&quot;../tvc-action/beginSearch/dummy.jsp?searchConfig=tvc%3Asearchconfig%2F%2Ftvc%2Feng%2Fdocument%2FDocumentsSearchConfig.xml&amp;suiteKey=EngineeringCentral&amp;StringResourceFileId=emxEngineeringCentralStringResource&amp;SuiteDirectory=engineeringcentral&quot;,&quot;812&quot;,&quot;500&quot;,true ,&quot;&quot;,&quot;Medium&quot;)" class="actionLink">Documents...
+                </a>
+            </td>
+        </tr>
+        
+        <tr>
+            <td>
+                <a href="javascript:top.showNonModalDialog(&quot;../tvc-action/beginSearch/dummy.jsp?pageConfig=alvTVCSearchManufacturingGroups&amp;suiteKey=ProgramCentral&amp;StringResourceFileId=emxProgramCentralStringResource&amp;SuiteDirectory=programcentral&quot;,&quot;812&quot;,&quot;500&quot;,true ,&quot;&quot;,&quot;Medium&quot;)" class="actionLink">Manufacturing Groups...
+                </a>
+            </td>
+        </tr>
+        
+    </tbody></table>
+    
+    <br>
+    <table>
+        <tbody><tr><th class="sectionHeader" width="90%">Recent Objects
+        <a title="Open in New Window" href="javascript:top.showNonModalDialog(&#39;../tvc-action/tvaRecentObjects?pageConfig=tvc:pageconfig:tva:common/RecentObject.xml&#39;);" align="right"><img src="./iconNewWindow.gif" border="0" style="float:right;"></a></th>
+        
+        </tr><tr>
+            <td>
+                <a href="javascript:void(0)" onclick="javascript: var objFrame = top.emxUICore.findFrame(top, &quot;content&quot;);if (objFrame) {objFrame.location = &quot;../common/emxTree.jsp?objectId=4706.39075.64392.21727&quot;;}" class="actionLink">ECR<br>406946<br>-
+                </a>
+            </td>
+        </tr>
+        
+        <tr>
+            <td>
+                <a href="javascript:void(0)" onclick="javascript: var objFrame = top.emxUICore.findFrame(top, &quot;content&quot;);if (objFrame) {objFrame.location = &quot;../common/emxTree.jsp?objectId=4706.39075.65024.30337&quot;;}" class="actionLink">Car Model<br>F40 (F20NF)<br>10393
+                </a>
+            </td>
+        </tr>
+        
+        <tr>
+            <td>
+                <a href="javascript:void(0)" onclick="javascript: var objFrame = top.emxUICore.findFrame(top, &quot;content&quot;);if (objFrame) {objFrame.location = &quot;../common/emxTree.jsp?objectId=4706.39075.36372.56302&quot;;}" class="actionLink">ECR<br>618181<br>-
+                </a>
+            </td>
+        </tr>
+        
+        <tr>
+            <td>
+                <a href="javascript:void(0)" onclick="javascript: var objFrame = top.emxUICore.findFrame(top, &quot;content&quot;);if (objFrame) {objFrame.location = &quot;../common/emxTree.jsp?objectId=4706.39075.44984.27062&quot;;}" class="actionLink">ECO<br>643469<br>-
+                </a>
+            </td>
+        </tr>
+        
+        <tr>
+            <td>
+                <a href="javascript:void(0)" onclick="javascript: var objFrame = top.emxUICore.findFrame(top, &quot;content&quot;);if (objFrame) {objFrame.location = &quot;../common/emxTree.jsp?objectId=4706.39075.57702.1088&quot;;}" class="actionLink">Project<br>104168 BMW MINI L4 Side SB BKL TEST PROJECT<br>0
+                </a>
+            </td>
+        </tr>
+        
+    </tbody></table>
+    <br>
+    
+              <input name="preference" id="preference" type="checkbox" value="Show" onchange="updatePref();">Always show this menu on login<br>
+      
+</div>
+<script type="text/javascript">
+    top.document.getElementById("displaybox").style.display = "none";
+</script>
+
+
+</body></html>

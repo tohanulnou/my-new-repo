@@ -1,0 +1,81 @@
+body {
+    background:#fff;
+    color:#000;
+}
+.tabContainer {
+    background-image:url('../images/tabpage/bg.gif');
+    background-attachment:scroll;
+    background-position:center top;
+    padding-top:0;
+}
+.tabContainerBottomBorder {
+    background-image:url('../images/tabpage/tab_bottom_border.png');
+    background-repeat:repeat-x;
+    background-attachment:scroll;
+    background-position:left top;
+    height:10px;
+    width:100%;
+    clear:both;
+}
+.tabContainer li {
+    background-image:url("../images/tabpage/l1.png");
+    background-repeat:no-repeat;
+    background-attachment:scroll;
+    background-position:left top;
+    padding:0;
+	/*margin-bottom: -2px;*/
+}
+.tabContainer div.tabcontent {
+    font-weight:bold;
+    font-family:Verdana,Arial,Helvetica,sans-serif;
+    font-size:11px;
+    background-image:url("../images/tabpage/r1.png");
+    background-repeat:no-repeat;
+    background-attachment:scroll;
+    background-position:right top;
+    padding: 3px 10px 6px 7px;
+}
+.tabContainer div.mac {
+    padding: 3px 10px 4px 7px;
+}
+.tabContainer li.hashiddentab div.tabcontent {
+    background-image:url("../images/tabpage/hashidden.png");
+}
+.tabContainer a.tablink {
+    color:#DDDDDD;
+    text-decoration:none;
+}
+.tabContainer a.tablink:hover {
+    /*color:#DDDDDD;*/
+    text-decoration:none;
+}
+.tabContainer .selectedTab a.tablink {
+    color:#333333;
+}
+.tabContainer .selectedTab {
+    background-image:url("../images/tabpage/l2.png");
+}
+.tabContainer .selectedTab div.tabcontent {
+    background-image:url("../images/tabpage/r2.png");
+}
+.tabContainer .closetab {
+    margin:auto auto -1px 3px;
+    background-image: url("../images/tabpage/rem.png");
+    background-position: center center;
+    background-repeat: no-repeat;
+    display: inline-block;
+    width:10px;
+    height:9px;
+}
+ .tabContainer .disableCloseTab  {
+	margin:auto auto -1px 3px;
+    display: inline-block;
+    width:10px;
+    height:9px; 
+ }
+.tabContainer .selectedTab .closetab {
+    background-image: url("../../classic/images/tabpage/rem.gif");
+}
+.tabContainer a.closetab:hover {
+    background-image: url('../../classic/images/tabpage/close_tab.gif');
+}

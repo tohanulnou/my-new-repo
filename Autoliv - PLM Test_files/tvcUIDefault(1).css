@@ -1,0 +1,73 @@
+select,input,textarea {
+	color: #000000;
+}
+
+input.readonly {
+	color: rgb(0, 0, 136);
+}
+tr.odd {
+    background-color: #ffffff;
+}
+tr.even {
+    background-color: #eeeeee;
+}
+
+a {
+	color: rgb(0, 51, 102);
+	cursor: pointer;
+}
+
+.pageSubTitle {
+	color: white;
+}
+
+.pageHeader {
+	color: white;
+	font-weight: bold;
+}
+
+.pageSubheader {
+	color: white;
+}
+
+.pageBorder {
+	background-color: #003366;
+}
+
+div.pageBorder {
+	border-top: 1px solid #003366;
+	background-color: transparent;
+}
+
+fieldset {
+	border: 1px solid #7B9AC5;
+}
+
+legend.fieldSet {
+	color: black;
+}
+
+label.fieldSet {
+	color: rgb(51, 102, 153);
+}
+
+.header_nopopup .pageSubTitle,.header_nopopup .pageHeader,.header_nopopup .pageSubheader {
+	color: #082C52;
+}
+
+@media all and (-ms-high-contrast: none) , ( -ms-high-contrast : active) {
+	input + .display-tablecell {
+		display:table-cell;
+		width: 1%
+	}
+	.display-tablecell + .display-tablecell {
+		float:left;
+	}
+}
+
+@media all and (min-width: 800px) {	
+	.display-tablecell + .display-tablecell {
+		display: block;
+		float: none;
+	}
+}

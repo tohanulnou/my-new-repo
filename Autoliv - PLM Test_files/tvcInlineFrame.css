@@ -1,0 +1,146 @@
+DIV#tvcInlineContent {
+	display: none;
+	position: absolute;
+	right: 10px;
+	overflow: hidden;
+}
+
+DIV#tvcInlineContent.dragging {
+	/* Padding to have mousemove event fired without risking to move outside of the div */
+	padding-left: 2000px;
+	background-color: transparent;
+	border: none;
+	box-shadow: none;
+	z-index: 100;
+}
+
+DIV#tvcInlineDragHandle {
+	height: 100%;
+	float: left;
+	width: 3px;
+	cursor: col-resize;
+	overflow: hidden;
+	border-left: 1px solid #FFFFFF;
+}
+
+DIV#tvcInlineDragHandle.dragging {
+	background-color: black;
+}
+
+DIV#tvcInlineInnerContent {
+	position: absolute;
+	padding: 0px;
+	overflow: hidden;
+	top: 0px;
+	bottom: 0px;
+	right: 0px;
+	left: 3px;
+}
+
+DIV#tvcInlineInnerContent.dragging {
+	display: none;
+}
+
+DIV#tvcTitleBar {
+	position: absolute;
+	height: 20px;
+	top: 1px;
+	left: 0px;
+	right: 0px;
+	-moz-user-select: none;
+}
+
+SELECT#tvcTitleText {
+	position: absolute;
+	left: 1px;
+	top: 0px;
+	font-family: verdana, sans-serif, arial;
+	font-size: 8pt;
+	font-weight: normal;
+	white-space: nowrap;
+	cursor: default;
+	-moz-user-select: none;
+	-moz-user-focus: none;
+	-moz-box-sizing: border-box;
+	height: 18px;
+}
+
+INPUT#tvcTitleText2 {
+	position: absolute;
+	left: 1px;
+	top: 0px;
+	font-family: verdana, sans-serif, arial;
+	font-size: 8pt;
+	font-weight: normal;
+	white-space: nowrap;
+	cursor: default;
+	-moz-user-select: none;
+	-moz-user-focus: none;
+	-moz-box-sizing: border-box;
+	/*height: 16px;*/
+	display: none;
+}
+
+SELECT#tvcPageSelect {
+	font-family: verdana, sans-serif, arial;
+	font-size: 8pt;
+	font-weight: normal;
+	white-space: nowrap;
+	cursor: default;
+	-moz-user-select: none;
+	-moz-user-focus: none;
+	-moz-box-sizing: border-box;
+	height: 17px;
+}
+
+.inlineFramePagination {
+	font-family: verdana, sans-serif, arial;
+	font-size: 8pt;
+	white-space: nowrap;
+	cursor: default;
+	-moz-user-select: none;
+	-moz-user-focus: none;
+	-moz-box-sizing: border-box;
+}
+
+IMG#tvcCloseIcon {
+	position: absolute;
+	right: 2px;
+	top: 1px;
+	width: 16px;
+	height: 16px;
+	cursor: pointer;
+}
+
+DIV#tvcIframeContent {
+	position: absolute;
+	top: 21px;
+	left: 1px;
+	right: 1px;
+	bottom: 1px;
+	-moz-box-sizing: border-box;
+}
+
+DIV#tvcBelowFrame {
+	position: absolute;
+	left: 1px;
+	right: 5px;
+	bottom: 1px;
+	height: 20px;
+	-moz-box-sizing: border-box;
+	display: none;
+}
+
+IFRAME.tvcInlineFrame {
+	border-style: none;
+	width: 100%;
+	height: 100%;
+	display: none;
+	margin: 0px;
+}
+
+DIV#tvcPageControl td {
+	height: 16px !important;
+	line-height: 12px !important;
+	vertical-align: middle !important;
+}

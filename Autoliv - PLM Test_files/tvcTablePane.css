@@ -1,0 +1,68 @@
+.paneouter {
+    position: absolute;
+    overflow: hidden;
+    display: none;
+    border-style: solid;
+    border-width: 1px;
+}
+.paneinner {
+    overflow: hidden;
+    border-style: solid;
+    border-width: 1px;
+    top: 0px; left: 0px; right: 0px; bottom: 0px;
+    padding: 5px;
+}
+.loading {
+    position: absolute;
+    top: 5px; left: 5px; right: 5px; bottom: 5px;
+    overflow: hidden;
+    border-style: solid;
+    border-width: 1px;
+}
+.paneheader {
+    font-family: Arial, Helvetica, Verdana;
+    font-size: 8pt;
+    font-weight: bold;
+    padding-top: 3px;
+    padding-left: 3px;
+    padding-bottom: 2px;
+    cursor: default;
+}
+.panesubheader {
+    font-family: Arial, Helvetica, Verdana;
+    font-size: 8pt;
+    font-weight: normal;
+    font-style: italic;
+    padding-top: 3px;
+    padding-left: 6px;
+    padding-bottom: 2px;
+    cursor: default;
+}
+.panecontent {
+    font-family: Arial, Helvetica, Verdana;
+    font-size: 8pt;
+    font-weight: normal;
+    padding-top: 3px;
+    padding-left: 6px;
+    padding-bottom: 2px;
+    cursor: default;
+}
+.panebottomouter {
+    margin-top: 15px;
+}
+.panebottominner {
+    padding: 3px 2px 3px 2px;
+}
+.panesubmit {
+    border-style: none;
+    height: 14px;
+    width: 14px;
+    float: right;
+    cursor: pointer;
+}
+table.searchform {
+	table-layout:fixed;
+}
+td.searchfull {
+	width:20px;
+}

@@ -1,0 +1,164 @@
+if (!window.tvc) {
+    window.tvc = {};
+}
+if (!window.tvc.tableExportDrop) {
+    window.tvc.tableExportDrop = {
+
+        /**
+         * Entry point for creating the export drop
+         */
+        create : function(itemDef, api) {
+            tvc.tableExportDrop.saveInProgress = false;
+            tvc.tableExportDrop.toolbarItemApi = api;
+
+            var deferred = new $.Deferred();
+
+            $.getJSON(tvc.table.toolbar.getServiceURL('tableSettings/getExportSettings', [ getTableBeanName() ]))
+                .done(tvc.tableExportDrop.renderHtml)
+                .done(tvc.tableExportDrop.initEvents)
+                .done(tvc.tableExportDrop.onFormatChange)
+                .done(function() {
+                    deferred.resolve(tvc.tableExportDrop.$content[0]);
+                }).fail(function(xhr) {
+                    deferred.reject(xhr.responseJSON.error.message);
+                });
+
+            return deferred.promise();
+        },
+
+        renderHtml : function(settings) {
+            var $content = $('<div>').addClass('table-export-drop');
+
+            $('<h4 class="ui dividing header">').text(parent.MSG_TABLEEXPORT_SETTINGS).appendTo($content);
+            $('<div class="text">').append(parent.MSG_TABLEEXPORT_FORMAT).append(
+                    tvc.tableExportDrop.createExportFormatSelect(settings)).appendTo($content)
+            if (settings.exportToZIPEnabled) {
+                $('<div class="text">').append(parent.MSG_TABLEEXPORT_EXPORTTOZIP).append(
+                        tvc.tableExportDrop.createExportToZipSelect(settings)).appendTo($content)
+            }
+
+            $('<h5 class="ui dividing header">').text(parent.MSG_TABLEEXPORT_TEXTEXPORTSETTINGS).appendTo($content);
+            $('<div class="text">').append(parent.MSG_TABLEEXPORT_RECORDSEPARATOR).append(
+                    tvc.tableExportDrop.createRecordSeparatorSelect(settings)).appendTo($content)
+            $('<div class="text">').append(parent.MSG_TABLEEXPORT_FIELDSEPARATOR).append(
+                    tvc.tableExportDrop.createFieldSeparatorSelect(settings)).appendTo($content)
+            $('<div class="text">').append(parent.MSG_TABLEEXPORT_REMOVECR).append(
+                    tvc.tableExportDrop.createRemoveCarriageReturnsSelect(settings)).appendTo($content)
+
+            $('<button class="ui primary button export">').text('Export').appendTo($content);
+
+            tvc.tableExportDrop.$content = $content;
+        },
+
+        /**
+         * Initializes events
+         */
+        initEvents : function() {
+            tvc.tableExportDrop.$content.find('#exp_format').change(tvc.tableExportDrop.onFormatChange);
+            tvc.tableExportDrop.$content.find('.export').click(tvc.tableExportDrop.saveAndExport);
+        },
+
+        saveAndExport : function() {
+            if (!tvc.tableExportDrop.saveInProgress) {
+                tvc.tableExportDrop.saveInProgress = true;
+                var settings = tvc.tableExportDrop.getSelectedValues();
+                parent.tableSettings.saveExportSettings(settings);
+                tvc.tableExportDrop.saveInProgress = false;
+                tvcExportTable();
+                tvc.tableExportDrop.toolbarItemApi.close();
+            }
+        },
+
+        /**
+         * Get the values selected values in the drop
+         */
+        getSelectedValues : function() {
+            var $content = tvc.tableExportDrop.$content;
+            var format = $content.find('#exp_format').val();
+            var toZIP = $content.find('#exp_exportToZIP').val() == 'true';
+            var recordSep = $content.find('#exp_recordSeparator').val();
+            var fieldSep = $content.find('#exp_fieldSeparator').val();
+            var removeCR = $content.find('#exp_removeCarriageReturns').val() == 'true';
+
+            return {
+                'format' : format,
+                'exportToZIP' : toZIP,
+                'recordSeparator' : recordSep,
+                'fieldSeparator' : fieldSep,
+                'removeCarriageReturns' : removeCR
+            };
+        },
+
+        onFormatChange : function() {
+            var format = tvc.tableExportDrop.$content.find('#exp_format').val();
+            var enabled = format === 'TEXT';
+
+            tvc.tableExportDrop.$content.find('#exp_recordSeparator, #exp_fieldSeparator, #exp_removeCarriageReturns')
+                    .each(function() {
+                    	$(this).toggleClass('disabled', !enabled).attr('disabled', !enabled);
+                    });
+        },
+
+        createExportFormatSelect : function(settings) {
+            var options = [];
+            for (var i = 0; i < settings.formats.length; i++) {
+                var format = settings.formats[i];
+                options.push({
+                    value : format,
+                    label : parent.MSG_TABLEEXPORT_EXPORT_FORMATS[format]
+                });
+            }
+
+            return tvc.table.drop.select('exp_format', options, settings.format);
+        },
+
+        createExportToZipSelect : function(settings) {
+            var options = [ {
+                value : true,
+                label : parent.MSG_YES
+            }, {
+                value : false,
+                label : parent.MSG_NO
+            } ];
+
+            return tvc.table.drop.select('exp_exportToZIP', options, settings.exportToZIP);
+        },
+
+        createRecordSeparatorSelect : function(settings) {
+            var options = [];
+            for (var i = 0; i < settings.recordSeparators.length; i++) {
+                var separator = settings.recordSeparators[i];
+                options.push({
+                    value : separator
+                });
+            }
+
+            return tvc.table.drop.select('exp_recordSeparator', options, settings.recordSeparator);
+        },
+
+        createFieldSeparatorSelect : function(settings) {
+            var options = [];
+            for (var i = 0; i < settings.fieldSeparators.length; i++) {
+                var separator = settings.fieldSeparators[i];
+                options.push({
+                    value : separator
+                });
+            }
+
+            return tvc.table.drop.select('exp_fieldSeparator', options, settings.fieldSeparator);
+        },
+
+        createRemoveCarriageReturnsSelect : function(settings) {
+            var options = [ {
+                value : true,
+                label : parent.MSG_YES
+            }, {
+                value : false,
+                label : parent.MSG_NO
+            } ];
+
+            return tvc.table.drop.select('exp_removeCarriageReturns', options,
+                    settings.removeCarriageReturns);
+        }
+    };
+}

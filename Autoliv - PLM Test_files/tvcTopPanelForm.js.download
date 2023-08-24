@@ -1,0 +1,438 @@
+if (!window.tvc) {
+    window.tvc = {};
+}
+
+if (!window.tvc.toppanel) {
+    window.tvc.toppanel = {
+
+        // Saves a value for a field to the database. Updates UI, reset value if
+        // it fails etc.
+        //
+        // Available options:
+        // {
+        // field : myField,
+        // value : newValue,
+        // success : function() {},
+        // error : function() {}
+        // }
+        save : function(options) {
+            tvc.toppanel.updating = true;
+            // Pre-reqs and defaults
+            options = options || {};
+            if (!options.field instanceof jQuery) {
+                alert('Unabled to save. Field is expected to be a jQuery object.');
+                return;
+            }
+            if (!options.field instanceof Object) {
+                alert('Unabled to save. Invalid value to save.');
+                return;
+            }
+            if (!topPanel instanceof Object) {
+                alert('Unable to save as no ajax service for toppanel can be located');
+                return;
+            }
+            options.success = options.success || Function.prototype;
+            options.error = options.error || Function.prototype;
+
+            // validate value
+            try {
+                validateFieldValue(options.field[0], options.value)
+            } catch(err) {
+                // restoreFieldValue(options.field[0]);
+                tvc.toppanel.updating = false;
+                options.error(err);
+                focusOnField(options.field[0]);
+                return;
+            }
+
+            // Before events
+            tvc.toppanel.beforePerformEdit(options);
+
+            // Callback when ajax call is completed
+            var ajaxCallback = function(response, status) {
+                tvc.toppanel.afterPerformEdit(options);
+                if (status) {
+                    var reloaded = tvc.toppanel.updateUI(response);
+                    options.success(!!reloaded);
+                } else {
+                    alert(response);
+                    restoreFieldValue(options.field[0]);
+                    options.error('Failed to saved value');
+                }
+                tvc.toppanel.updating = false;
+            };
+
+            // Perform ajax call
+            var $field = options.field;
+            topPanel.editField($field.attr('topPanel'), $field.attr('topPanelForm'), $field.attr('field'), $field
+                    .attr('cellValue'), options.value, ajaxCallback);
+        },
+
+        // handle the response from an edit call
+        updateUI : function(response) {
+            parent.setTopPanelTitle(response.title);
+            $.each(response.values, function() {
+                setFieldValue(document.getElementById(this.id), this.displayValue);
+            });
+            return tvc.toppanel.userAction();
+        },
+
+        beforePerformEdit : function(options) {
+            options.field[0].disabled = true;
+            options.field.addClass('editing');
+        },
+
+        afterPerformEdit : function(options) {
+            options.field[0].disabled = false;
+            options.field.removeClass('editing');
+        },
+
+        updating : false,
+
+        userAction : Function.prototype,
+
+        navigate : function(href) {
+            var action = function() {
+                location.href = href;
+                return true;
+            };
+            if (!tvc.toppanel.updating) {
+                action();
+                action = Function.prototype;
+            }
+            tvc.toppanel.userAction = action;
+        },
+
+        datepicker : {
+
+            show : function(fieldId) {
+                TVCCalendar.getPicker(this.getOptions(fieldId)).show();
+            },
+
+            clear : function(fieldId) {
+                var $field = $('#' + fieldId);
+                var options = {
+                    field : $field,
+                    value : '',
+                    success : function() {
+                        $field.attr('isovalue', '');
+                        TVCCalendar.getPicker(tvc.toppanel.datepicker.getOptions(fieldId)).clear();
+                    },
+                    error : function(message) {
+                        alert(message);
+                    }
+                }
+                tvc.toppanel.save(options);
+            },
+            
+            onSelect : function() {
+                var $field = $(this.config().field);
+                var value = this.toString(CALENDAR_SETTINGS.format);
+                var isoValue = this.toString('YYYY-MM-DD');
+                var options = {
+                    field : $field,
+                    value : value,
+                    success : function() {
+                        $field.attr('isovalue', isoValue);
+                    },
+                    error : function(message) {
+                        alert(message);
+                    }
+                };
+                tvc.toppanel.save(options);
+            },
+
+            getOptions : function(fieldId) {
+                return {
+                    field : document.getElementById(fieldId),
+                    onSelect : this.onSelect
+                };
+            }
+        }
+    }
+}
+
+$(document).ready(function() {
+
+    // auto-complete
+    $('[autocompleteurl]').each(function() {
+        var $this = $(this);
+        var options = {
+            url : $this.attr('autocompleteurl'),
+            save : function(field, value, displayValue) {
+                $(field).val(displayValue);
+                applyValue($(field).attr('id'), value);
+            },
+            abort : function(field) {
+                restoreFieldValue(field);
+            },
+            editable : false,
+            required : false
+        };
+        $this.xautocomplete(options);
+    });
+
+    // IE layout bug
+    if (jQuery.browser.msie) {
+        $('.TopPanelEllipses').css('top', '0px');
+    }
+});
+
+// opens the URL in a popup window
+function openSearch(url) {
+    tvc.popup(url, 600, 500, true);
+}
+
+// called after a type has been selected in the type chooser
+function afterTypeSelect(id, values, displayValues) {
+    var text = '';
+    $.each(displayValues, function(i, val) {
+        if (text.length > 0) {
+            text += ',';
+        }
+        text += val;
+    });
+    window.setTimeout(function() {
+        var field = $('#' + id);
+        var old = field.val();
+        field.val(text);
+        updateField(id);
+    }, 100);
+}
+
+// called after an object has been selected in a search popup, or in
+// auto-complete
+function applyValue(fieldId, value) {
+    var options = {
+        field : $('#' + fieldId),
+        value : value
+    };
+    tvc.toppanel.save(options);
+}
+
+// called to edit a field on blur events
+function updateField(fieldId, success, error) {
+    var $field = $('#' + fieldId);
+    var field = $field[0];
+    var val = null;
+    try {
+        val = getFieldValue(field);
+    } catch (E) {
+        // Alert an error to the user indicating that the
+        // value entered in the field is invalid.
+        alert(E.message);
+        return false;
+    }
+
+    if (val != null) {
+        var options = {
+            field : $field,
+            value : val,
+            success : function(reloaded) {
+                success && success(reloaded);
+                return true;
+            },
+            error : function(message) {
+                alert(message);
+                error && error(message);
+                return false;
+            }
+        }
+        tvc.toppanel.save(options);
+    }
+    return true;
+}
+
+// returns the current value for a field
+// if the field's value is equal to the default value it returns null
+function getFieldValue(field) {
+    var value = null;
+    var oldValue = null;
+    switch (field.type) {
+        case 'text':
+        case 'textarea':
+        case 'hidden':
+            value = field.value;
+            oldValue = field.defaultValue;
+            if (stringEquals(value, oldValue)) {
+                return null;
+            }
+            break;
+        case 'select-one':
+            var option = field.options[field.selectedIndex];
+            if (option.defaultSelected) {
+                return null;
+            }
+            value = option.value;
+            break;
+        case 'select-multiple':
+        	var selectize = field.selectize;
+			value = selectize.getValue().join(selectize.settings.delimiter)
+        	break;
+        default:
+            value = field.getValue && field.getValue();// selectize
+            break;
+    }
+    return value;
+}
+
+// updates the value and default value of the field
+function setFieldValue(field, value) {
+    if (field == null) {
+        return;
+    }
+    if (value == null) {
+        value = '';
+    }
+    switch (field.type) {
+        case 'text':
+        case 'textarea':
+        case 'hidden':
+            if (value != field.value) {
+                field.value = value;
+            }
+            field.defaultValue = value;
+            break;
+        case 'select-one':
+            for (var i = 0; i < field.options.length; i++) {
+                if (field.options[i].value == value) {
+                    field.selectedIndex = i;
+                    break;
+                }
+            }
+            // have to do this in a separate loop... :/
+            for (var i = 0; i < field.options.length; i++) {
+                field.options[i].defaultSelected = (i == field.selectedIndex);
+            }
+            break;
+    }
+}
+
+// restores the value of the field to the default value
+function restoreFieldValue(field) {
+    if (field == null) {
+        return;
+    }
+    switch (field.type) {
+        case 'text':
+        case 'textarea':
+        case 'hidden':
+            field.value = field.defaultValue;
+            break;
+        case 'select-one':
+            for (var i = 0; i < field.options.length; i++) {
+                if (field.options[i].defaultSelected) {
+                    field.selectedIndex = i;
+                    break;
+                }
+            }
+            break;
+    }
+}
+
+// validate the field value
+function validateFieldValue(field, value) {
+    validateCheckRequired(field, value); 
+    validateCheckBadChars(field, value); 
+    validateCheckRunScript(field, value);
+}
+
+// validate: check for required value
+function validateCheckRequired(field, value) {
+    var $field = $(field);
+    if ($field.attr('required')) {
+        if (value.length == 0 || value.match(/^\s+$/)) {
+            // TODO: Localize this text
+            throw '"' + $field.attr('label') + '" cannot be empty';
+        }
+    }
+}
+
+// validate: check for bad characters
+function validateCheckBadChars(field, value) {
+    var $field = $(field);
+    var badChars = $field.attr('badChars');
+    if (badChars) {
+        for (var i = 0, j = badChars.length; i < j; i++) {
+            if (value.indexOf(badChars.charAt(i)) != -1) {
+                // TODO: Localize this text
+                throw 'The value in "' 
+                    + $field.attr('label')
+                    + '" contains one of the following inappropriate characters:\n\n' 
+                    + expandBadChars(badChars);
+            }
+        }
+    }
+}
+
+// validate: run custom validation script
+function validateCheckRunScript(field, value) {
+    var $field = $(field);
+    var script = $field.attr('validation');
+    if (script && new Function(script).call(value) === false) {
+        throw 'Invalid Value: ' + value;
+    }
+}
+
+// expand the bad chars string to make it more readable
+function expandBadChars(badChars) {
+    var string = '';
+    for (var i = 0, j = badChars.length; i < j; i++) {
+        string += badChars.charAt(i) + ' ';
+    }
+    return string;
+}
+
+// focus on a field
+function focusOnField(field) {
+    window.setTimeout(function() {
+        field.focus();
+    }, 100);
+}
+
+// select the text in a field
+function selectField(field) {
+    window.setTimeout(function() {
+        field.focus();
+        field.select();
+    }, 100);
+}
+
+// cross browser/platform method to check if strings are equal
+function stringEquals(str1, str2) {
+    if (tvc.agent.isMSIE) {
+        if (str1 == null) {
+            return (str2 == null);
+        }
+        if (str2 == null) {
+            return false;
+        }
+        str1 = removeCarrigeReturn(str1);
+        str2 = removeCarrigeReturn(str2);
+        if (str1.length != str2.length) {
+            return false;
+        }
+        for (var i = 0; i < str1.length; i++) {
+            if (str1.charCodeAt(i) != str2.charCodeAt(i)) {
+                return false;
+            }
+        }
+        return true;
+    } else {
+        return str1 == str2;
+    }
+}
+
+// removes all carrige-returns from the string
+function removeCarrigeReturn(str) {
+    if (str == null) {
+        return null;
+    }
+    var s = '';
+    for (var i = 0; i < str.length; i++) {
+        if (str.charCodeAt(i) != 13) {
+            s += str.charAt(i);
+        }
+    }
+    return s;
+}

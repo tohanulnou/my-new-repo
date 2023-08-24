@@ -1,0 +1,158 @@
+if (!window.tvc) {
+    window.tvc = {};
+}
+if (!window.tvc.sortDrop) {
+    window.tvc.sortDrop = {
+
+        /**
+         * Entry point for creating the sort drop
+         */
+        create : function() {
+            var deferred = new $.Deferred();
+
+            $.getJSON(tvc.table.toolbar.getServiceURL('table/getColumnInfo', [ getTableBeanName() ]))
+                .done(tvc.sortDrop.renderHtml)
+                .done(tvc.sortDrop.initEvents)
+                .done(tvc.sortDrop.onSavedSearchChange)
+                .done(function() {
+                    deferred.resolve(tvc.sortDrop.$content[0]);
+                }).fail(function(xhr) {
+                    console.log(xhr);
+                    deferred.reject(xhr.responseJSON.error.message);
+                });
+
+            return deferred.promise();
+        },
+
+        /**
+         * Initializes events
+         */
+        initEvents : function() {
+            tvc.sortDrop.$content.on('click', '.sort', tvc.sortDrop.submit);
+            tvc.sortDrop.$content.on('click', '.direction', tvc.sortDrop.toggleDirection);
+
+        },
+
+        /**
+         * Get the column options in the select field and what values that are
+         * selected.
+         */
+        getOptions : function(columnData) {
+            var opt = [];
+            opt.push({
+                label : ""
+            });
+            var selections = [ , , ];
+            for (var i = 0; i < columnData.length; i++) {
+                var c = columnData[i];
+                if (c.visible && c.sortable) {
+                    var label = c.label;
+                    if (label == null || label.length == 0) {
+                        label = parent.M_ADV_SORT_BLANK;
+                    }
+                    opt.push({
+                        label : label,
+                        value : c.name
+                    });
+                    if (c.order >= 0 && c.order < 3) {
+                        selections[c.order] = {
+                            value : c.name,
+                            ascending : c.ascending
+                        };
+                    }
+                }
+            }
+
+            return {
+                options : opt,
+                selections : selections
+            };
+        },
+
+        /**
+         * Renders the drop from the column data.
+         */
+        renderHtml : function(columnData) {
+            var options = tvc.sortDrop.getOptions(columnData);
+
+            var $content = $('<div class="sort-drop">');
+            $('<h4 class="ui dividing header">').text(parent.MSG_SORT_ONCOLS).appendTo($content);
+
+            for (var i = 0; i < 3; i++) {
+                var select = tvc.sortDrop.columnSelect(i, options.selections[i], options.options);
+                var icon = tvc.sortDrop.icon('sort_direction_' + i,
+                        !(options.selections[i] && !options.selections[i].ascending));
+                $('<div class="text">').append(select).append(icon).appendTo($content);
+            }
+
+            $('<button class="small ui primary button sort">').text(parent.MSG_SORT).appendTo($content);
+
+            tvc.sortDrop.$content = $content;
+        },
+
+        /**
+         * Performs sorting
+         */
+        submit : function() {
+            var values = tvc.sortDrop.getSelectedValues();
+
+            if (values.length > 0) {
+                var href = parent.getActionURL("sort") + "?object=" + getTableBeanName();
+                for (var i = 0; i < values.length; i++) {
+                    href += "&colName=" + encodeURIComponent(values[i].name);
+                    href += "&asc=" + encodeURIComponent(values[i].asc);
+                }
+                parent.setLoadStatus();
+                window.location.href = href;
+            }
+        },
+
+        /**
+         * Get the values selected values in the drop
+         */
+        getSelectedValues : function() {
+            var values = [];
+            for (var i = 0; i < 3; i++) {
+                var name = $('#sort_column_' + i).val();
+                var direction = $('#sort_direction_' + i).hasClass('ascending') ? 'ascending' : 'descending';
+                if (name !== undefined && name !== '') {
+                    values.push({
+                        name : name,
+                        asc : direction === 'ascending'
+                    });
+                }
+            }
+
+            return values;
+
+        },
+
+        /**
+         * Toggles direction between ascending and descending
+         */
+        toggleDirection : function(e) {
+            var $icon = $(this);
+            if ($icon.hasClass('ascending')) {
+                $icon.removeClass('ti-sort-ascending-c ascending').addClass('ti-sort-descending-c descending');
+            } else {
+                $icon.removeClass('ti-sort-descending-c descending').addClass('ti-sort-ascending-c ascending');
+            }
+        },
+
+        /**
+         * Generates a select field for the columns
+         */
+        columnSelect : function(index, selected, options) {
+            return tvc.table.drop.select('sort_column_' + index, options, selected ? selected.value : undefined);
+        },
+
+        /**
+         * Creates an icon
+         */
+        icon : function(id, asc, cssClass) {
+            return $('<i>').attr({
+                id : id
+            }).addClass(asc ? 'ti-c ti-sort-ascending-c ascending' : 'ti-c ti-sort-descending-c descending').addClass('direction');
+        }
+    };
+}

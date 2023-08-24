@@ -1,0 +1,73 @@
+.gwt-TextBox {
+	font-family: Calibri, Constantia, Arial, sans-serif;
+}
+
+/* LoginPanel */
+.gwt-technia-LoginPanel {
+	background-color: #333436;
+	background-image: url('background.jpg');
+	background-repeat: no-repeat;
+	background-position: center center;
+}
+
+.gwt-technia-LoginPanelBox {
+	background-color: #333436;
+}
+
+.gwt-technia-LoginPanelTitle {
+	font-size: 2em;
+	font-family: Fertigo Pro, Aller, Calibri, Constantia, Arial, sans-serif;
+	font-weight: normal;
+	color: white;
+	text-shadow: #69C5D4 1px 1px 1px;
+}
+
+.gwt-technia-LoginPanelLoginForm {
+	background-color: white;
+	font-family: Calibri, Constantia, Arial, sans-serif;
+}
+
+.gwt-technia-LoginPanelError {
+	font-size: 0.82em;
+	font-family: Calibri, Constantia, Arial, sans-serif;
+	font-weight: bold;
+	color: red;
+	text-shadow: #a00 1px 1px 1px;
+	padding-top: 0.2em;
+}
+
+/* NotificationPanel */
+.gwt-technia-NotificationPanel {
+	margin: 5px;
+	border: 3px solid white;
+	background-color: #123;
+	cursor: default;
+	padding: 7px;
+}
+
+.gwt-technia-NotificationPanelMessage {
+	font-size: 14px;
+	font-weight: bold;
+	font-family: Calibri, Constantia, Arial, sans-serif;
+	text-align: center;
+	color: white;
+}
+
+/* GlassPanel */
+.gwt-technia-GlassPanel {
+	z-index: 2147483647;
+}
+
+/* Progress */
+.gwt-technia-Progress_BlackOnWhite {
+	z-index: 2147483641;
+	background-image: url('progress_bow.gif');
+	background-repeat: no-repeat;
+	background-position: center center;
+	background-color: white;
+	cursor: wait;
+}
+
+.gwt-technia-DashboardGadgetHeaderText {
+	white-space: nowrap;
+}

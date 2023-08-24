@@ -1,0 +1,111 @@
+/*
+ * Handles events across a page containing multiple frames. This is needed when
+ * viewing menus and you want to collapse the menu when user clicks in another
+ * frame. 
+ */
+if (!window.tvc) {
+    window.tvc = {};
+}
+
+if (!window.tvc.event) {
+    jQuery.fn.extend({
+        windowSize : function() {
+            if (this.length == 0) {
+                return {
+                    width : 0,
+                    height : 0
+                };
+            }
+            var doc = this.get(0).ownerDocument;
+            if (jQuery.browser.msie) {
+                var w = $$(doc.parentWindow);
+                return {
+                    width : w.width(),
+                    height : w.height()
+                };
+            } else {
+                return {
+                    width : doc.defaultView.innerWidth,
+                    height : doc.defaultView.innerHeight
+                };
+            }
+        },
+        doc : function() {
+            if (this.length == 0) {
+                return null;
+            }
+            return $(this.get(0).ownerDocument);
+        }
+    });
+    jQuery.extend({
+        TVC_ListFrames : function(frame) {
+            var list = [];
+            var dig = function(w) {
+                if (w != undefined) {
+                    list.push(w);
+                    for (var i = 0; i < w.frames.length; i++) {
+                        dig(w.frames[i]);
+                    }
+                }
+            };
+            dig(frame);
+            return list;
+        },
+        TVC_ListDocuments : function(frame) {
+            return $(jQuery.map(jQuery.TVC_ListFrames(frame), function(item) {
+                try {
+                    return item.document
+                } catch (e) {/* happens when cross site scripting */
+                    return null;
+                }
+            }));
+        },
+        // wraps the item in a jQuery object (in the correct frame)
+        TVC_WrapInContext : function(x, strict) {
+            if (typeof x.$ == "function") {
+                return x.$(x);
+            }
+            var w = jQuery.TVC_GetWindow(x);
+            if (w != null && typeof w.$ == "function") {
+                return w.$(x);
+            }
+            return !strict ? $(x) : null;
+        },
+        // returns the window (default view) for a DOM element
+        TVC_GetWindow : function(x) {
+            var doc = x.ownerDocument;
+            if (doc == null) {
+                doc = x;
+            }
+            var w = null;
+            if (typeof doc.parentWindow == "object") {
+                w = doc.parentWindow;
+            } else if (typeof doc.defaultView == "object") {
+                w = doc.defaultView;
+            }
+            return w;
+        }
+    });
+    window.$$ = jQuery.TVC_WrapInContext;
+
+    window.tvc.event = {
+        defaults : {
+            event : 'click',
+            namespace : null,
+            key : function() {
+                return this.namespace ? this.event + "." + this.namespace : this.event;
+            }
+        },
+        enable : function(options, callback) {
+            var settings = $.extend({}, this.defaults, options);
+            var docs = jQuery.TVC_ListDocuments(window.top);
+            window.setTimeout(function() {
+                docs.bind(settings.key(), callback);
+            }, 1);
+        },
+        disable : function(options) {
+            var settings = $.extend({}, this.defaults, options);
+            jQuery.TVC_ListDocuments(window.top).unbind(settings.key());
+        }
+    };
+}

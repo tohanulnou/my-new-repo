@@ -1,0 +1,15 @@
+div#tabPageCfgPane {
+    border-top: 1px solid #B4B4B4;
+    border-right: 1px solid #8E8E8E;
+    border-bottom: 1px solid #8E8E8E;
+    border-left: 1px solid #B4B4B4;
+}
+
+div#tabPageCfgPane_inner {
+    background-color: #E4E4E4;
+    border-top: 1px solid #ffffff;
+    border-right: 1px solid #c1c1c1;
+    border-bottom: 1px solid #c1c1c1;
+    border-left: 1px solid #ffffff;
+    padding: 5px;
+}

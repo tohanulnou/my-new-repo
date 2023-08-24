@@ -1,0 +1,111 @@
+(function(tvcWindow) {
+    tvcWindow.WidgetDashboardTable = tvcWindow.WidgetDashboardTable || {
+        addOptionsInOpenWithMenu: function(options, widgetProperty, currentMenu, enableItems) {
+            var menu = currentMenu.menu;
+            for (var i = 0; i < menu.items.length; i++) {
+                if (menu.items[i].IsOpenWith()) {
+                    var mi = null;
+                    var cm = menu.items[i];
+                    if (cm.items.length) {
+                        cm.items.length = 0;
+                        cm.menuItemLayer = null;
+                    }
+                    options.forEach(function(q, index) {
+                        mi = cm.addCommand();
+                        if (enableItems.length) {
+                            enableItems.push(menu.items[i].componentId + index);
+                        }
+                        mi.setId(menu.items[i].componentId + index);
+                        mi.setLabel(q.text);
+                        mi.setIs3DDashBoard(true);
+                        mi.setLaunchAppName(q.name);
+                        mi.setLaunchAppTitle(q.text);
+                        mi.setCurrentWidgetIdId(widgetProperty.widgetId);
+                        mi.setDashBoardType(widgetProperty.type);
+                        mi.setDashBoardAppId(widgetProperty.appId);
+                        mi.setSubmit(false);
+                        mi.setHandlerFunction(q.handler);
+                    });
+                    break;
+                }
+            }
+        },
+
+        createOpenWithSubMenu: function(selectionElement, currentCtxmenu, enableItems) {
+            var $trdata = $(selectionElement).closest('tr');
+            if ($trdata.length) {
+                var objectType = $trdata.attr('option_type');
+                var topWindow = window.tvc.getTopWindow();
+                var typeJson;
+                if (topWindow.IS_CROSS_DOMAIN) {
+                    if (topWindow.additional_ContextMenuHolder) {
+                        typeJson = topWindow.additional_ContextMenuHolder[objectType];
+                    }
+                } else {
+                    typeJson = topWindow.TVCbroker.additional_ContextMenuHolder[objectType];
+                }
+
+                if (typeJson) {
+                    var contextMenuOption = typeJson['options'];
+                    if (contextMenuOption.length) {
+                        this.addOptionsInOpenWithMenu(
+                            contextMenuOption,
+                            typeJson,
+                            currentCtxmenu,
+                            enableItems
+                        );
+                    }
+                }
+            }
+        },
+
+        getCustomAppData: function(item, physicalId) {
+            return {
+                widgetName: item.label,
+                widgetTitle: item.label,
+                currentWidgetId: item.currentWidgetId,
+                physicalId: physicalId[0],
+                appId: 'ENOSCEN_AP',
+                openTvcApp: true
+            };
+        },
+
+        getOpenwithAppData: function(item, physicalId) {
+            return {
+                widgetName: item.launchappName,
+                widgetTitle: item.launchappTitle,
+                currentWidgetId: item.currentWidgetId,
+                physicalId: physicalId[0],
+                appId: 'ENOSCEN_AP',
+                type: item.type,
+                handler: item.handlerFunction
+            };
+        },
+
+        launchApp: function(item, physicalId, appDataFunction) {
+            var data = appDataFunction(item, physicalId);
+            var publisher = '';
+            var functionName = '';
+            var dataItem;
+            var referrer;
+            if (window.tvc.getTopWindow().IS_CROSS_DOMAIN) {
+                var topWindow = window.tvc.getTopWindow();
+                referrer = topWindow.document.referrer;
+                publisher = topWindow.parent;
+                functionName = publisher.postMessage;
+                dataItem = {};
+                dataItem.subscriber = 'tvcLaunchSubscribe';
+                dataItem.itemJson = data;
+                window.tvc.publisher(publisher, functionName, dataItem, referrer);
+            } else {
+                var broker = tvc.getCurrentTvcBroker();
+                if (broker) {
+                    publisher = broker;
+                    functionName = broker.publish;
+                    dataItem = 'tvcLaunchSubscribe';
+                }
+                window.tvc.publisher(publisher, functionName, dataItem, data);
+            }
+        }
+    };
+})(window.tvc);

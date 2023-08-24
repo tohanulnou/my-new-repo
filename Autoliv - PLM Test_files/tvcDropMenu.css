@@ -1,0 +1,76 @@
+.dropmenu {
+    position: absolute;
+    min-width: 150px;
+    overflow: hidden;
+}
+.dropmenuinner {
+    height: 100%;
+    overflow: hidden;
+}
+.dropmenuitem {
+    cursor: pointer;
+}
+.dropmenuitemseparator {
+    height: 2px;
+    line-height: 0px;
+    font-size: 0px;
+}
+.dropmenuitemseparatorimage {
+    height: 2px;
+}
+.dropmenuitemseparatorlabel {
+    height: 2px;
+    padding: 0px 2px 0px 2px;
+}
+.dropmenuitemseparatorlabel div {
+    height: 0px;
+}
+.dropmenuitemimage {
+    width: 22px;
+    min-width: 22px;
+    height: 25px;
+    vertical-align: middle;
+    text-align: center;
+    padding: 1px 1px 1px 1px;
+}
+.dropmenuitemimage img {
+    border-style: none;
+    margin: 0px 0px 0px 0px;
+    height: 16px;
+    width: 16px;
+}
+.dropmenuitemlabel {
+    height: 25px;
+    vertical-align: middle;
+    text-align: left;
+    white-space: nowrap;
+    font-family: Verdana,Arial,Helvetica,Sans-Serif;
+    font-size: 8pt;
+    padding: 2px 3px 2px 3px;
+}
+.dropmenuitemarrow {
+    height: 25px;
+    width: 12px;
+    min-width: 12px;
+}
+.dropmenuscrollup {
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    height: 12px;
+    width: 100%;
+}
+.dropmenuscrolldown {
+    position: absolute;
+    bottom: 0px;
+    left: 0px;
+    height: 12px;
+    width: 100%;
+}
+.hidden {
+    display: none;
+}
+.menuitemdisabled * {
+    color: #9A9A9A;
+    cursor: default;
+}

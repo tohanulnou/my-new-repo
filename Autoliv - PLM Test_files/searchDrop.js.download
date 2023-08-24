@@ -1,0 +1,196 @@
+if (!window.tvc) {
+    window.tvc = {};
+}
+if (!window.tvc.searchDrop) {
+    window.tvc.searchDrop = {
+        /**
+         * Entry point for creating the search drop
+         */
+        create: function(itemDef, api) {
+            tvc.searchDrop.toolbarItemApi = api;
+
+            var deferred = new $.Deferred();
+
+            $.getJSON(
+                tvc.table.toolbar.getServiceURL('query/getQuickSearchData', [getTableBeanName()])
+            )
+                .done(tvc.searchDrop.renderHtml)
+                .done(tvc.searchDrop.initEvents)
+                .done(tvc.searchDrop.onSavedSearchChange)
+                .done(function() {
+                    deferred.resolve(tvc.searchDrop.$content[0]);
+                    setTimeout(function() {
+                        tvc.searchDrop.$content.find('#searchtext').focus();
+                    }, 10);
+                })
+                .fail(function(xhr) {
+                    deferred.reject(xhr.responseJSON.error.message);
+                });
+
+            return deferred.promise();
+        },
+
+        renderHtml: function(qsdata) {
+            var $content = $('<div>').addClass('search-drop');
+
+            // Search form
+            $('<h4 class="ui dividing header">')
+                .text(parent.MSG_SEARCH)
+                .appendTo($content);
+            $('<div class="row">')
+                .append($('<input type="text" id="searchtext" />'))
+                .appendTo($content);
+            $('<div class="row">')
+                .append(tvc.searchDrop.createColumnSelect(qsdata))
+                .appendTo($content);
+
+            if (qsdata.structure) {
+                var searchFull = $('<input type="checkbox" id="searchfull"/>').prop(
+                    'checked',
+                    qsdata.fullStructure
+                );
+                var searchFullLabel = $('<label for="searchfull">').text(
+                    parent.MSG_SEARCH_IN_FULL_STRUCTURE
+                );
+                $('<div class="row fullstructure">')
+                    .append(searchFull)
+                    .append(searchFullLabel)
+                    .appendTo($content);
+            }
+
+            // Saved searches
+            if (qsdata.formNames.length > 0) {
+                $('<h5 class="ui dividing header">')
+                    .text(parent.MSG_SEARCH_SAVED_QUERY)
+                    .appendTo($content);
+                $('<div class="row">')
+                    .append(tvc.searchDrop.createSavedSearchSelect(qsdata))
+                    .appendTo($content);
+            }
+
+            $('<button class="ui primary button search">')
+                .text(parent.MSG_SEARCH)
+                .appendTo($content);
+
+            tvc.searchDrop.$content = $content;
+        },
+
+        /**
+         * Initializes events
+         */
+        initEvents: function() {
+            tvc.searchDrop.$content.on('keyup', 'input,select', tvc.searchDrop.onKeyUp);
+            tvc.searchDrop.$content.on(
+                'change',
+                '#searchforms',
+                tvc.searchDrop.onSavedSearchChange
+            );
+            tvc.searchDrop.$content.on('click', '.search', tvc.searchDrop.search);
+
+            tvc.searchDrop.toolbarItemApi.on('open', function() {
+                tvc.searchDrop.$content.find('#searchtext').focus();
+            });
+        },
+
+        onKeyUp: function(event) {
+            if (event.keyCode == 13) {
+                tvc.searchDrop.search();
+            }
+        },
+
+        onSavedSearchChange: function() {
+            var $searchForms = tvc.searchDrop.$content.find('#searchforms');
+            if ($searchForms.length === 0) {
+                return;
+            }
+            var savedSearchSelected = $searchForms.val() !== '$';
+            tvc.searchDrop.$content.find('#searchtext, #searchparam').each(function() {
+                this.disabled = savedSearchSelected;
+            });
+        },
+
+        search: function() {
+            tvc.searchDrop.toolbarItemApi.close();
+            var criteria = tvc.searchDrop.getSelectedValues();
+
+            var resultFn = function(ret, ok) {
+                tvcReloadPage();
+                if (!ok) {
+                    alert(parent.MSG_SEARCH_FAILED);
+                }
+            };
+
+            parent.setLoadStatus();
+            if (criteria.savedSearch !== undefined && criteria.savedSearch !== '') {
+                parent.query.load(getTableBeanName(), criteria.savedSearch, resultFn);
+            } else {
+                parent.query.doQuickSearch(
+                    getTableBeanName(),
+                    criteria.text,
+                    criteria.column,
+                    criteria.fullStructure,
+                    true,
+                    false,
+                    false,
+                    resultFn
+                );
+            }
+        },
+
+        /**
+         * Get the values selected values in the drop
+         */
+        getSelectedValues: function() {
+            var $content = tvc.searchDrop.$content;
+            var $searchForms = $content.find('#searchforms');
+            var savedSearch = $searchForms.val() === '$' ? undefined : $searchForms.val();
+            var text = $content.find('#searchtext').val();
+            var column = $content.find('#searchparam').val();
+            var $searchFull = $content.find('#searchfull');
+            var fullStructure = $searchFull.length > 0 ? $searchFull.prop('checked') : true;
+
+            return {
+                text: text,
+                column: column,
+                fullStructure: fullStructure,
+                savedSearch: savedSearch
+            };
+        },
+
+        /**
+         * Generates a select field for the columns
+         */
+        createColumnSelect: function(qsdata) {
+            var options = [];
+            for (var i = 0; i < qsdata.parameters.length; i++) {
+                var column = qsdata.parameters[i];
+                options.push({
+                    value: column.id,
+                    label: column.displayName
+                });
+            }
+
+            return tvc.table.drop.select('searchparam', options, qsdata.defaultSearchColumn);
+        },
+
+        /**
+         * Create select for saved searches
+         */
+        createSavedSearchSelect: function(qsdata) {
+            var options = [
+                {
+                    value: '$',
+                    label: tvc.HTMLDecode(parent.MSG_SEARCH_SAVED_QUERY_SELECT)
+                }
+            ];
+            for (var i = 0; i < qsdata.formNames.length; i++) {
+                var search = qsdata.formNames[i].substring(1);
+                options.push({
+                    value: search
+                });
+            }
+
+            return tvc.table.drop.select('searchforms', options, undefined);
+        }
+    };
+}

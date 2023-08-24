@@ -1,0 +1,184 @@
+function tvcMaximizeFS(a) {
+    try {
+        var w = getAEFTreeContentFrame();
+        if (w) {
+            var topPanelMode;
+            var fs = w.parent.document.getElementsByTagName('frameset')[0];
+            if (fs) {
+                if (fs.cols == '0,*') {
+                    topPanelMode = 'maximise';
+                    if (parent.FS_SIZE) {
+                        fs.cols = parent.FS_SIZE;
+                    } else {
+                        fs.cols = '200,*';
+                    }
+                } else {
+                    parent.FS_SIZE = fs.cols;
+                    fs.cols = '0,*';
+                    topPanelMode = 'minimise';
+                }
+                
+                //forcing IE10 document re-flow
+                if(tvc.agent.isMSIE_10_0) {
+                    fs.rows =  fs.rows;
+                }
+                tvcTopPanelToggle(w, topPanelMode);
+            }
+        }
+    } catch (E) {
+    }
+}
+
+function tvcTopPanelToggle(w,view) {
+    var topPanelMaximisedRow = w.document.getElementById('TopPanelMaximizedRow');
+    var topPanelMinimisedRow = w.document.getElementById('TopPanelMinimizedRow');
+    if (topPanelMaximisedRow != null && topPanelMinimisedRow != null) {
+        if (view === 'minimise') {
+            topPanelMaximisedRow.style.display = 'none';
+            topPanelMinimisedRow.style.display = 'table-row';
+        } else {
+            topPanelMaximisedRow.style.display = 'table-row';
+            topPanelMinimisedRow.style.display = 'none';
+        }
+    }
+}
+
+function tvcCanMaximize() {
+    return getAEFTreeContentFrame() != null;
+}
+
+function getAEFTreeContentFrame() {
+    var w = window;
+    for (var i = 0; i < 5 && w != null; i++) {
+        if (w.name == 'detailsDisplay') {
+            return w;
+        } else {
+            w = w.parent;
+        }
+    }
+    return null;
+}
+
+function enableMaximize() {
+    var mb = document.getElementById('B_MAXIMIZE');
+    if (mb != null) {
+        if (tvcCanMaximize()) {
+            mb.style.display = 'block';
+        }
+    }
+}
+
+/**
+ * Added this method as of 6.4.0 for compatibility reason.
+ */
+function emxTableColumnLinkClick(url, width, height, modal, target, action) {
+    var win = null;
+    var iWidth = 800;
+    var iHeight = 600;
+    var bModal = false;
+    // Parameters might be (or: is probably) passed as strings
+    // do conversion to correct datatype
+    if (typeof width == 'string') {
+        iWidth = parseInt(width);
+    } else if (typeof width == 'number') {
+        iWidth = width;
+    }
+    if (typeof height == 'string') {
+        iHeight = parseInt(height);
+    } else if (typeof height == 'number') {
+        iHeight = height;
+    }
+    if (typeof modal == 'string') {
+        bModal = (modal == 'true');
+    } else if (typeof modal == 'boolean') {
+        bModal = modal;
+    }
+
+    if (target == 'popup') {
+        win = tvc.popup(url, iWidth, iHeight, bModal);
+    } else {
+        var tgt = null;
+        try {
+            if (target != 'content') {
+                tgt = parent.frames[target];
+                if (tgt == null) {
+                    tgt = eval('self.' + target);
+                }
+            }
+        } catch (E) {
+        }
+        if (tgt == null) {
+            win = window.open(url, target);
+        } else {
+            tgt.location.href = url;
+            tgt.focus();
+        }
+    }
+
+    /*
+     * Mimic behavior of MX JS code...
+     * 
+     * 'Close Window' : Search Results window will be closed 'Show Content' :
+     * Main content frame will be shown and search results window will be
+     * minized, this will be the default value. 'Show Search' : Search Results
+     * window will remain focussed.
+     */
+    if (action) {
+        if (action == 'Close' || action == 'Close Window') {
+            top.close();
+        } else if (action == 'Blur' || action == 'Show Content') {
+            top.blur();
+        } else if (action == 'Focus' || action == 'Show Search') {
+            top.focus();
+        }
+    }
+}
+
+// 2009.1
+function tvcTriggerValidation() {
+    var oids = getSelectedObjectIds();
+    if (oids.length == 0) {
+        alert(parent.M_TRIGGER_SELECT_ONE);
+        return;
+    }
+    var url = parent.getAbsoluteURL('common/emxTable.jsp');
+    url += '?table=AEFValidateTrigger';
+    url += '&program=emxTriggerValidation:getCheckTriggers';
+    url += '&header=emxFramework.Label.TriggerValidation';
+    url += '&customize=false';
+    url += '&multiColumnSort=false';
+    url += '&objectBased=false';
+    url += '&SubmitURL=emxTriggerIntermediatePage.jsp';
+    url += '&SubmitLabel=emxFramework.Button.Next';
+    url += '&Style=dialog';
+    url += '&CancelLabel=emxFramework.Button.Cancel';
+    url += '&CancelButton=true';
+    url += '&multipleObjects=true';
+    url += '&selectedObjIds=' + oids.join(',');
+    url += '&selection=multiple';
+    url += '&HelpMarker=emxhelptriggervalidationrules';
+
+    tvc.popup(url, 850, 750, true);
+}
+
+// 2009.1
+function tvcObjectCompare() {
+    var oids = getSelectedObjectIds();
+    if (oids.length < 2) {
+        alert(parent.M_COMPARE_SELECT_TWO);
+        return;
+    }
+    /*
+     * NOTE: The compare page fails when the emxTableRowId parameter has the new
+     * format!!! do the submit slightly different than normal.
+     */
+    var form = tvcGetForm();
+    tvcRemoveTemporaryFormElements(form);
+    form.action = parent.getAbsoluteURL('common/emxObjectCompareProcess.jsp');
+    for (var i = 0; i < oids.length; i++) {
+        tvcAddTempFormElement(form, 'emxTableRowId', oids[i]);
+    }
+    tvcDoSubmitForm('tableHiddenFrame');
+}
+
+tvc.onDocumentRendered(enableMaximize, 500);

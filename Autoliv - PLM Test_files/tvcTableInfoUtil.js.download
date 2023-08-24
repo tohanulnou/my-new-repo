@@ -1,0 +1,56 @@
+function showProgress() {
+    return parent.showProgress();
+}
+function showProgressMessage(message) {
+    return parent.showProgressMessage(message);
+}
+function hideProgress() {
+    parent.hideProgress();
+}
+if (!window.tvc) { window.tvc={}; }
+if (!window.tvc.info) {
+    window.tvc.info={
+        minHeight: 45,
+        setParentTitle: function(){
+            if (parent) {
+                parent.document.title=document.title;
+            }
+        },
+        adjustTopFrameHeight: function(){
+            if (parent) {
+                var $header=$("div#headerContent");
+                var height=0;
+                var min=0;
+                if (!$header.is(":empty")) {
+                    height=$header.offset().top+$header.height();
+                    if (jQuery.browser.mozilla && parseFloat(jQuery.browser.version)<=1.8) {
+                        height+=10; // add body margin on gecko <= 1.8
+                    }
+                    if (typeof TABLE_INFO_EXTRA_CONTENT_HEIGHT == "number") {
+                        height+=TABLE_INFO_EXTRA_CONTENT_HEIGHT;
+                    }
+                    min=this.minHeight;
+                }
+                try { parent.setTopFrameHeight(Math.max(min,height)); } catch(x) {}
+            }
+        },
+        getTableContentFrame: function() {
+            return parent.frames["tableContentFrame"];
+        },
+        getTableBeanName: function() {
+            var frame = tvc.info.getTableContentFrame();
+            if (frame != null && frame.getTableBeanName) {
+                return frame.getTableBeanName();
+            }
+            return null;
+        },
+        updateSelections: function(flag) {
+            tvc.info.getTableContentFrame().tvc.table.toolbar.onSelectionChange();
+        }
+    };
+}
+
+$(document).ready(function(){
+    tvc.info.adjustTopFrameHeight();
+    tvc.info.setParentTitle();
+});

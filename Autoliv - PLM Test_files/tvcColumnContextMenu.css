@@ -1,0 +1,55 @@
+.contextMenu {
+	position: absolute;
+	width: 150px;
+	z-index: 99999;
+	border: solid 1px #CCC;
+	background: #EEE;
+	padding: 0px;
+	margin: 0px;
+	display: none;
+}
+
+.contextMenu LI {
+	list-style: none;
+	padding: 0px;
+	margin: 0px;
+    white-space: nowrap;
+}
+
+.contextMenu A {
+	color: #333;
+	text-decoration: none;
+	display: block;
+	line-height: 20px;
+	height: 20px;
+	background-position: 6px center;
+	background-repeat: no-repeat;
+	outline: none;
+	padding: 1px 5px;
+	padding-left: 28px;
+}
+
+.contextMenu li.hover A {
+	color: #FFF;
+	background-color: #3399FF;
+}
+
+.contextMenu li.disabled A {
+	color: #AAA;
+	cursor: default;
+}
+
+.contextMenu li.hover.disabled A {
+	background-color: transparent;
+}
+
+.contextMenu li.separator {
+	border-top: solid 1px #CCC;
+}
+
+.contextMenu {
+	-webkit-user-select: none;   /* Chrome 6.0+, Safari 3.1+, Edge & Opera 15+ */
+	-moz-user-select: none;      /* Firefox */
+	-ms-user-select: none;       /* IE 10+ and Edge */
+	user-select: none;           /* Non-prefixed version*/
+}

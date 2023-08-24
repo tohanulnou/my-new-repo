@@ -1,0 +1,145 @@
+/* LEGACY:TOOLBAR */
+div.MenuBar-Outer,
+div.MenuBar-Outer_MSIE {
+    margin-top: 2px;
+    margin-bottom: 0px;
+    height: 25px;
+    -moz-user-select: none;
+    overflow: hidden;
+}
+
+div.MenuBar-Outer_MSIE {
+    height: 27px !important;
+}
+
+div.MenuBar-Inner,
+div.MenuBar-Inner_MSIE {
+    height: 23px;
+    overflow: hidden;
+}
+
+div.MenuBar-Inner_MSIE {
+    height: 25px !important;
+}
+
+div.all {
+    float: left;
+    overflow: hidden;
+}
+
+table.MenuBarTable {
+    height: 21px !important;
+}
+
+td.ContextButton {
+    height: 21px !important;
+}
+
+td.ContextButtonHolder table {
+    padding-left: 5px;
+}
+
+td.ContextButton,
+td.MenubarItem {
+    padding-left: 2px;
+    padding-right: 2px;
+}
+
+td.icon {
+    width: 16px;
+    height: 16px;
+}
+
+td.disabledIcon {
+    width: 16px;
+    cursor: default;
+}
+
+td.lbl,
+td.disabledLbl {
+    padding-left: 2px;
+    font-family: verdana, helvetica, arial, sans-serif;
+    font-size: 8pt;
+    vertical-align: middle;
+}
+
+td.disabledLbl {
+    cursor: default;
+}
+
+td.arrow {
+    width: 10px;
+    padding-left: 4px;
+    padding-right: 4px;
+    height: 100%;
+}
+
+td.arrow2 {
+    width: 10px;
+    padding-left: 4px;
+    padding-right: 4px;
+    height: 100%;
+    cursor: pointer;
+}
+
+table.SubMenu {
+}
+
+table.SubMenu tr {
+    height: 10px !important;
+}
+
+table.SubMenu td {
+    padding: 4px;
+}
+
+table.SubMenu td.icon,
+table.SubMenu td.disabledIcon {
+    width: 16px;
+    padding: 4px 2px;
+}
+
+table.SubMenu td img {
+    vertical-align: baseline;
+    max-width: none;
+}
+
+div.MenuItemLayer {
+    display: none;
+    position: absolute;
+    z-index: 800;
+    -moz-user-select: none;
+}
+
+.XSeparator {
+    height: 3px;
+}
+
+.YSeparator {
+    height: 100%;
+    width: 8px;
+    overflow: hidden;
+}
+
+div#scrollController {
+    height: 100%;
+    width: 10px;
+    visibility: hidden;
+    display: none;
+}
+
+div.updownscroller {
+    display: none;
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
+    height: 14px;
+}
+
+.menuItemLeft {
+    background-color: #e2dfdb;
+}
+
+.menuItemHover {
+    background-color: #b6cbe4 !important;
+}

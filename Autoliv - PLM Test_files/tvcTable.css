@@ -1,0 +1,515 @@
+html,
+body,
+div,
+span,
+applet,
+object,
+iframe,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+blockquote,
+pre,
+a,
+abbr,
+acronym,
+address,
+big,
+cite,
+code,
+del,
+dfn,
+em,
+img,
+ins,
+kbd,
+q,
+s,
+samp,
+small,
+strike,
+strong,
+sub,
+sup,
+tt,
+var,
+b,
+u,
+i,
+center,
+dl,
+dt,
+dd,
+ol,
+ul,
+li,
+fieldset,
+form,
+label,
+legend,
+table,
+caption,
+tbody,
+tfoot,
+thead,
+tr,
+th,
+td,
+article,
+aside,
+canvas,
+details,
+embed,
+figure,
+figcaption,
+footer,
+header,
+hgroup,
+menu,
+nav,
+output,
+ruby,
+section,
+summary,
+time,
+mark,
+audio,
+video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+}
+
+html,
+body.content {
+    height: 100%;
+}
+
+td.filter,
+select.filter,
+td.pagination,
+select.pagination {
+    font-family: verdana, arial, helvetica, sans-serif;
+    font-size: 10px;
+}
+
+tr.ghx {
+    height: 0px !important;
+}
+
+tr.ghx td {
+    min-width: 30px;
+}
+
+div.gh {
+    text-align: center;
+    font-family: verdana, arial, helvetica, sans-serif;
+    font-size: 8pt;
+    font-weight: bold;
+    min-height: 20px;
+    margin-left: 3px;
+    margin-right: 3px;
+    height: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+th {
+    text-align: left;
+    font-family: verdana, arial, helvetica, sans-serif;
+    font-size: 11px;
+    font-weight: bold;
+    box-sizing: border-box;
+}
+
+th a {
+    text-align: left;
+    text-decoration: none;
+}
+
+th a:hover {
+    text-decoration: underline;
+}
+
+th.h th.truncable {
+    min-width: 30px;
+}
+
+th.h th.truncated {
+    display: inline-block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    margin-top: 12px;
+}
+
+.coldesc {
+    border: 1px solid black;
+    font-family: Tahoma, Verdana, Arial, Helvetica, sans-serif;
+    font-size: 8pt;
+    text-align: left;
+    padding: 4px;
+    cursor: pointer;
+}
+
+div.coldesc {
+    position: absolute;
+    display: none;
+    z-index: 1000;
+}
+
+input[type='text'],
+select,
+textarea {
+    border: 1px solid #c1c1c1;
+    border-radius: 4px;
+    box-shadow: none;
+    box-sizing: border-box;
+    font-family: verdana, helvetica, arial, sans-serif !important;
+    font-size: 11px !important;
+    outline: 0 none;
+    padding: 2px 2px 2px 4px;
+    box-shadow: none;
+    font-weight: normal;
+    text-decoration: none;
+}
+
+textarea {
+    resize: none;
+    width: 100%;
+}
+
+select {
+    padding: 1px;
+}
+
+input[type='text']:focus,
+textarea:focus,
+select:focus {
+    border-color: #66afe9;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px rgba(102, 175, 233, 0.6);
+    outline: 0 none;
+}
+
+form {
+    margin: 0px;
+}
+
+input.num {
+    text-align: right !important;
+}
+
+.opencal {
+    height: 16px;
+    width: 16px;
+    border: 0px;
+    cursor: pointer;
+    margin: 1px;
+}
+
+.cleardate {
+    height: 16px;
+    width: 11px;
+    border: 0px;
+    cursor: pointer;
+    margin: 1px;
+}
+
+.helptext {
+    -moz-user-select: none;
+    cursor: default;
+    padding-left: 6px;
+    padding-right: 6px;
+}
+
+.filterchooserinput {
+    cursor: pointer;
+    -moz-user-select: none;
+}
+
+.hidden {
+    display: none;
+}
+
+img.massupdate {
+    height: 16px;
+    width: 16px;
+    cursor: pointer;
+    border: 0px;
+}
+
+img.sortindicator {
+    height: 20px;
+    width: 20px;
+    border: 0px;
+}
+
+img.colfilter {
+    height: 8px;
+    width: 9px;
+    border: 0px;
+}
+
+.sortlink {
+    cursor: pointer;
+    -moz-user-select: none;
+    -moz-user-focus: none;
+}
+
+img.ra {
+    cursor: pointer;
+    border: 0px;
+}
+
+div.errors {
+    padding-left: 7px;
+    padding-right: 7px;
+    margin-bottom: 3px;
+    cursor: pointer;
+    -moz-user-focus: none;
+    -moz-user-select: none;
+}
+
+div.errors,
+.error {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    font-family: Arial, Verdana, Helvetica, sans-serif;
+    font-size: 8pt;
+    font-weight: bold;
+}
+
+td {
+    box-sizing: border-box;
+}
+
+td img {
+    vertical-align: top;
+}
+
+.draggable {
+    height: 24px;
+    width: 6px;
+    background-image: url('../../../../core/images/dragimage.png');
+    background-repeat: repeat-y;
+    background-color: transparent;
+    background-attachment: scroll;
+    cursor: move;
+}
+
+.notDraggable {
+    height: 24px;
+    width: 6px;
+    background-image: url('../../../../core/images/nodragimage.png');
+    background-repeat: repeat-y;
+    background-color: transparent;
+    background-attachment: scroll;
+    cursor: not-allowed;
+}
+
+td.oddsm {
+    font-size: 10px;
+}
+
+td.evensm {
+    font-size: 10px;
+}
+
+td.c {
+    font-family: Arial, Helvetica;
+    font-size: 12px;
+    padding-right: 5px;
+    padding-left: 5px;
+    -moz-hyphens: auto;
+    word-wrap: break-word;
+    overflow: hidden;
+}
+
+td.c[nowrap] {
+    word-wrap: normal;
+}
+
+td.calc {
+    font-family: Arial, Helvetica;
+    font-size: 8pt;
+    font-weight: bold;
+    padding-right: 5px;
+    padding-left: 5px;
+    empty-cells: show;
+    height: 20px;
+}
+
+td.calcHeader {
+    font-family: verdana, helvetica, arial, sans-serif;
+    font-size: 8pt;
+    font-weight: bold;
+    padding-right: 5px;
+    padding-left: 5px;
+    empty-cells: show;
+    height: 25px;
+}
+
+.nowrap_ShowMore {
+    white-space: nowrap;
+}
+
+td.e {
+    font-family: Arial, Helvetica;
+    font-size: 12px;
+    border-width: 2px;
+    border-style: dotted;
+    padding-left: 3px;
+    padding-right: 3px;
+    border-bottom: 2px dotted #004080 !important;
+}
+
+td.es {
+    font-family: Arial, Helvetica;
+    font-size: 12px;
+    border-width: 0px;
+    border-style: none;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+td.ee {
+    font-family: Arial, Helvetica;
+    font-size: 12px;
+    border-width: 2px;
+    border-style: dotted;
+    padding-left: 3px;
+    padding-right: 3px;
+    border-bottom: 2px dotted #ff0000 !important;
+}
+
+tr.evenError td.c,
+tr.oddError td.c {
+    font-family: Arial, Helvetica;
+    font-size: 12px;
+    border-width: 0px;
+    border-style: none;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.pen {
+    background-image: url('../../../../structurebrowser/images/incelleditpen.gif');
+    background-repeat: no-repeat;
+    background-position: top right;
+}
+
+.breadcrumb {
+    background-color: #fff;
+    border-radius: 4px 4px 4px 4px;
+    list-style: none outside none;
+    padding: 0;
+    margin: 5px;
+}
+
+.breadcrumb > span + span:before {
+    color: #cccccc;
+    content: '/ ';
+    padding: 0 5px;
+}
+
+i.navigation {
+    font-size: 14px;
+    width: 6px;
+    color: #777;
+    padding: 3px;
+    cursor: pointer;
+}
+
+span.text-nowrap {
+    display: inline-block;
+    white-space: nowrap;
+    width: 100%;
+}
+
+span.cliped {
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: clip;
+    white-space: nowrap;
+    margin: 0px;
+    width: calc(100% - 14px);
+}
+
+span.truncated {
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin: 0px;
+    width: 100%;
+}
+
+span.morelink {
+    display: inline-block;
+    float: right;
+    margin: 0px;
+    color: #003366;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+span.h_v {
+    display: none;
+}
+
+i.downright {
+    -webkit-transform: rotate(-45deg);
+    -moz-transform: rotate(-45deg);
+    -ms-transform: rotate(-45deg);
+    -o-transform: rotate(-45deg);
+    transform: rotate(-45deg);
+}
+
+div.html-cell {
+    overflow: hidden;
+}
+
+input.tileViewSelectAll {
+    vertical-align: sub;
+}
+
+.rotated {
+    writing-mode: tb-rl;
+    display: inline-block;
+}
+
+table.contentTable[wrapcontent='unwrap'] td.c,
+table.contentTable[wrapcontent='unwrap'] th.h th {
+    word-wrap: normal;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+table.contentTable[wrapcontent='wrap'] td.c,
+table.contentTable[wrapcontent='wrap'] th.h th {
+    word-wrap: break-word;
+    white-space: normal;
+}
+
+table.contentTable[wrapcontent='wrap'] td.c span {
+    white-space: normal;
+}
+
+table.contentTable[wrapcontent='wrap'] th.h th.truncated {
+    white-space: nowrap;
+}
+
+.qtip-content-nowrap > .qtip-content {
+    white-space: nowrap;
+}
+
+@-moz-document url-prefix() {
+    .qtip-content-nowrap > .qtip-content {
+        padding-right: 27px !important;
+    }
+}

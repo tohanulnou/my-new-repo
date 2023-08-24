@@ -1,0 +1,1218 @@
+function getTableBeanName() {
+    return TABLEBEANNAME;
+}
+
+//
+// addRow - adds a row to table (flat table)
+// addRows - adds > 1 row to a table
+// addNode - adds an object+rel-id (=node) below another object (for structures)
+// addNodes - adds > 1 object+rel-id (=node) below another object (for
+// structures)
+//
+// /////////////////////////////////////////////////////////////////////////////////////////////////
+
+function addRow(relId, objectId, callback) {
+    table.addRow(getTableBeanName(), relId, objectId, handleAjaxResponse(callback));
+}
+
+function addRows(relIds, objectIds, callback) {
+    table.addRows(getTableBeanName(), relIds, objectIds, handleAjaxResponse(callback));
+}
+
+function addNode(parentObjectId, relId, objectId, from, highlight, callback) {
+    table.addNode(
+        getTableBeanName(),
+        parentObjectId,
+        relId,
+        objectId,
+        from,
+        highlight,
+        handleAjaxResponse(callback)
+    );
+}
+
+function addNodes(parentObjectId, relIds, objectIds, from, highlight, callback) {
+    table.addNodes(
+        getTableBeanName(),
+        parentObjectId,
+        relIds,
+        objectIds,
+        from,
+        highlight,
+        handleAjaxResponse(callback)
+    );
+}
+
+// set progress message timeout
+var statusTimeoutRef = null;
+function setShowProgressMessage(message, timeout) {
+    statusTimeoutRef = window.setTimeout(function() {
+        showProgressMessage(message);
+    }, timeout);
+}
+
+function setExpandLevelConfig(level) {
+    parent.setExpandLevelConfig(level);
+}
+
+function getExpandLevelConfig() {
+    return parent.getExpandLevelConfig();
+}
+
+function setUseOnExpandConfig(useOnExpand) {
+    parent.setUseOnExpandConfig(useOnExpand);
+}
+
+function getUseOnExpandConfig() {
+    return parent.getUseOnExpandConfig();
+}
+
+function getExpandLevel() {
+    return getUseOnExpandConfig() ? getExpandLevelConfig() : 1;
+}
+
+//expand node
+function expandNode(nodeID, levels, callback) {
+    setShowProgressMessage(parent.M_EXPANDING_WAIT, 100);
+    table.expandNode(
+        getTableBeanName(),
+        nodeID,
+        levels,
+        !tvcIsSplitTable(),
+        PARTIAL_UPDATE_SUPPORTED,
+        handleAjaxResponse(callback)
+    );
+}
+
+function collapseNode(nodeID, callback) {
+    parent.setLoadStatus();
+    table.collapseNode(
+        getTableBeanName(),
+        nodeID,
+        !tvcIsSplitTable(),
+        PARTIAL_UPDATE_SUPPORTED,
+        handleAjaxResponse(callback)
+    );
+}
+
+// view
+function setView(viewName) {
+    parent.setLoadStatus();
+    window.location.replace(
+        parent.getActionURL('setView') +
+            '?object=' +
+            getTableBeanName() +
+            '&view=' +
+            encodeURIComponent(viewName)
+    );
+}
+
+// table
+function setTable(tableName, profile) {
+    parent.setLoadStatus();
+    if (profile == null || profile == undefined) {
+        window.location.replace(
+            parent.getActionURL('setSystemTable') +
+                '?object=' +
+                getTableBeanName() +
+                tvcGetScrollParameters(true, false) +
+                '&systemTable=' +
+                encodeURIComponent(tableName)
+        );
+    } else {
+        window.location.replace(
+            parent.getActionURL('applyTableProfile') +
+                '?object=' +
+                getTableBeanName() +
+                tvcGetScrollParameters(true, false) +
+                '&systemTable=' +
+                encodeURIComponent(tableName) +
+                '&profile=' +
+                encodeURIComponent(profile)
+        );
+    }
+}
+
+// filters
+function setFilters(aFilters) {
+    var sel = tvcGetDataIDElements();
+    var arr = new Array();
+    if (sel != null) {
+        for (var i = 0; i < sel.length; i++) {
+            if (!sel[i].disabled) {
+                arr.push(sel[i].value);
+            }
+        }
+    }
+    var filters = new Array();
+    for (var i = 0; i < aFilters.length; i++) {
+        filters.push(aFilters[i]);
+    }
+    window.setTimeout(function() {
+        setFiltersImpl(filters, arr);
+    }, 25);
+}
+
+function setFiltersImpl(aFilters, arr) {
+    parent.setLoadStatus();
+    table.setFilters(getTableBeanName(), aFilters, arr, function(ret, success) {
+        if (success) {
+            if (ret) {
+                window.setTimeout(tvcReloadPage, 25);
+            } else {
+                var sel = tvcGetDataIDElements();
+                setActiveFilterNames(aFilters);
+                var aDisplayNames = getActiveFilterNamesForDisplay();
+                var textField = document.getElementById('B_FILTER_INPUT');
+                if (textField) {
+                    textField.value = aDisplayNames.join(', ');
+                    textField.title =
+                        textField.title.substring(0, textField.title.indexOf(':') + 1) +
+                        ' ' +
+                        textField.value;
+                }
+                for (var i = 0; sel != null && i < sel.length; i++) {
+                    if (!sel[i].disabled) {
+                        var tr = tvc.getAncestorWithNodeName(sel[i], 'TR');
+                        if (tr != null) {
+                            for (var j = 0; j < tr.cells.length; j++) {
+                                var cell = tr.cells[j];
+                                if (cell.className == 'str') {
+                                    var cells2 = cell.firstChild.rows[1].cells;
+                                    for (var k = 0; k < cells2.length; k++) {
+                                        var cls = cells2[k].className;
+                                        if (cls == 'XB') {
+                                            cells2[k].className = 'XF';
+                                        } else if (cls == 'XC') {
+                                            cells2[k].className = 'XG';
+                                        }
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                table.isFullExpandPossible(getTableBeanName(), function(r, s) {
+                    setFullExpandButtonEnabled(s ? r : false);
+                });
+                parent.unsetLoadStatus();
+            }
+        } else {
+            alert(ret.message);
+        }
+    });
+}
+
+function setFullExpandButtonEnabled(enabled) {
+    var obj = document.getElementById('B_FULL_EXPAND');
+    if (obj) {
+        if (tvc.agent.isMSIE) {
+            obj.parentNode.style.display = enabled ? 'inline' : 'none';
+        } else {
+            obj.parentNode.style.display = enabled ? 'table-cell' : 'none';
+        }
+    }
+}
+
+function getAvailableFilterNames() {
+    return FILTERS;
+}
+
+function getAvailableFilterNamesForDisplay() {
+    return FILTERS_DISPLAY;
+}
+
+function getActiveFilterNames() {
+    return FILTERS_ACTIVE;
+}
+
+function getActiveFilterNamesForDisplay() {
+    var a = [];
+    for (var i = 0; i < FILTERS_ACTIVE.length; i++) {
+        a[i] = getFilterNameForDisplay(FILTERS_ACTIVE[i]);
+    }
+    return a;
+}
+
+function getFilterNameForDisplay(filterName) {
+    for (var i = 0; i < FILTERS.length; i++) {
+        if (FILTERS[i] == filterName) {
+            return FILTERS_DISPLAY[i];
+        }
+    }
+    return null;
+}
+
+function setActiveFilterNames(aFilters) {
+    FILTERS_ACTIVE = aFilters;
+}
+
+// utility for handling an ajax response
+function handleAjaxResponse(callback, callbackArgs) {
+    return function(ret, success) {
+        var reload = false;
+        if (callback) {
+            try {
+                var x = callback(ret, success, callbackArgs);
+                if (typeof x == 'boolean') {
+                    reload = x;
+                }
+            } catch (E) {
+                reload = true;
+            }
+        } else if (success) {
+            var type = typeof ret;
+            if (type == 'number') {
+                reload = ret != 0;
+            } else if (type == 'boolean') {
+                reload = ret;
+            } else {
+                reload = ret != null;
+            }
+        }
+        if (reload) {
+            window.setTimeout(tvcReloadPage, 100);
+        } else {
+            if (statusTimeoutRef != null) {
+                window.clearTimeout(statusTimeoutRef);
+                statusTimeoutRef = null;
+            }
+            hideProgress();
+        }
+        // Reinitialize in cell edit
+        var r = tvcGetTableBodyRightFrame();
+        if (r && r.tvc.inCellEdit) {
+            r.tvc.inCellEdit.reInitialize();
+        }
+
+        if (r && r.tvc.functionExecutor) {
+            r.tvc.functionExecutor.initialize();
+        }
+    };
+}
+
+// opens the advanced filter dialog
+function tvcOpenAdvFilterDialog() {
+    parent.tvc.inlineFrame.load(
+        'tvc:advancedfilter',
+        parent.getActionURL('processFilterForm') + '?object=' + getTableBeanName(),
+        300,
+        'auto',
+        null,
+        true
+    );
+}
+
+// opens the table configuration dialog
+function tvcOpenTableConfigurator() {
+    var frameName = parent.name;
+    var actionUrl = parent.getActionURL('openTableConfigurator') + '?object=' + getTableBeanName();
+    if (frameName) {
+        actionUrl = actionUrl + '&frameName=' + frameName;
+    }
+    parent.tvc.inlineFrame.load('tvc:tableconfigurator', actionUrl, 300, 'auto', null, true);
+}
+
+// opens the chart dialog
+function tvcOpenCharts() {
+    tvcSubmit(
+        parent.getActionURL('chartDialog') + '?object=' + getTableBeanName(),
+        null,
+        'none',
+        true,
+        650,
+        600,
+        null
+    );
+}
+
+// opens the data-grouping dialog
+function tvcOpenDataGrouping() {
+    tvcSubmit(
+        parent.getActionURL('initGrouping') + '?object=' + getTableBeanName(),
+        null,
+        'none',
+        true,
+        650,
+        600,
+        null
+    );
+}
+
+// opens the clipbard
+function tvcOpenClipboard() {
+    parent.tvc.inlineFrame.load(
+        parent.tvc.inlineFrame.NON_STICKY_ID,
+        parent.getActionURL('showClipboard') + '?object=' + getTableBeanName(),
+        parent.CLIPBOARD_WIDTH,
+        'auto',
+        null,
+        false
+    );
+}
+
+// disconnects the selected rows
+function tvcDisconnectSelection() {
+    parent.frames['tableTopFrame'].tvcMenuItemClicked({
+        href: parent.getActionURL('disconnect') + '?object=' + getTableBeanName(),
+        openPopup: false,
+        showProgress: true,
+        /* progressMessage: 'Disconnecting...', */
+        submit: true,
+        targetLocation: 'tableHiddenFrame',
+        confirmMessage: parent.M_DISCONNECT_CONFIRM,
+        rowSelect: 'multiple'
+    });
+}
+
+// toggles the table between read/edit mode
+function tvcToggleEdit() {
+    showProgressMessage(parent.M_LOADINGDATA_WAIT);
+    setTimeout(function() {
+        window.location.replace(
+            parent.getActionURL('toggleEdit') +
+                '?object=' +
+                getTableBeanName() +
+                tvcGetScrollParameters(true, true)
+        );
+    }, 250);
+}
+
+// Flattens a structure
+function tvcFlattenStructure() {
+    showProgressMessage(parent.M_LOADINGDATA_WAIT);
+    window.location.replace(
+        parent.getActionURL('flattenStructure') +
+            '?object=' +
+            getTableBeanName() +
+            tvcGetScrollParameters(true, false)
+    );
+}
+
+// Applies sorting to a column
+function tvcOrderColumn(col, asc) {
+    showProgressMessage(parent.M_LOADINGDATA_WAIT);
+    window.location.replace(
+        parent.getActionURL('sort') +
+            '?object=' +
+            getTableBeanName() +
+            '&colName=' +
+            encodeURIComponent(col) +
+            '&asc=' +
+            asc +
+            tvcGetScrollParameters(REMEMBER_ROW_ON_SORT, false)
+    );
+}
+
+// Performs a group on a column
+function tvcQuickGroup(col) {
+    showProgressMessage(parent.M_LOADINGDATA_WAIT);
+    window.location.replace(
+        parent.getActionURL('quickGroup') +
+            '?object=' +
+            getTableBeanName() +
+            '&colName=' +
+            encodeURIComponent(col)
+    );
+}
+
+// Opens the massupdate function
+function tvcMassUpdate(col) {
+    parent.tvc.inlineFrame.load(
+        'tvc:massupdate',
+        parent.getActionURL('lazy') +
+            '?targetForward=massUpdateForm&applyto=selected&object=' +
+            getTableBeanName() +
+            '&col=' +
+            encodeURIComponent(col),
+        300,
+        'auto',
+        null,
+        true
+    );
+}
+
+function tvcHideColumn(col) {
+    showProgressMessage(parent.M_LOADINGDATA_WAIT);
+    window.location.replace(
+        parent.getActionURL('quickHideColumn') +
+            '?object=' +
+            getTableBeanName() +
+            '&colName=' +
+            encodeURIComponent(col)
+    );
+}
+
+function tvcSetColumnOrientation(col, orientation) {
+    table.setColumnOrientation(getTableBeanName(), col, orientation);
+}
+
+/**
+ * Gets the scroll parameters to remember position in table.
+ *
+ * If rememberRow is true the system scrolls the reloaded table to the row which
+ * currently is the first visible one (i.e. row at the top).
+ *
+ * If rememberColumn is true system scrolls the reloaded table to the first
+ * visible column (i.e. column to the very left which is visible).
+ *
+ * Example: If both remember parameters are set to true the top left cell (in
+ * the right frame area) will be the anchor.
+ *
+ * In case either or both is false the current scroll position is remembered.
+ */
+function tvcGetScrollParameters(rememberRow, rememberColumn) {
+    var qs = '';
+    try {
+        var w = tvcGetTableBodyRightFrame();
+        if (w != null) {
+            var tableRef = w.tvc.sbTableRef;
+            var scroll = tableRef.getScrollPosition();
+            var scrollTop = scroll.scrollTop,
+                scrollLeft = scroll.scrollLeft;
+            if (rememberRow) {
+                try {
+                    var scrollRow = tvcGetTableScrollRow(tableRef, scrollTop);
+                    qs += '&row=' + scrollRow;
+                } catch (ex) {}
+            }
+            if (rememberColumn) {
+                try {
+                    var columnNames = tvcGetTableScrollColumns(tableRef, scrollLeft);
+                    qs += '&colNames=' + columnNames.reverse();
+                } catch (ex) {}
+            }
+            qs += '&scrollY=' + scrollTop + '&scrollX=' + scrollLeft;
+        }
+    } catch (ex) {}
+    return qs;
+}
+
+function tvcGetTableScrollRow(tableRef, scrollTop) {
+    var scrollRow;
+    var y = 0,
+        rows = tableRef.getRows();
+    for (var i = 0; i < rows.length; i++) {
+        var $row = $(rows[i]);
+        y += $row.height();
+        if (y >= scrollTop) {
+            scrollRow = $row.attr('id').substring(1);
+            break;
+        }
+    }
+    return scrollRow;
+}
+
+function tvcGetTableScrollColumns(tableRef, scrollLeft) {
+    var columnNames = [];
+    var x = 0,
+        headers = tableRef.getHeaders();
+    for (var i = 0; i < headers.length; i++) {
+        var $header = $(headers[i]);
+        x += $header.width();
+        if ($header.attr('colname')) {
+            columnNames.push($header.attr('colname'));
+        }
+        if (x >= scrollLeft) {
+            break;
+        }
+    }
+    return columnNames;
+}
+
+// closes all common dialogs
+function tvcCloseDialogs() {}
+
+// frame access
+function tvcGetTopFrame() {
+    try {
+        return window.parent.frames['tableTopFrame'];
+    } catch (E) {
+        return null;
+    }
+}
+function tvcGetBottomFrame() {
+    try {
+        return window.parent.frames['tableBottomFrame'];
+    } catch (E) {
+        return null;
+    }
+}
+function getFrameById(frameId) {
+    try {
+        return document.getElementById(frameId).contentWindow;
+    } catch (E) {
+        return null;
+    }
+}
+function tvcGetTableHeaderLeftFrame() {
+    alert("Deprecated. tvcGetTableHeaderLeftFrame() don't have a purpose any longer.");
+}
+function tvcGetTableHeaderRightFrame() {
+    alert("Deprecated. tvcGetTableHeaderRightFrame() don't have a purpose any longer.");
+}
+function tvcGetTableBodyLeftFrame() {
+    alert("Deprecated. tvcGetTableBodyLeftFrame() don't have a purpose any longer.");
+}
+function tvcGetTableBodyRightFrame() {
+    return getFrameById('tableBodyRight');
+}
+
+// scrolling
+function tvcScrollTable(x, y) {
+    if (x < 0) x = 0;
+    if (y < 0) y = 0;
+    var bodyRight = tvcGetTableBodyRightFrame();
+    var elm = bodyRight.document.getElementById('tbrc');
+    var scroll = function() {
+        if (elm) {
+            elm.scrollLeft = x;
+            elm.scrollTop = y;
+        } else {
+            bodyRight.scrollTo(x, y);
+        }
+    };
+    if (tvc.agent.isMinGecko_1_8) {
+        // Delay scrolling on gecko 1.8+ (firefox 1.5+)
+        // as it may sometimes mess up the view
+        window.setTimeout(scroll, 100);
+    } else {
+        scroll();
+    }
+}
+function tvcScrollToCell(rowId, colNames, scrollX, scrollY) {
+    tvcGetTableBodyRightFrame().tvcScrollToCell(rowId, colNames, scrollX, scrollY);
+}
+
+// go back
+function tvcGoBack() {
+    showProgressMessage(parent.M_LOADINGDATA_WAIT);
+    window.location.replace(parent.getActionURL('goBack') + '?object=' + getTableBeanName());
+}
+
+// reload functions
+function tvcReloadPage() {
+    tvcReloadPageImpl(parent.getActionURL('viewTable'));
+}
+
+function tvcReloadTableContent() {
+    tvcReloadPageImpl(parent.getActionURL('reloadTable'));
+}
+
+function tvcLoadSearchResultInTable() {
+    tvcReloadPageImpl(parent.getActionURL('loadSearchResultTable'));
+}
+
+function tvcReloadPageImpl(action) {
+    showProgressMessage(parent.M_LOADINGDATA_WAIT);
+    window.location.replace(
+        action + '?object=' + getTableBeanName() + tvcGetScrollParameters(false, false)
+    );
+}
+
+function tvcReloadTopFrame() {
+    try {
+        var location = tvcGetTopFrame().location;
+        location.href = location.href;
+    } catch (E) {}
+}
+
+function tvcReloadPageNoScroll() {
+    window.location.replace(parent.getActionURL('viewTable') + '?object=' + getTableBeanName());
+}
+
+// export
+function tvcExportTable() {
+    var link = table.getExportLink(getTableBeanName());
+    if (link != null) {
+        __open(link);
+    }
+}
+
+// expand all
+var _TVC_Is_Expanding = false;
+function tvcExpandAll(levels) {
+    if (!_TVC_Is_Expanding) {
+        // prevent double click
+        _TVC_Is_Expanding = true;
+        showProgressMessage(parent.M_EXPANDING_WAIT);
+        var url = parent.getActionURL('fullExpand') + '?object=' + getTableBeanName();
+        if (typeof levels !== 'undefined') {
+            url += '&expandTo=' + levels;
+        }
+        window.location.replace(url);
+    }
+}
+
+function tvcExpandAllLevels() {
+    tvcExpandAll();
+}
+
+function tvcCollapseAll() {
+    table.collapse(getTableBeanName(), function(ret, ok) {
+        tvcReloadPage();
+    });
+}
+
+function tvcExpand(levels) {
+    var selectionCount = tvcGetSelectionCount();
+    if (selectionCount == 0) {
+        alert(parent.MSG_EXPAND_ERROR_NOTHING_SELECTED);
+        return;
+    }
+    if (selectionCount > parent.M_EXPAND_SELECTION_MAX_LIMIT) {
+        alert(
+            parent.MSG_EXPAND_ERROR_EXCEED_SELECTION_LIMIT +
+                ' ' +
+                parent.M_EXPAND_SELECTION_MAX_LIMIT
+        );
+        return;
+    }
+
+    if (_TVC_Is_Expanding) {
+        // Prevent double click
+        return;
+    }
+    _TVC_Is_Expanding = true;
+
+    var url = parent.getActionURL('expand') + '?object=' + getTableBeanName();
+    if (levels != null) {
+        url += '&expandTo=' + levels;
+    }
+
+    showProgressMessage(parent.M_EXPANDING_WAIT);
+    tvcSubmit(url, null, 'none', false);
+}
+
+function updateSelections() {
+    try {
+        tvcGetTopFrame().tvc.info.updateSelections();
+    } catch (x) {}
+}
+
+function __open(link) {
+    if (link.target == 'popup') {
+        tvc.popup(link.href, link.windowWidth, link.windowHeight, link.modal);
+    } else if (link.target == 'card') {
+        parent.tvc.inlineFrame.load(
+            link.cardID,
+            link.href,
+            link.cardWidth,
+            link.cardTitle,
+            link.cardLoadScript,
+            link.cardReloadable
+        );
+    } else {
+        var tgt = null;
+        try {
+            if (link.target != 'content') {
+                tgt = eval('self.' + link.target);
+            }
+        } catch (E) {}
+        if (tgt == null) {
+            window.open(link.href, link.target);
+        } else {
+            tgt.location.href = link.href;
+        }
+    }
+}
+
+// Controls the progress thingy on the top frame
+function showProgress() {
+    parent.showProgress();
+}
+
+function showProgressMessage(message) {
+    parent.showProgressMessage(message);
+}
+
+function hideProgress() {
+    parent.hideProgress();
+}
+
+function unsetLoadStatus() {
+    if (parent && parent.unsetLoadStatus) {
+        parent.unsetLoadStatus();
+    }
+}
+
+// Will scroll the table into position when the page is loaded/reloaded.
+function initTableScrollPosition() {
+    if (!tvcIsLayoutComplete()) {
+        setTimeout(initTableScrollPosition, 50);
+    }
+    try {
+        if (SCROLLCOLNAMES != null || SCROLLROW != null) {
+            tvcScrollToCell(SCROLLROW, SCROLLCOLNAMES, SCROLLX, SCROLLY);
+            return;
+        }
+    } catch (E) {}
+    try {
+        if (SCROLLX != -1 && SCROLLY != -1) {
+            tvcScrollTable(SCROLLX, SCROLLY);
+        }
+    } catch (E) {}
+}
+
+function mxLink(type, name, revision, vault) {
+    parent.mxLink(type, name, revision, vault);
+}
+
+function showMsgAboveTable(msgs) {
+    if (msgs == null) {
+        return;
+    }
+    if (!msgs.length) {
+        msgs = [msgs];
+    }
+    var c = _getMsgContainer(true);
+    if (c.childNodes.length > 0) {
+        tvc.removeAllChildren(c);
+    }
+    for (var i = 0; i < msgs.length; i++) {
+        if (i > 0) {
+            c.appendChild(document.createElement('br'));
+        }
+        var span = document.createElement('span');
+        span.className = 'error';
+        span.appendChild(document.createTextNode(msgs[i]));
+        c.appendChild(span);
+    }
+    c.style.display = 'block';
+    setMsgAboveTableVisible(true);
+}
+
+function _getMsgContainer(bCreate) {
+    var sId = 'tvcMsgContainer';
+    var oMsgDiv = document.getElementById(sId);
+    if (oMsgDiv == null && bCreate) {
+        oMsgDiv = document.createElement('DIV');
+        oMsgDiv.id = sId;
+        oMsgDiv.className = 'errors';
+        tvc.handleEvent(oMsgDiv, 'click', function() {
+            var o = document.getElementById(sId);
+            o.style.display = 'none';
+            setMsgAboveTableVisible(false);
+        });
+        var before = document.getElementById('tvcTable');
+        if (before == null) {
+            before = document.getElementById('tableBodyRight');
+            if (before == null) {
+                before = document.body.firstChild;
+            }
+        }
+        document.body.insertBefore(oMsgDiv, before);
+    }
+    return oMsgDiv;
+}
+
+function setMsgAboveTableVisible(bShow) {
+    try {
+        if (parent.tvc.inlineFrame) {
+            parent.tvc.inlineFrame._syncTableContentFrames();
+            if (tvc.agent.isMSIE) {
+                window.setTimeout(function() {
+                    try {
+                        parent.tvc.inlineFrame._IE_HandleResize();
+                    } catch (E) {}
+                }, 100);
+            }
+        }
+        window.setTimeout(function() {
+            if (typeof tvcResizeContentFrame == 'function') {
+                tvcResizeContentFrame();
+            } else if (typeof tvcSyncFramesIE == 'function') {
+                if (tvc.agent.isMSIE) {
+                    tvcSyncFramesIE();
+                } else {
+                    tvcSyncFrames();
+                }
+            }
+        }, 50);
+    } catch (E) {}
+}
+
+function showHistory(id, bRel) {
+    var url = parent.getActionURL('showHistory');
+    if (bRel) {
+        url += '?relId=' + id;
+    } else {
+        url += '?objectId=' + id;
+    }
+    tvc.popup(url, 600, 400, false);
+}
+
+function _SBctxMenuHandler(item) {
+    if (item.is3dDashboard) {
+        var _self = this;
+        var objectId = item.menubar.selectionElement.getAttribute('value');
+        if (objectId.indexOf('|') > -1) {
+            objectId = objectId.split('|')[1];
+        }
+
+        var launchAppCall = window.tvc.WidgetDashboardTable.launchApp;
+        var getDataCallFn;
+        if (item.IsOpenWithCustomApp()) {
+            getDataCallFn = window.tvc.WidgetDashboardTable.getCustomAppData;
+            launchAppCall(item, [objectId], getDataCallFn);
+        } else {
+            getDataCallFn = window.tvc.WidgetDashboardTable.getOpenwithAppData;
+            macroResolver.getResolvedValue(['physicalid'], objectId, function(resp) {
+                launchAppCall(item, resp, getDataCallFn);
+            });
+        }
+    } else {
+        var params = [];
+        params.push({
+            name: item.menubar.selectionElement.name,
+            value: item.menubar.selectionElement.value
+        });
+        params.push({
+            name: 'dataId',
+            value: item.menubar.selectionElement.getAttribute('dataid')
+        });
+        tvcPrepareFormElementsForSubmit(item.href, false, params);
+        tvcMenuItemClicked(item, true);
+    }
+}
+
+function showTableStatistics() {
+    table.getTableStatistics(getTableBeanName(), function(ret, ok) {
+        if (ok && ret != null) {
+            tvcGetTableBodyRightFrame()._showMore(ret);
+        }
+    });
+}
+
+// 2009.1
+function getSelectedObjectIds() {
+    return toOidArray(tvcGetSelectedSelections());
+}
+
+// 2009.1
+function tvcPromote() {
+    if (getSelectedObjectIds().length < 1) {
+        alert(parent.M_PROMOTE_SELECT_ONE);
+        return;
+    }
+    tvcSubmit(parent.getActionURL('promoteObject'), 'tableHiddenFrame', 'multiple', false);
+}
+
+// 2009.1
+function tvcDemote() {
+    if (getSelectedObjectIds().length < 1) {
+        alert(parent.M_DEMOTE_SELECT_ONE);
+        return;
+    }
+    tvcSubmit(parent.getActionURL('demoteObject'), 'tableHiddenFrame', 'multiple', false);
+}
+
+// 2009.1
+function tvcConnect(a, b, c, d, e, f, g) {
+    showProgressMessage(parent.M_CONNECTING);
+    table.connectWithAttribute(getTableBeanName(), a, g, toOidArray(b), c, d, e, f, function(ret, ok) {
+        hideProgress();
+        if (ok) {
+            if (ret[1] != null) {
+                alert(ret[1]);
+            }
+            window.setTimeout(tvcReloadPage, 25);
+        } else {
+            alert(ret.message);
+        }
+    });
+}
+
+// Adds the selected object(s) into the clipbard
+function tvcAddToClipboard() {
+    var oids = getSelectedObjectIds();
+    if (oids.length == 0) {
+        alert(parent.M_ADD_TO_CLIP_SELECT_ONE);
+    } else {
+        parent.tvc.inlineFrame.load(
+            parent.tvc.inlineFrame.NON_STICKY_ID,
+            parent.getActionURL('showClipboard') + '?object=' + getTableBeanName(),
+            parent.CLIPBOARD_WIDTH,
+            'auto',
+            'addObjects(["' + oids.reverse().join('","') + '"])',
+            false
+        );
+    }
+}
+
+/*******************************************************************************
+ *
+ * Utility methods below
+ *
+ ******************************************************************************/
+
+function tvcAddTempFormElement(form, name, value) {
+    var element = document.createElement('INPUT');
+    element.setAttribute('type', 'hidden');
+    element.setAttribute('name', name);
+    element.setAttribute('value', value);
+    element.setAttribute('temp', 'true');
+    form.appendChild(element);
+}
+
+function tvcRemoveTemporaryFormElements(form) {
+    var elements = ensureArray(form.elements);
+    if (elements) {
+        for (var i = 0; i < elements.length; i++) {
+            if (elements[i].getAttribute('temp')) {
+                elements[i].parentNode.removeChild(elements[i--]);
+            }
+        }
+    }
+}
+
+function ensureArray(something) {
+    if (something) {
+        if (!something[0] || something.tagName == 'SELECT') {
+            return [something];
+        }
+    }
+    return something;
+}
+
+function tvcStringEquals(str1, str2) {
+    if (tvc.agent.isMSIE) {
+        if (str1 == null) {
+            return str2 == null;
+        }
+        if (str2 == null) {
+            return false;
+        }
+        str1 = tvcRemoveCarrigeReturn(str1);
+        str2 = tvcRemoveCarrigeReturn(str2);
+        if (str1.length != str2.length) {
+            return false;
+        }
+        for (var i = 0; i < str1.length; i++) {
+            if (str1.charCodeAt(i) != str2.charCodeAt(i)) {
+                return false;
+            }
+        }
+        return true;
+    } else {
+        return str1 == str2;
+    }
+}
+
+function tvcRemoveCarrigeReturn(str) {
+    if (str == null) {
+        return null;
+    }
+    var s = '';
+    for (var i = 0; i < str.length; i++) {
+        if (str.charCodeAt(i) != 13) {
+            s += str.charAt(i);
+        }
+    }
+    return s;
+}
+
+// 2009.1
+function toOidArray(a) {
+    var oids = [];
+    for (var i = 0; i < a.length; i++) {
+        var oid = toOid(a[i].value);
+        if (oid != null) {
+            oids.push(oid);
+        }
+    }
+    return oids;
+}
+
+// 2009.1
+function toOid(emxTableRowIdValue) {
+    if (emxTableRowIdValue.length > 0) {
+        var x = emxTableRowIdValue.indexOf('|');
+        var oid = '';
+        if (x == -1) {
+            oid = emxTableRowIdValue;
+        } else {
+            var y = emxTableRowIdValue.indexOf('|', x + 1);
+            if (y == -1) {
+                oid = emxTableRowIdValue.substring(x + 1);
+            } else {
+                oid = emxTableRowIdValue.substring(x + 1, y);
+            }
+        }
+        if (oid.length > 0 && oid != 'null') {
+            return oid;
+        }
+    }
+    return null;
+}
+
+function bootstrapPageLayout() {
+    tvcInitPageLayout();
+    initTableScrollPosition();
+    unsetLoadStatus();
+}
+
+function bootstrapPageRendered() {
+    updatePageControl();
+    updateSelections();
+}
+
+function tvcSaveTableWrapContent(wrapContent) {
+    table.setWrapContent(getTableBeanName(), wrapContent ? 'wrap' : 'unwrap');
+}
+
+function tvcGetScrollInfo() {
+    var scrollParamJSON = {};
+    try {
+        var w = tvcGetTableBodyRightFrame();
+        if (w != null) {
+            var tableRef = w.tvc.sbTableRef;
+            var scroll = tableRef.getScrollPosition();
+            var scrollRow = tvcGetTableScrollRow(tableRef, scroll.scrollTop);
+            var columnNames = tvcGetTableScrollColumns(tableRef, scroll.scrollLeft);
+
+            scrollParamJSON.row = scrollRow;
+            scrollParamJSON.colNames = columnNames.reverse();
+            scrollParamJSON.scrollY = scroll.scrollTop;
+            scrollParamJSON.scrollX = scroll.scrollLeft;
+        }
+    } catch (ex) {
+        console.log(ex);
+    }
+    return scrollParamJSON;
+}
+
+function tvcScrollToCellByParameters(scrollParams) {
+    var row = scrollParams.row;
+    var colums = scrollParams.colNames;
+    var scrollX = scrollParams.scrollX;
+    var scrollY = scrollParams.scrollY;
+    tvcScrollToCell(row, colums, scrollX, scrollY);
+}
+
+function rotateColumnHeader(columnHeader, colName) {
+    var orientation;
+    if (columnHeader.find('tr.rotated').length > 0) {
+        columnHeader.find('tr').removeClass('rotated');
+        orientation = 'horizontal';
+        $headerContent = columnHeader.find('.truncable');
+        var isTruncated = $headerContent.data('is-truncated');
+        if (isTruncated === 'true') {
+            $headerContent.addClass('truncated');
+        }
+    } else {
+        var trElements = columnHeader.find('tr');
+        $(trElements[trElements.length - 1]).addClass('rotated');
+        orientation = 'vertical';
+        $headerContent = columnHeader.find('.truncable');
+        if ($headerContent.hasClass('truncated')) {
+            $headerContent.removeClass('truncated');
+            $headerContent.data('is-truncated', 'true');
+        }
+    }
+    tvcSetAutoWidths();
+    tvcRefreshUI();
+    tvcSetColumnOrientation(colName, orientation);
+}
+
+function invokeCustomService(inputParams) {
+    showProgressMessage(parent.M_CONNECTING);
+    var url = parent.getActionURL('invokeJPOServiceAction');
+    var selections = tvcGetSelectedSelections();
+    var selectedRowIds = selections.map(function(selection) {
+        return selection.value;
+    });
+    var tableBeanName = getTableBeanName();
+    var errorKey = tableBeanName + '_error';
+    var tableParams = {
+        emxTableRowId: selectedRowIds,
+        object: getTableBeanName(),
+        errorKey: errorKey
+    };
+    var isForwardToProcessURL =
+        inputParams.targetForward && inputParams.targetForward === 'processURL';
+    var tokens =
+        isForwardToProcessURL && typeof getCSRFToken === 'function'
+            ? JSON.parse(getCSRFToken())
+            : {};
+    var params = $.extend({}, tableParams, inputParams, tokens, { json: true });
+    var options = {
+        traditional: true,
+        cache: false,
+        data: params,
+        type: 'POST',
+        url: url
+    };
+    var responseFunction = function(ret) {
+        if (ret && ret.error) {
+            alert(ret.error);
+        } else {
+            if (inputParams.refreshBehavior === 'refreshRows') {
+                refreshRows(toOidArray(selections));
+            } else {
+                tvcReloadPage();
+            }
+        }
+        hideProgress();
+    };
+    return $.ajax(options).done(function(response) {
+        if (isForwardToProcessURL) {
+            table.retrieveSessionResponse(errorKey, responseFunction);
+        } else {
+            responseFunction(response);
+        }
+    });
+}
+
+function setDragData(event, objectType, objectID) {
+    if (event.dataTransfer && event.dataTransfer.setData) {
+        var object = {
+            envId: 'OnPremise',
+            serviceId: '3DSpace',
+            contextId: '',
+            objectId: objectID,
+            objectType: objectType
+        };
+        this.setDataTrasferItem(event, object);
+    }
+}
+
+function setDataTrasferItem(event, dragData) {
+    var tvcTopWindow = window.tvc.getTopWindow();
+    if (tvcTopWindow.IS_CROSS_DOMAIN || (tvcTopWindow.tvc && tvcTopWindow.tvc._3ddashboard)) {
+        var data = {
+            protocol: '3DXContent',
+            version: '1.1',
+            data: {
+                items: []
+            }
+        };
+        var draggedItems = [];
+        var draggedItemsShort = [];
+        draggedItemsShort.push('"' + dragData.displayName + '"');
+        draggedItems.push(dragData);
+        data.data.items = draggedItems;
+
+        event.dataTransfer.setData('text', JSON.stringify(data));
+        if (!this.isIE()) {
+            event.dataTransfer.setData('shortData', JSON.stringify(draggedItemsShort));
+        }
+        try {
+            event.dataTransfer.setData('text/searchitems', JSON.stringify(data));
+        } catch (error) {
+            console.log('event.dataTransfer.setData DOES NOT accept text/searchitems');
+        }
+        event.dataTransfer.effectAllowed = 'all';
+    }
+}
+
+function isIE() {
+    var ua = navigator.userAgent.toLowerCase();
+    return ua.indexOf('msie') != -1 ? parseInt(ua.split('msie')[1]) : false;
+}
+// Register event listeners
+tvc.handleEvent(window, 'load', bootstrapPageLayout);
+tvc.handleEvent(window, 'unload', tvcCloseDialogs);
+
+tvc.onDocumentRendered(bootstrapPageRendered, 10);

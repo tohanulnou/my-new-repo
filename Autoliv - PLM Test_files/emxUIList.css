@@ -1,0 +1,219 @@
+/* -------------------------------------------------------------------------
+	List Stylesheet for Windows/Mac Platforms
+	emxUIList.css
+
+	Release: 2013xFD01
+	Version: 1.0
+	
+    Copyright (c) 1992-2013 Dassault Systemes ENOVIA Corp. All Rights Reserved.
+    This program contains proprietary and trade secret information 
+    of Dassault Systemes ENOVIA Corp. Copyright notice is precautionary only
+    and does not evidence any actual or intended publication of such program
+   ------------------------------------------------------------------------- */
+
+body {background:#fff;}	
+   
+table.list,
+body table tr td table.list {
+	border-collapse:collapse;
+	width:100%;
+}
+   
+/* -------------------------------------------------------------------------
+   Header Row
+   ------------------------------------------------------------------------- */
+
+table.list tr th {
+    min-height:26px;
+    padding:6px 5px 5px 5px;
+    color:#1a1a1a;
+    font-weight:bold;
+    background: #deefff; /* Old browsers */
+    background: -moz-linear-gradient(top,  #deefff 0%, #98bede 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#deefff), color-stop(100%,#98bede)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #deefff 0%,#98bede 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #deefff 0%,#98bede 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #deefff 0%,#98bede 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  #deefff 0%,#98bede 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#deefff', endColorstr='#98bede',GradientType=0 ); /* IE6-9 */
+    border-right:1px solid #adcaed;
+    border-bottom:1px solid #dcdcdc;
+}
+
+table.list tr th table tr th,
+table.list tr th table tr td {padding:0;}
+
+table.list tr th,
+table.list tr th a,
+table.list tr th table tr th a,
+table.list tr th table tr td,
+table.list tr th table tr td a {
+	color:#1a1a1a;
+	text-decoration: none;
+}
+
+table.list tr th a:hover,
+table.list tr th table tr th a:hover,
+table.list tr th table tr td a:hover {text-decoration:underline;}
+
+
+/* ---------------------------------
+	Editable Table Header Row
+   --------------------------------- */
+   
+body.editable table.list tr th {
+    color:#FFF;
+    background: #a9b1b8; /* Old browsers */
+    background: -moz-linear-gradient(top,  #a9b1b8 0%, #50555b 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#a9b1b8), color-stop(100%,#50555b)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #a9b1b8 0%,#50555b 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #a9b1b8 0%,#50555b 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #a9b1b8 0%,#50555b 100%); /* IE10+ */
+    background: linear-gradient(to bottom,  #a9b1b8 0%,#50555b 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#a9b1b8', endColorstr='#50555b',GradientType=0 ); /* IE6-9 */
+ 	border-right:1px solid #777;
+}
+
+body.editable table.list tr th,
+body.editable table.list tr th a,
+body.editable table.list tr th table tr th a,
+body.editable table.list tr th table tr td,
+body.editable table.list tr th table tr td a {color:#FFF;}
+
+/* required headers */
+body.editable table.list tr th.required {
+	background-color:#930303;
+	background:-webkit-gradient(linear, left top, left bottom, from(#f23433), to(#930303));
+ 	background:-moz-linear-gradient(top, #f23433, #930303);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#FFf23433, endColorstr=#FF930303);
+	-ms-filter:"progid:DXImageTransform.Microsoft.gradient(startColorstr=#FFf23433, endColorstr=#FF930303)"; 	
+ 	border-right:1px solid #4E6E90;
+}
+
+body.editable table.list tr th.required,
+body.editable table.list tr th.required a,
+body.editable table.list tr th.required table tr th a,
+body.editable table.list tr th.required table tr td,
+body.editable table.list tr th.required table tr td a {
+	font-style:italic;
+	color:#FFF;
+}
+
+table.list tr th table tr td input[type="checkbox"],
+table.list tr td table tr td input[type="checkbox"] {margin-right:4px;}
+
+
+/* ---------------------------------
+	Grouped Header Row
+   --------------------------------- */
+
+table.list tr.groupheader th,
+body.editable table.list tr.groupheader th {
+	padding:5px;
+	font-size:10px;
+	font-weight:bold;
+	background-color:transparent;
+	background-image:none;
+	filter:progid:DXImageTransform.Microsoft.gradient(enabled=false);
+	border:none;
+	white-space:normal;
+	vertical-align:bottom;
+} 
+
+table.list tr.groupheader th.groupheader {
+	color:#EEE;
+	background-color:#333;
+	border-bottom:1px solid #9EC3E6;
+}
+
+body.editable table.list tr.groupheader th.groupheader {
+	color:#EEE;
+	background-color:#566473;
+	border-bottom:1px solid #c7c7c7;
+}
+
+/* ---------------------------------
+	Repeating Header Row
+   --------------------------------- */
+   
+table.list tr.repeat-header td {
+	height:22px;
+	#height:12px;
+	padding:5px;
+	font-weight:bold;
+	color:#FFF;
+	background:-webkit-gradient(linear, left top, left bottom, from(#a9b1b8), to(#50555b));
+ 	background:-moz-linear-gradient(top, #a9b1b8, #50555b);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr=#FFa9b1b8, endColorstr=#FF50555b);
+	-ms-filter:"progid:DXImageTransform.Microsoft.gradient(startColorstr=#FFa9b1b8, endColorstr=#FF50555b)";
+	border-right:1px solid #999;
+}
+
+body.editable table.list tr.repeat-header td.required {font-style:italic;}
+
+
+/* -------------------------------------------------------------------------
+   Body Rows
+   ------------------------------------------------------------------------- */
+
+table.list tr td {
+ 	padding:2px 5px;
+ 	vertical-align:middle;
+ 	color:#000;
+ 	border-right:1px solid #d0e1f6;
+	border-bottom:1px solid #e6e6e6;
+}
+
+table.list tr td table {display:inline;}
+
+table.list tr.odd td {background-color:#f0f0f0;} 
+ 	
+table.list tr.even td {background-color:#fff;} 
+
+/* nested tables */
+table.list tr th table tr th,
+table.list tr th table tr td,
+table.list tr td table tr td,
+table.list tr.repeat-header td table tr td,
+table.list tr.odd td table tr td,
+table.list tr.even td table tr td,
+table.list tr th.separator,
+body.editable table.list tr th.separator,
+table.list tr td.separator {
+	height:auto;
+ 	width:auto;
+ 	margin:0;
+ 	padding:0;
+	background:transparent;
+	filter:progid:DXImageTransform.Microsoft.gradient(enabled=false);
+	border:none;
+    vertical-align:top;
+}
+
+/* separator column */
+table.list tr th.separator,
+table.list tr td.separator {
+	width:6px;
+ 	border:none;
+}
+
+table.list tr td.d-align {text-align:right;}
+
+/* UNVERIFIED */
+table.list tr td.error {
+ 	height: 40px;
+ 	font-size:14px;
+ 	font-weight:bold;
+ 	font-style:italic;
+ 	color:#000;
+ 	background-color:transparent;
+	border:none;
+}
+
+/* UNVERIFIED */
+table.list tr td.pageBorder {
+	line-height:1px;
+	font-size:1px;
+	padding:0;
+	overflow:hidden;
+}

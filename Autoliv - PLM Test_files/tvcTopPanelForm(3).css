@@ -1,0 +1,76 @@
+.TopPanelTitle {
+	font-family: Arial,Helvetica,sans-serif;
+	font-size: 16px;
+}
+
+.TopPanelTitle span.title {
+	font-family: Arial,Helvetica,sans-serif;
+	font-size: 16px;
+	font-weight: normal;
+	color: #000000;
+}
+
+.TopPanelTitle span.separator {
+	color: #205884;
+}
+
+div.TopPanelDetailsFieldLabel {
+	font-family: Arial,Helvetica,sans-serif;
+    font-size: 11px;
+	font-weight: normal;
+    color: #444;
+}
+
+div.TopPanelDetailsFieldLabelHeader {
+	font-family: arial, verdana, sans-serif;
+	font-size: 15px;
+}
+
+div.TopPanelDetailsFieldValue {
+	font-family: Arial,Helvetica,sans-serif;
+	font-size: 14px;
+	color: #000;
+}
+
+div.TopPanelDetailsFieldValue a {
+	color: #428bca;
+	text-decoration: none;
+}
+
+div.TopPanelDetailsFieldValue a:hover {
+	text-decoration: underline;
+}
+
+div.TopPanelDetailsFieldValue a:hover, a:focus {
+	color: #2a6496;
+	outline: 0 none;
+}
+
+div.TopPanelDetailsFieldValueHeader {
+	font-family: Arial,Helvetica,sans-serif;
+	font-size: 10px;
+}
+
+input, select, textarea {
+	font-family: Arial,Helvetica,sans-serif !important;
+	font-size: 14px !important;
+}
+
+div.selectize-dropdown, div.selectize-input, div.selectize-input input {
+	font-family: Arial,Helvetica,sans-serif;
+	font-size: 14px;
+}
+
+div.selectize-input {
+	font-family: Arial,Helvetica,sans-serif !important;
+}
+
+td.TopPanelDetailsField2 {
+    padding-left: 15px;
+}
+
+.actions i {
+	width: 20px;
+	height: 20px;
+	margin: 5px;
+}

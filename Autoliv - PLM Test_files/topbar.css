@@ -1,0 +1,176 @@
+div#pageHeadDiv {
+    background-image: url("images/topbar-bg.jpg");
+    /*background-color:#008bcc;*/
+    border: none;
+    padding: 7px 0 6px 10px;
+}
+
+td#AEFWelcomeToolbar {
+    padding-top: 0px !important;
+}
+
+#tvc-ms-icon-holder {
+    display: none;
+}
+
+input[name="AEFGlobalFullTextSearch"] {
+    width: 220px !important;
+    height: 25px;
+    padding: 3px;
+    border: 0;
+    border-radius: 5px;
+    color: #009ce3;
+    font-weight: 700;
+    font-size: 15px;
+    background: url("images/search.png") no-repeat scroll 7px 7px;
+    background-position: right 20px center;
+    padding-left: 20px;
+    background-color: #FFF;
+}
+
+input[name="AEFGlobalFullTextSearch"]::-webkit-input-placeholder {
+    color: #009ce3;
+    font-style: italic;
+
+}
+
+input[name="AEFGlobalFullTextSearch"]:-moz-placeholder {
+    color: #009ce3;
+    font-style: italic;
+}
+
+input[name="AEFGlobalFullTextSearch"]::-moz-placeholder {
+    color: #009ce3;
+    font-style: italic;
+}
+
+input[name="AEFGlobalFullTextSearch"]:-ms-input-placeholder {
+    color: #009ce3;
+    font-style: italic;
+}
+
+#pageHeadDiv .toolbar table tr td.text-button img {
+    display: none;
+}
+
+#pageHeadDiv .toolbar table tr td {
+    color: #FFF;
+    font-size: 13px;
+    padding-left: 10px;
+    font-weight: 700;
+
+}
+
+#pageHeadDiv .toolbar table tr td:last-child {
+    padding-right: 10px;
+}
+
+#pageHeadDiv .toolbar table tr td img {
+    max-height: 30px;
+}
+
+#pageHeadDiv .toolbar td.text-button.button-hover {
+    background: #005496;
+}
+
+#pageHeadDiv .toolbar td.icon-button.button-hover {
+    background: none;
+}
+
+.button-active, .menu-button-active, td.button-active {
+    background: #005496;
+}
+
+div.mmenu-column h3.link:hover,
+div.mmenu-column li.link:hover {
+    background: #005496 !important;
+}
+
+div.mmenu.page div.mmenu-content,
+div.mmenu.dialog div.mmenu-content {
+    padding: 4px;
+    background-color: #009ce3;
+}
+
+div.mmenu-content p, div.mmenu-content h3, div.mmenu-content .link, div.mmenu-content .submenu {
+    color: #FFF;
+}
+
+div.mmenu-content {
+    -webkit-box-shadow: 2px 5px 16px -6px rgba(0, 0, 0, 1);
+    -moz-box-shadow: 2px 5px 16px -6px rgba(0, 0, 0, 1);
+    box-shadow: 2px 5px 16px -6px rgba(0, 0, 0, 1);
+}
+
+div.mmenu-column ul li span.icon {
+    background-image: none !important;
+}
+
+div.mmenu-column h3 {
+    background: #005496 !important;
+}
+
+div.mmenu-column h3 ~ ul li.submenu {
+    text-shadow: 1px 1px 1px rgba(0, 99, 167, 1);
+}
+
+div.mmenu-column h3 span.icon img,
+div.mmenu-column ul li span.icon img {
+    display: none;
+}
+
+.toolbar .group-left table {
+    background: #005496;
+}
+
+td#AEFWelcomeToolbar {
+    color: #FFF;
+}
+
+div.mmenu-column h3 em,
+div.mmenu-column ul li em {
+    color: #FFF;
+}
+
+div.mmenu-column h3 span,
+div.mmenu-column li span {
+    font-size: 12px;
+}
+
+div.mmenu.page div.mmenu-border,
+div.mmenu.dialog div.mmenu-border {
+    padding: 4px;
+    background: #009ce3;
+}
+
+#alvMainMenuTitle > div {
+    text-shadow: 2px 4px 1px rgba(0, 99, 167, 1);
+}
+
+.notification-card {
+    float: left;
+    text-align: center;
+    cursor: pointer;
+    color: #FFF;
+    border-radius: 5px;
+    padding: 2px;
+    text-decoration: none;
+    margin: 5px;
+    font-weight: bold;
+}
+
+.notification-card i {
+    font-size: 1.9em !important;
+}
+
+.notification-card .count-bubble {
+    background: #D8232A;
+    font-size: 10px;
+    line-height: 13px;
+    font-weight: bold;
+    color: #fff;
+    padding: 0 2px;
+    border-radius: 2px;
+    position: absolute;
+    margin: -5px 0 0 -5px;
+}

@@ -1,0 +1,271 @@
+if (!window.tvc) {window.tvc={};}
+if (!window.tvc.ajaxEngine) {window.tvc.ajaxEngine={};}
+
+tvc.ajaxEngine.ROOT_NAME = "ajaxEngine";
+tvc.ajaxEngine.call = function(url, encoding, service, method, args, callback, async) {
+	var doc=null;
+	if (window.ActiveXObject) {
+		doc=new ActiveXObject("Msxml2.FreeThreadedDOMDocument.3.0");
+		doc.appendChild(doc.createElement(tvc.ajaxEngine.ROOT_NAME));
+	} else if (document.implementation && document.implementation.createDocument) {
+		doc=document.implementation.createDocument("", tvc.ajaxEngine.ROOT_NAME, null);
+	}
+	var _cbType = (typeof callback);
+	var invCallback = (_cbType == "function" || _cbType == "object") || !async;
+	var docElement = doc.documentElement;
+	docElement.setAttribute("service", service);
+	docElement.setAttribute("method", method);
+	docElement.setAttribute("return", ""+invCallback);
+	if (args) {
+		for (var i=0; i<args.length; i++) {
+			var element=doc.createElement("arg");
+			docElement.appendChild(element);
+			tvc.ajaxEngine.serialize(args[i], element);
+		}
+	}
+	var xmlhttp=null;
+	if (window.XMLHttpRequest) {
+		xmlhttp=new XMLHttpRequest();
+	} else if (window.ActiveXObject) {
+		xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	if (invCallback && async) {
+		xmlhttp.onreadystatechange=function() {
+			if (xmlhttp.readyState==4) {
+				var retVal=tvc.ajaxEngine.parseReturn(xmlhttp);
+				callback(retVal[0],retVal[1]);
+			}
+		};
+	}
+	xmlhttp.open("POST",url,async);
+	xmlhttp.setRequestHeader('Content-Type','text/xml; charset='+encoding);
+	xmlhttp.send(doc);
+	if (!async) {
+		var retVal=tvc.ajaxEngine.parseReturn(xmlhttp);
+		if (retVal[1]) {
+			return retVal[0];
+		} else {
+			throw retVal[0];
+		}
+	}
+}
+tvc.ajaxEngine.xml2string = function(node) {
+	if (typeof(XMLSerializer) !== 'undefined') {
+		return new XMLSerializer().serializeToString(node);
+	} else if (node.xml) {
+		return node.xml;
+	}
+};
+tvc.ajaxEngine.parseReturn=function(xmlhttp) {
+	try {
+		if (xmlhttp.status==200) {
+			var docElement=xmlhttp.responseXML.documentElement;
+			try {
+				var l=docElement.getElementsByTagName("return");
+				if (l.length==1) {
+					return [tvc.ajaxEngine.deserialize(l.item(0)),true];
+				} else {
+					l=docElement.getElementsByTagName("error");
+					if (l.length==1) {
+						var T=new Error(""+tvc.ajaxEngine.deserialize(l.item(0)));
+						T.type=parseInt(l.item(0).getAttribute("type"));
+						if (T.type==2) {
+							location.href=T.message;
+						} else {
+							return[T,false];
+						}
+					}
+				}
+			} catch (E) {
+				return[E,false];
+			}
+		} else {
+		    var message = tvc.agent.isGecko_1_9 && xmlhttp.status === 0 ? 'request aborted' : xmlhttp.statusText;
+            var e = new Error('Error: ' + xmlhttp.status + ' (' + message + ')');
+            e.interrupted = xmlhttp.status === 0 || !xmlhttp.getAllResponseHeaders();
+            return [ e, false ];
+		}
+	} catch (X) {
+		return [X,false];
+	}
+}
+tvc.ajaxEngine.serialize=function(a, e) {
+	var d = e.ownerDocument;
+	if (a==null) {
+		e.appendChild(d.createElement("null"));
+	} else {
+		var type = typeof a;
+		if (type=="string" || type=="number") {
+			e.appendChild(d.createTextNode(a));
+		} else if (type=="boolean") {
+			e.appendChild(d.createTextNode(a ? "true" : "false"));
+		} else if (type=="object") {
+			if (String.prototype.isPrototypeOf(a) 
+				|| Number.prototype.isPrototypeOf(a)
+				|| Boolean.prototype.isPrototypeOf(a)) {
+				e.appendChild(d.createTextNode(a.toString()));
+			} else if (Date.prototype.isPrototypeOf(a)) {
+				e.appendChild(d.createTextNode(tvc.ajaxEngine.dateFormat(a)));
+			} else if (Array.prototype.isPrototypeOf(a)) {
+				var y = d.createElement("array");
+				e.appendChild(y);
+				for (var i = 0; i<a.length; i++) {
+					var item = d.createElement("item");
+					y.appendChild(item);
+					tvc.ajaxEngine.serialize(a[i], item);
+				}
+			} else {
+				if (typeof a.nodeType == "number") {
+					switch (a.nodeType) {
+						case 9:
+							a = a.documentElement;
+						case 1:
+							if (a) {
+								var x = d.createElement("xml");
+								e.appendChild(x);
+								if (d.importNode) {
+									x.appendChild(d.importNode(a,true));
+								} else {
+									x.appendChild(a);
+								}
+							}
+							break;
+					}
+				} else if ((typeof a.length == "number") && (typeof a.join != "undefined")) {
+					var y = d.createElement("array");
+					e.appendChild(y);
+					for (var i = 0; i<a.length; i++) {
+						var item = d.createElement("item");
+						y.appendChild(item);
+						tvc.ajaxEngine.serialize(a[i], item);
+					}
+				} else if (typeof a.toGMTString != "undefined") {
+					e.appendChild(d.createTextNode(tvc.ajaxEngine.dateFormat(a)));
+				} else {
+					var s = d.createElement("struct");
+					e.appendChild(s);
+					for (var i in a) {
+						var p = d.createElement(i);
+						s.appendChild(p);
+						var v = a[i]; //eval("a['"+i+"']");
+						tvc.ajaxEngine.serialize(v, p);
+					}
+				}
+			}
+		}
+	}
+}
+tvc.ajaxEngine.deserialize=function(e) {
+	var t="";
+	var h=e.childNodes;
+	for (var i=0; i<h.length; i++) {
+		var c = h[i];
+		switch (c.nodeType) {
+			case 1:
+				switch (c.tagName) {
+					case "null":
+						return null;
+					case "array":
+						var a=[];
+						var l=c.childNodes;
+						for (var j=0; j<l.length; j++) {
+							if (l[i].nodeType==1) {
+								a.push(tvc.ajaxEngine.deserialize(l[j]));
+							}
+						}
+						return a;
+					case "struct":
+						var s={};
+						var n=c.childNodes;
+						for (var j=0; j<n.length; j++) {
+							if (n[j].nodeType==1) {
+								eval("s."+n[j].tagName+" = tvc.ajaxEngine.deserialize(n[j])");
+							}
+						}
+						return s;
+					case "xml":
+						var n=c.childNodes;
+						for (var j=0; j<n.length; j++) {
+							if (n[j].nodeType==1) {
+								return n[j];
+							}
+						}
+						return null;
+					default:
+						throw new Error("unknown element: "+c.tagName);
+				}
+			case 3:
+			case 4:
+				t+=c.nodeValue;
+				break;
+		}
+	}
+	if (t.length==0 || t.trim().length==0) {
+		return t;
+	}
+	if (!isNaN(t)) {
+	    return parseFloat(t);
+	}
+	if (t=="true") {
+		return true;
+	}
+	if (t=="false") {
+		return false;
+	}
+	var d=tvc.ajaxEngine.dateParse(t);
+	if (d!=null) {
+		return d;
+	}
+	return t;
+}
+tvc.ajaxEngine.dateFormat=function(d) {
+	return d.getFullYear()+
+		"-"+
+		tvc.ajaxEngine.intFormat(d.getMonth()+1,2)+
+		"-"+
+		tvc.ajaxEngine.intFormat(d.getDate(),2)+
+		"T"+
+		tvc.ajaxEngine.intFormat(d.getHours(),2)+
+		":"+
+		tvc.ajaxEngine.intFormat(d.getMinutes(),2)+
+		":"+
+		tvc.ajaxEngine.intFormat(d.getSeconds(),2);
+}
+tvc.ajaxEngine.dateParse=function(d) {
+	var n = [];
+	var t = ['-','-','T',':',':'];
+	var o=0;
+	var e=-1;
+	var s=null;
+	for (var i=0; i<t.length; i++) {
+		e = d.indexOf(t[i], o);
+		if (e==-1) {
+			return null;
+		}
+		s = d.substring(o,e);
+		if (isNaN(s)) {
+			return null;
+		}
+		n.push(tvc.ajaxEngine.intParse(s));
+		o=e+1;
+	}
+	s = d.substring(o);
+	if (isNaN(s)) {
+		return null;
+	}
+	n.push(tvc.ajaxEngine.intParse(s));
+	return new Date(n[0],n[1]-1,n[2],n[3],n[4],n[5]);
+}
+tvc.ajaxEngine.intFormat=function(v, n) {
+	var s = ""+v;
+	while (s.length<n) {
+		s = "0"+s;
+	}
+	return s;
+}
+tvc.ajaxEngine.intParse=function(s) {
+	while (s.charAt(0)=='0') {
+		s = s.substring(1);
+	}
+	return s.length>0 ? parseInt(s) : 0;
+}

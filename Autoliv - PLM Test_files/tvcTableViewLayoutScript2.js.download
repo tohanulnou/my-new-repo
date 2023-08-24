@@ -1,0 +1,892 @@
+var TVCAutoTable = (function(_super, $, tvc) {
+    var TVCAutoTable = (function(_super, tvc) {
+        TVCAutoTable.inherits(_super);
+
+        function TVCAutoTable(table, isBody, editMode, structureMode) {
+            _super.apply(this, arguments);
+
+            this.table = table;
+            this.isBody = isBody;
+            this.editMode = editMode;
+            this.structureMode = structureMode;
+            this.cellCount = 0;
+            this.rowCount = 0;
+            this.init();
+        }
+
+        var behaviours = {
+            init: function() {
+                var table = this.table;
+                var isBody = this.isBody;
+                var row = table.rows[0] || {};
+
+                var padding = table.cellPadding * 2;
+                var spacing = table.cellSpacing;
+                var adjust = -spacing;
+                if (isBody) {
+                    if (spacing == 0) {
+                        if (tvc.agent.isMSIE) {
+                            adjust = -1;
+                        } else {
+                            padding = 0;
+                            adjust = 0;
+                        }
+                    } else if (tvc.agent.isGecko_1_8) {
+                        padding = 10;
+                    }
+                }
+                if (spacing == 0 && tvc.agent.isGecko_1_8) {
+                    padding = isBody || row.className == 'ghx' ? 11 : 1;
+                }
+
+                this.padding = padding;
+                this.spacing = spacing;
+                this.adjust = adjust;
+                this.balance = tvc.agent.isMSIE || tvc.agent.isMSIE_11 ? 1 : 0;
+                this.syncRef();
+            },
+
+            setMinWidth: function() {
+                var rows = this.table.rows;
+                var rotatedHeaders = $(rows).find('tr.rotated');
+                $(rotatedHeaders).each(function() {
+                    var $rotatedHeader = $(this);
+                    var rotatedHeaderWidth = $rotatedHeader.width();
+                    $rotatedHeader.css({ 'min-width': rotatedHeaderWidth + 'px' });
+                });
+            },
+
+            syncRef: function() {
+                this.rows = this.table.rows;
+                this.rowCount = this.rows.length;
+                var row = this.rows[0] || {};
+                this.cells = row.cells || [];
+                this.cellCount = this.cells.length;
+            },
+
+            resetCellWidth: function() {
+                this.table.style.width = 'auto';
+                this.table.style.height = 'auto';
+                if (this.cellCount) {
+                    for (var i = 0; i < this.cellCount; i++) {
+                        this.cells[i].style.width = 'auto';
+                    }
+                }
+            },
+
+            wrap: function() {
+                this.table.setAttribute('wrapcontent', 'wrap');
+            },
+
+            unwrap: function() {
+                this.table.setAttribute('wrapcontent', 'unwrap');
+            },
+
+            resetRowHeight: function() {
+                for (var i = 0; i < this.rowCount; i++) {
+                    this.rows[i].style.height = 'auto';
+                }
+            },
+
+            setFixedLayout: function() {
+                if (this.table.style.tableLayout != 'fixed') {
+                    this.table.style.tableLayout = 'fixed';
+                }
+            },
+
+            unsetFixedLayout: function(table) {
+                if (this.table.style.tableLayout == 'fixed') {
+                    this.table.style.tableLayout = 'auto';
+                }
+            },
+
+            setWidth: function(totalWidth, exact) {
+                if (!exact) {
+                    totalWidth += this.spacing * (this.cellCount + 1);
+                }
+                this.table.style.width = (totalWidth == 0 ? 1 : totalWidth) + 'px';
+                return totalWidth;
+            },
+
+            getWidth: function() {
+                return this.table.offsetWidth;
+            },
+
+            setHeight: function(totalHeight, exact) {
+                if (!exact) {
+                    totalHeight += this.spacing * (this.rowCount + 1);
+                }
+                this.table.style.height = totalHeight + 'px';
+                return totalHeight;
+            },
+
+            getHeight: function() {
+                return this.table.offsetHeight;
+            },
+
+            setCellWidth: function(cell, width) {
+                cell.style.width = width + this.balance + 'px';
+                if (cell.hasAttribute('nowrap')) {
+                    cell.style.paddingRight = '0';
+                }
+            },
+
+            setIndexCellWidth: function(index, width) {
+                this.setCellWidth(this.cells[index], width);
+            },
+
+            isCellResizable: function(cell) {
+                var resizable = cell.getAttribute('resizable');
+                return resizable && resizable === 'true';
+            },
+
+            isCellEditable: function(cell) {
+                var editable = cell.getAttribute('editable');
+                return editable && editable === 'true';
+            },
+
+            isShrinkable: function(cell) {
+                return !this.editMode || (this.isCellResizable(cell) && !this.isCellEditable(cell));
+            },
+
+            getCellWidth: function(cell) {
+                var offsetWidth = cell.offsetWidth + this.balance;
+                var width = cell.getAttribute('x-width');
+                if (width && width > 0) {
+                    offsetWidth = Math.max(offsetWidth, parseInt(width) + this.balance);
+                    if (this.isShrinkable(cell)) {
+                        offsetWidth = 0 - offsetWidth;
+                    }
+                }
+                return offsetWidth;
+            },
+
+            getIndexCellWidth: function(index) {
+                return index < this.cellCount ? this.getCellWidth(this.cells[index]) : 0;
+            },
+
+            setRowHeight: function(row, height) {
+                row.style.height = height + 'px';
+            },
+
+            setIndexRowHeight: function(index, height) {
+                this.setRowHeight(this.rows[index], height);
+            },
+
+            getRowHeight: function(row) {
+                return Math.ceil(row.getBoundingClientRect().height);
+            },
+
+            getIndexRowHeight: function(index) {
+                var row = this.rows[index];
+                if (index == 0 && row.className == 'ghx') {
+                    return 0;
+                }
+                return this.getRowHeight(row);
+            }
+        };
+
+        TVCAutoTable.behaves(behaviours);
+
+        return TVCAutoTable;
+    })(_super, tvc);
+
+    TVCAutoTable.NotIE5Quirks =
+        tvc.agent.isMSIE && document.documentMode && document.documentMode != 5;
+
+    var TVCIE5QuirksAutoTable = (function(_super, $) {
+        TVCIE5QuirksAutoTable.inherits(_super);
+
+        function TVCIE5QuirksAutoTable(table, isBody, editMode, structureMode) {
+            _super.call(this, table, isBody, editMode, structureMode);
+            this.borderWidth = 0;
+
+            if (this.rowCount > 0) {
+                var $cell = $(this.cells[0]);
+                this.borderWidth =
+                    parseInt($cell.css('borderBottomWidth')) +
+                    parseInt($cell.css('borderTopWidth'));
+            }
+        }
+
+        var behaviours = {
+            notIe5QuirksRowFix: function(row, height, borderWidth) {
+                height = (height - 24 - borderWidth) / 2;
+                $(row)
+                    .find('table[data-structure=true]')
+                    .each(function(index, elem) {
+                        var $elem = $(elem);
+                        $elem.find('tr:first, tr:last').height(height);
+                        $elem.find('tr:eq(1)').height(24);
+                    });
+            }
+        };
+
+        var overrides = {
+            setRowHeight: function(row, height) {
+                this.notIe5QuirksRowFix(row, height, this.borderWidth);
+                _super.prototype.setRowHeight.call(this, row, height);
+            },
+
+            setAutoHeight: function() {
+                _super.prototype.setAutoHeight.call(this);
+                $(this.table)
+                    .find('table[data-structure=true] tr')
+                    .height('auto');
+            }
+        };
+
+        TVCIE5QuirksAutoTable.behaves(behaviours, overrides);
+
+        return TVCIE5QuirksAutoTable;
+    })(TVCAutoTable, $);
+
+    TVCAutoTable.IsGecko = tvc.agent.isMinGecko_1_4;
+
+    var TVCGeckoAutoTable = (function(_super) {
+        TVCGeckoAutoTable.inherits(_super);
+
+        function TVCGeckoAutoTable(table, isBody, editMode, structureMode) {
+            _super.call(this, table, isBody, editMode, structureMode);
+        }
+
+        var overrides = {
+            setCellWidth: function(cell, width) {
+                // Works on FF 1.0 -> 2.0.0.x (where x is some
+                // unidentified
+                // number lower than 11)
+                _super.prototype.setCellWidth.call(this, cell, width - this.padding);
+            }
+        };
+
+        TVCGeckoAutoTable.behaves(overrides);
+
+        return TVCGeckoAutoTable;
+    })(TVCAutoTable);
+
+    TVCAutoTable.IsGeckoBuggy =
+        TVCAutoTable.IsGecko && !tvc.agent.isMinGecko_1_9 && tvc.agent.isMinGecko_1_8;
+
+    var TVCBuggyGeckoAutoTable = (function(_super) {
+        TVCBuggyGeckoAutoTable.inherits(_super);
+
+        function TVCBuggyGeckoAutoTable(table, isBody, editMode, structureMode) {
+            _super.call(this, table, isBody, editMode, structureMode);
+        }
+
+        var overrides = {
+            setIndexCellWidth: function(index, width) {
+                // FF issue: The previous (faster) code that
+                // we've used to
+                // set column widths on FF has
+                // stopped working on some FF releases (e.g.,
+                // 2.0.0.11). Now
+                // we have to set the width
+                // of all cells that contain data or else the
+                // layout will
+                // break 'sometimes'...
+                var table = this.table;
+                var length = this.cellCount;
+                for (var i = 0; i < table.rows.length; i++) {
+                    if (table.rows[i].cells.length == length) {
+                        var cell = table.rows[i].cells[index];
+                        if (i == 0 || cell.childNodes.length > 0) {
+                            this.setCellWidth(cell, width);
+                        }
+                    }
+                }
+            }
+        };
+
+        TVCBuggyGeckoAutoTable.behaves(overrides);
+
+        return TVCBuggyGeckoAutoTable;
+    })(TVCGeckoAutoTable);
+
+    TVCAutoTable.getInstance = function(table, isBody, editMode, structureMode) {
+        var AutoTable = TVCAutoTable;
+        if (isBody && TVCAutoTable.NotIE5Quirks && structureMode) {
+            AutoTable = TVCIE5QuirksAutoTable;
+        } else if (TVCAutoTable.IsGecko) {
+            if (TVCAutoTable.IsGeckoBuggy && isBody) {
+                AutoTable = TVCBuggyGeckoAutoTable;
+            } else {
+                AutoTable = TVCGeckoAutoTable;
+            }
+        }
+        return new AutoTable(table, isBody, editMode, structureMode);
+    };
+
+    return TVCAutoTable;
+})(Function.Super, window.$, window.tvc);
+
+var TVCFrozenHeaderTable = (function(_super, TVCAutoTable, tvc) {
+    TVCFrozenHeaderTable.inherits(_super);
+
+    function TVCFrozenHeaderTable(headerLeft, headerRight, bodyLeft, bodyRight) {
+        _super.apply(this, arguments);
+
+        this.minRowHeight = 15;
+        this.headerLeft = headerLeft;
+        this.headerRight = headerRight;
+        this.bodyLeft = bodyLeft;
+        this.bodyRight = bodyRight;
+    }
+
+    var syncCell = {
+        accumulateCellWidths: function() {
+            return {
+                left: this.getCellWidths(this.headerLeft, this.bodyLeft),
+                right: this.getCellWidths(this.headerRight, this.bodyRight)
+            };
+        },
+
+        getCellWidths: function(topTable, bottomTable) {
+            var widths = [],
+                total = 0;
+            if (topTable.rowCount) {
+                var length = topTable.cellCount;
+                for (var i = 0, width = 0; i < length; i++) {
+                    var topWidth = topTable.getIndexCellWidth(i);
+                    if (topWidth < 0) {
+                        width = Math.abs(topWidth);
+                    } else {
+                        var bottomWidth = bottomTable.getIndexCellWidth(i);
+                        width = Math.max(topWidth, bottomWidth);
+                    }
+                    total += widths[i] = width;
+                }
+            }
+            return {
+                widths: widths,
+                totalWidth: total
+            };
+        },
+
+        syncCellWidths: function(leftSide, rightSide) {
+            return {
+                left: this.setCellWidths(
+                    this.headerLeft,
+                    this.bodyLeft,
+                    leftSide.widths,
+                    leftSide.totalWidth
+                ),
+                right: this.setCellWidths(
+                    this.headerRight,
+                    this.bodyRight,
+                    rightSide.widths,
+                    rightSide.totalWidth
+                )
+            };
+        },
+
+        setCellWidths: function(topTable, bottomTable, widths, totalWidth) {
+            if (topTable.rowCount == 0) {
+                return 0;
+            }
+            // when bottom (body) has a single column but top (header) has many
+            var special = widths.length > bottomTable.cellCount && bottomTable.cellCount === 1;
+
+            var topTotal = topTable.setWidth(totalWidth);
+            var bottomTotal = bottomTable.setWidth(totalWidth);
+            for (var i = 0; i < topTable.cellCount; i++) {
+                topTable.setIndexCellWidth(i, widths[i]);
+                !special && bottomTable.setIndexCellWidth(i, widths[i]);
+            }
+            special && bottomTable.setIndexCellWidth(0, bottomTotal);
+            return Math.max(topTotal + topTable.adjust, bottomTotal + bottomTable.adjust);
+        }
+    };
+
+    var syncRow = {
+        accumulateRowHeights: function() {
+            return {
+                top: this.getRowHeights(this.headerLeft, this.headerRight, true),
+                bottom: this.getRowHeights(this.bodyLeft, this.bodyRight, false)
+            };
+        },
+
+        getRowHeights: function(leftTable, rightTable, isHeader) {
+            var heights = [],
+                total = 0;
+            if (leftTable.rowCount) {
+                var length = leftTable.rowCount;
+                for (var i = 0, height = 0; i < length; i++) {
+                    var minRowHeight = this.minRowHeight;
+                    if (isHeader && rightTable.rowCount > 1) {
+                        if (i == 0) {
+                            minRowHeight = 0;
+                        } else if (i == 1) {
+                            minRowHeight = 10;
+                        }
+                    }
+                    height = this.getRowMaxHeight(leftTable, rightTable, i);
+                    total += heights[i] = Math.max(height, minRowHeight);
+                }
+            }
+            return {
+                heights: heights,
+                totalHeight: total
+            };
+        },
+
+        getRowMaxHeight: function(lTbl, rTbl, rowIndex) {
+            var leftHeight = lTbl.getIndexRowHeight(rowIndex);
+            var rightHeight = rTbl.getIndexRowHeight(rowIndex);
+            return Math.max(rowIndex < lTbl.rowCount ? leftHeight : 0, rightHeight);
+        },
+
+        syncRowHeights: function(topInfo, bottomInfo) {
+            return {
+                top: this.setRowHeights(
+                    this.headerLeft,
+                    this.headerRight,
+                    topInfo.heights,
+                    topInfo.totalHeight
+                ),
+                bottom: this.setRowHeights(
+                    this.bodyLeft,
+                    this.bodyRight,
+                    bottomInfo.heights,
+                    bottomInfo.totalHeight
+                )
+            };
+        },
+
+        setRowHeights: function(leftTable, rightTable, heights, totalHeight) {
+            if (leftTable.rowCount == 0) {
+                return 0;
+            }
+            var leftTotal = 0,
+                rightTotal = 0;
+            for (var i = 0; i < leftTable.rowCount; i++) {
+                leftTable.setIndexRowHeight(i, heights[i]);
+                rightTable.setIndexRowHeight(i, heights[i]);
+            }
+            leftTotal = leftTable.setHeight(totalHeight);
+            rightTotal = rightTable.setHeight(totalHeight);
+            return Math.max(leftTotal, rightTotal);
+        }
+    };
+
+    var syncTable = {
+        setMinWidth: function() {
+            this.headerLeft.setMinWidth();
+            this.headerRight.setMinWidth();
+        },
+
+        syncRefs: function() {
+            this.bodyLeft.syncRef();
+            this.bodyRight.syncRef();
+            this.headerLeft.syncRef();
+            this.headerRight.syncRef();
+        },
+
+        setAutoWidths: function() {
+            this.bodyLeft.resetCellWidth();
+            this.bodyRight.resetCellWidth();
+            this.headerLeft.resetCellWidth();
+            this.headerRight.resetCellWidth();
+        },
+
+        setAutoHeights: function() {
+            this.bodyLeft.resetRowHeight();
+            this.bodyRight.resetRowHeight();
+            this.headerLeft.resetRowHeight();
+            this.headerRight.resetRowHeight();
+        },
+
+        setFixedLayouts: function() {
+            this.setBodyFixedLayouts();
+            this.setHeaderFixedLayouts();
+        },
+
+        setBodyFixedLayouts: function() {
+            this.bodyLeft.setFixedLayout();
+            this.bodyRight.setFixedLayout();
+        },
+
+        setHeaderFixedLayouts: function() {
+            this.headerLeft.setFixedLayout();
+            this.headerRight.setFixedLayout();
+        },
+
+        unsetFixedLayouts: function() {
+            this.unsetBodyFixedLayouts();
+            this.unsetHeaderFixedLayouts();
+        },
+
+        unsetBodyFixedLayouts: function() {
+            this.bodyLeft.unsetFixedLayout();
+            this.bodyRight.unsetFixedLayout();
+        },
+
+        unsetHeaderFixedLayouts: function() {
+            this.headerLeft.unsetFixedLayout();
+            this.headerRight.unsetFixedLayout();
+        },
+
+        wrapContent: function() {
+            this.bodyLeft.wrap();
+            this.bodyRight.wrap();
+            this.headerLeft.wrap();
+            this.headerRight.wrap();
+        },
+
+        unwrapContent: function() {
+            this.bodyLeft.unwrap();
+            this.bodyRight.unwrap();
+            this.headerLeft.unwrap();
+            this.headerRight.unwrap();
+        },
+
+        syncLayout: function() {
+            this.setMinWidth();
+            this.syncRefs();
+            this.unsetFixedLayouts();
+            this.setAutoWidths();
+
+            // accumulating width & height and updating breaks
+            var width = this.syncRowWidth();
+
+            this.setFixedLayouts();
+            this.setAutoHeights();
+
+            var heights = this.accumulateRowHeights();
+            var height = this.syncRowHeights(heights.top, heights.bottom);
+
+            // IE's rare alignment issue
+            if (tvc.agent.isMSIE || tvc.agent.isMSIE_11) {
+                height.bottom = this.syncHeight();
+            }
+
+            return {
+                width: width,
+                height: height
+            };
+        },
+
+        syncHeight: function() {
+            var height = 0,
+                leftHeight = this.bodyLeft.getHeight(),
+                rightHeight = this.bodyRight.getHeight();
+            if (rightHeight > leftHeight) {
+                height = this.bodyLeft.setHeight(rightHeight, true);
+            } else if (rightHeight < leftHeight) {
+                height = this.bodyRight.setHeight(leftHeight, true);
+            }
+            return height;
+        },
+
+        getSize: function() {
+            return {
+                width: this.bodyRight.getWidth(),
+                height: this.bodyRight.getHeight() || this.bodyLeft.getHeight()
+            };
+        },
+
+        syncRowWidth: function() {
+            var widths = this.accumulateCellWidths();
+            var width = this.syncCellWidths(widths.left, widths.right);
+            return width;
+        }
+    };
+
+    TVCFrozenHeaderTable.getInstance = function(thl, thr, tbl, tbr, editMode, structureMode) {
+        var headerLeft = TVCAutoTable.getInstance(thl, false, editMode, structureMode);
+        var headerRight = TVCAutoTable.getInstance(thr, false, editMode, structureMode);
+        var bodyLeft = TVCAutoTable.getInstance(tbl, true, editMode, structureMode);
+        var bodyRight = TVCAutoTable.getInstance(tbr, true, editMode, structureMode);
+
+        return new TVCFrozenHeaderTable(headerLeft, headerRight, bodyLeft, bodyRight);
+    };
+
+    TVCFrozenHeaderTable.behaves(syncCell, syncRow, syncTable);
+
+    return TVCFrozenHeaderTable;
+})(Function.Super, TVCAutoTable, window.tvc);
+
+var TVCTableLayoutManager = (function(_super, TVCFrozenHeaderTable, $, tvc) {
+    TVCTableLayoutManager.inherits(_super);
+
+    function TVCTableLayoutManager(editMode, structureMode) {
+        _super.apply(this, arguments);
+
+        this.editMode = editMode;
+        this.structureMode = structureMode;
+        this.scrollbarWidth = 16;
+
+        this.ref = null;
+        this.resizeManager = null;
+        this.frozenTable = null;
+
+        this.syncScrollingBound = this.syncScrolling.bind(this);
+        this.resizeContainersBound = this.resizeContainers.bind(this).throttle(100);
+        this.synchRightWithLeftBound = this.synchRightWithLeft.bind(this);
+    }
+
+    var initializer = {
+        init: function(ref, resizer) {
+            this.ref = ref;
+            this.resizer = resizer;
+            this.scrollbarWidth = this.getScrollbarWidth();
+
+            var tables = this.ref.tables;
+
+            this.frozenTable = TVCFrozenHeaderTable.getInstance(
+                tables.thl,
+                tables.thr,
+                tables.tbl,
+                tables.tbr,
+                this.editMode,
+                this.structureMode
+            );
+
+            tvc.noContextMenu(document);
+            var tvcTopWindow = window.tvc.getTopWindow();
+            if (
+                tvcTopWindow.IS_CROSS_DOMAIN ||
+                (tvcTopWindow.tvc && tvcTopWindow.tvc._3ddashboard)
+            ) {
+                tvc.registerDropEvent(window);
+            }
+
+            var $emptyRow = $('#empty_row');
+            if ($emptyRow.length) {
+                $emptyRow[0].cells[0].colSpan = tables.thr.tHead.rows[0].cells.length;
+                $('.col_drag_handle_outer').hide();
+            }
+
+            if (this.resizer) {
+                this.resizer.init(this.ref, this);
+            }
+
+            this.refreshLayout();
+            this.attachEventListeners();
+            this.initFixedColsScrolling();
+        },
+
+        getScrollbarWidth: function() {
+            return (
+                tvc.getTopWindow().__scrollbarWidth__ ||
+                (tvc.getTopWindow().__scrollbarWidth__ = tvc.getScrollbarWidth())
+            );
+        }
+    };
+
+    var events = {
+        attachEventListeners: function() {
+            this.processEventListeners(tvc.handleEvent);
+        },
+
+        detachEventListeners: function() {
+            this.processEventListeners(tvc.unhandleEvent);
+        },
+
+        processEventListeners: function(handler) {
+            var containers = this.ref.containers;
+            handler(window, 'resize', this.resizeContainersBound);
+            handler(containers.tbr, 'scroll', this.syncScrollingBound);
+            handler(containers.tbl, 'keyup', this.synchRightWithLeftBound);
+        },
+
+        syncScrolling: function() {
+            var containers = this.ref.containers;
+            containers.tbl.scrollTop = containers.tbr.scrollTop;
+            containers.thr.scrollLeft = containers.tbr.scrollLeft;
+        },
+
+        synchRightWithLeft: function(e, src) {
+            e = e || window.event;
+            switch (e.keyCode) {
+                case 9:
+                case 33:
+                case 34:
+                case 38:
+                case 40:
+                    var containers = this.ref.containers;
+                    var elementId = $(src).attr('id');
+                    if ($(tbr).find('#' + elementId).length > 0) {
+                        containers.tbl.scrollTop = containers.tbr.scrollTop;
+                    } else {
+                        containers.tbr.scrollTop = containers.tbl.scrollTop;
+                    }
+            }
+            return true;
+        },
+
+        resizeContainers: function() {
+            var body = document.body;
+            var containers = this.ref.containers;
+            var top = containers.thr.offsetHeight + this.ref.$containers.$thr.position().top;
+            if (top == 0) {
+                top = containers.thl.offsetHeight + this.ref.$containers.$thl.position().top;
+            }
+            var left = containers.thl.offsetWidth;
+            var sbw = this.scrollbarWidth;
+            var tableSize = this.frozenTable.getSize();
+
+            var availWidth = body.offsetWidth - left,
+                availHeight = body.offsetHeight - top;
+            var tableWidth = tableSize.width,
+                tableHeight = tableSize.height;
+
+            var scrollY = tableHeight > availHeight;
+            var scrollX = tableWidth > availWidth - sbw;
+
+            var width = Math.min(availWidth, tableWidth + (scrollY ? sbw : 0));
+            var height = Math.min(availHeight, tableHeight + (scrollX ? sbw : 0));
+
+            try {
+                containers.tbr.style.top = top + 'px';
+                containers.tbr.style.left = left + 'px';
+                containers.tbr.style.width = width + 'px';
+                containers.tbr.style.height = height + 'px';
+
+                containers.tbl.style.top = top + 'px';
+                containers.tbl.style.height = height - (scrollX ? sbw : 0) + 'px';
+
+                containers.thr.style.left = left + 'px';
+                containers.thr.style.width = width - (scrollY ? sbw : 0) + 'px';
+
+                containers.tbr.style.overflowX = scrollX ? 'scroll' : '';
+                containers.tbr.style.overflowY = scrollY ? 'scroll' : '';
+            } catch (ignore) {}
+        },
+
+        attachEventOnImageLoad: function() {
+            var imgElements = this.ref.containers.tbr.parentElement.getElementsByClassName('pi');
+            var loadingImages = 0;
+            var syncTblRightWithLeft = function() {
+                loadingImages--;
+                if (loadingImages === 0) {
+                    this.refreshLayout();
+                }
+            }.bind(this);
+
+            for (var i = 0; i < imgElements.length; i++) {
+                if (!this.isImageLoaded(imgElements[i])) {
+                    loadingImages++;
+                    tvc.handleEvent(imgElements[i], 'load', syncTblRightWithLeft);
+                    tvc.handleEvent(imgElements[i], 'error', syncTblRightWithLeft);
+                }
+            }
+        },
+        isImageLoaded: function(img) {
+            if (img.complete && img.naturalWidth > 0) {
+                return true;
+            }
+            return false;
+        }
+    };
+
+    var behaviours = {
+        syncTables: function() {
+            return this.frozenTable.syncLayout();
+        },
+
+        refreshLayout: function() {
+            var tbr = this.ref.containers.tbr;
+            var scrollTop = tbr.scrollTop;
+            var scrollLeft = tbr.scrollLeft || this.ref.containers.thr.scrollLeft;
+            if (window.handleClipedText) {
+                window.handleClipedText();
+            }
+
+            this.syncTables();
+
+            if (window.handleMoreLink) {
+                window.handleMoreLink();
+            }
+
+            tbr.scrollTop = scrollTop;
+            tbr.scrollLeft = scrollLeft;
+            this.syncScrolling();
+            this.resizeContainers();
+        },
+
+        hasVerticalScrollbar: function() {
+            var tbr = this.ref.containers.tbr;
+            return tbr.scrollHeight > document.body.clientHeight;
+        },
+
+        hasHorizontalScrollbar: function() {
+            var tbr = this.ref.containers.tbr;
+            return tbr.scrollWidth > tbr.clientWidth;
+        },
+
+        initFixedColsScrolling: function() {
+            if (!($.browser.msie && parseFloat($.browser.version) < 9)) {
+                setTimeout(this.onFixedColsScrolling.bind(this), 100);
+            }
+        },
+
+        onFixedColsScrolling: function() {
+            var scrollTop = 0,
+                $tbr = this.ref.$containers.$tbr;
+            this.ref.$containers.$tbl.on(
+                'mousewheel',
+                function(event) {
+                    // Occurs for IE9/10 on virtual machines
+                    if (isNaN(event.deltaY) || isNaN(event.deltaFactor)) {
+                        return;
+                    }
+                    var newScrollTop;
+                    if ($tbr.is(':animated')) {
+                        $tbr.stop();
+                        newScrollTop = scrollTop;
+                    } else {
+                        newScrollTop = $tbr.scrollTop();
+                    }
+                    var distance = event.deltaY * event.deltaFactor;
+                    scrollTop = newScrollTop - distance;
+                    $tbr.animate(
+                        {
+                            scrollTop: scrollTop
+                        },
+                        {
+                            duration: 200
+                        }
+                    );
+                }.bind(this)
+            );
+        }
+    };
+
+    var compatibility = {
+        setAutoWidths: function() {
+            this.frozenTable.setAutoWidths();
+        },
+
+        setFixedTableLayouts: function() {
+            this.frozenTable.setFixedLayouts();
+        },
+
+        unsetFixedTableLayouts: function() {
+            this.frozenTable.unsetFixedLayouts();
+        },
+
+        wrapContent: function() {
+            this.frozenTable.wrapContent();
+        },
+
+        unwrapContent: function() {
+            this.frozenTable.unwrapContent();
+        }
+    };
+
+    TVCTableLayoutManager.behaves(initializer, events, behaviours, compatibility);
+
+    return TVCTableLayoutManager;
+})(Function.Super, TVCFrozenHeaderTable, window.$, window.tvc);
+
+if (!tvc.sbTableLayoutMgr) {
+    tvc.sbTableLayoutMgr = new TVCTableLayoutManager(window.EDIT_MODE, window.STRUCTURE_MODE);
+}
+
+function bootstrapLayout() {
+    tvc.sbTableLayoutMgr.init(tvc.sbTableRef, tvc.sbTableResizeMgr);
+}
+
+// load instead of ready to wait for images
+$(window).on('load', bootstrapLayout);

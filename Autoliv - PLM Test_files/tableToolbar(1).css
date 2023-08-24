@@ -1,0 +1,10 @@
+/* Reset font family and size set by Semantic UI */
+.ui.menu {
+    font-family: Verdana, Helvetica, Arial, Sans-Serif;
+    font-size: 8pt;
+    font-weight: normal;
+}
+
+.ui.vertical.menu {
+  background: #f0f0f0;
+}

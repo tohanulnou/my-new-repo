@@ -1,0 +1,18 @@
+var relHighlights = {
+
+    'init': function () {
+        alvReleaseHighlightService.displayReleaseHighlight("",function (result)
+        {
+            if (null == result.data || "" == result.data || "False" == result.data) {
+                top.showWindowShadeDialog("../autoliv/releaseHighlights/alvReleaseHighlight.jsp?", true);
+            }
+        });
+    }
+};
+
+
+$(window).load(function () {
+    $("#alv-breadcrumb").ready(function () {
+        relHighlights.init();
+    });
+});

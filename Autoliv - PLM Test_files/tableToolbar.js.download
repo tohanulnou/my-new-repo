@@ -1,0 +1,533 @@
+'use strict';
+
+if (window.tvc === undefined) {
+    window.tvc = {};
+}
+if (window.tvc.table === undefined) {
+    window.tvc.table = {};
+}
+
+tvc.table.toolbar = {
+    promote: function() {
+        tvcPromote();
+    },
+    demote: function() {
+        tvcDemote();
+    },
+    compare: function() {
+        tvcObjectCompare();
+    },
+    helpInternal: function() {
+        try {
+            var name = getTableBeanName();
+            if (name) {
+                var url = parent.getActionURL('sbHelp') + '?object=' + name;
+                //Modified by Autoliv to launch the help url in new window on clicking the help icon in structure browser tables.
+                window.open(url, "helpWin");
+            }
+        } catch (x) {}
+    },
+    launchFromPortal: function() {
+        try {
+            var name = getTableBeanName();
+            if (name) {
+                var url = parent.getActionURL('launchFromPortal') + '?object=' + name;
+                tvc.popup(url, 800, 600, false);
+            }
+        } catch (x) {}
+    },
+    clipboardAdd: function() {
+        tvcAddToClipboard();
+    },
+    clipboardView: function() {
+        tvcOpenClipboard();
+    },
+    collectionAdd: function() {
+        try {
+            var name = getTableBeanName();
+            if (name) {
+                var url = parent.getActionURL('addToCollection') + '?object=' + name;
+                parent.tvc.inlineFrame.load('tvc:addToCollection', url, 300, 'auto', null, true);
+            }
+        } catch (x) {}
+    },
+    collectionsView: function() {
+        try {
+            var name = getTableBeanName();
+            if (name) {
+                var url = parent.getActionURL('showCollections') + '?object=' + name;
+                tvc.popup(url, 500, 500, false);
+            }
+        } catch (x) {}
+    },
+    query: {
+        open: function() {
+            parent.tvc.inlineFrame.load(
+                'tvc:query',
+                parent.getAbsoluteURL('tvc/structurebrowser/tvcQueryParameters.jsp'),
+                300,
+                'auto',
+                null,
+                true
+            );
+        },
+        clear: function() {
+            parent.query.clear(getTableBeanName(), function() {
+                tvcReloadPage();
+            });
+        }
+    },
+    finder: {
+        open: function() {
+            tvc.finder.toggleForm();
+        }
+    },
+    triggerValidation: function() {
+        tvcTriggerValidation();
+    },
+    disconnect: function() {
+        tvcMenuItemClicked({
+            href: parent.getActionURL('disconnect') + '?object=' + getTableBeanName(),
+            openPopup: false,
+            showProgress: true,
+            progressMessage: parent.M_DISCONNECT_PROGRESS,
+            submit: true,
+            targetLocation: 'tableHiddenFrame',
+            confirmMessage: parent.M_DISCONNECT_CONFIRM,
+            rowSelect: 'multiple'
+        });
+    },
+    buttonOnClick: function(item, itemDef) {
+        //Added by ALV to make the buttons with text as "Promote" disabled on clicking.
+        if (itemDef.text == "Promote") {
+            var commandItems = tvc.table.toolbar.uiptoolbar.items();
+            for(var i=0; i<commandItems.length; i++){
+                var currentItem = commandItems[i];
+                if (currentItem.id==itemDef.id){
+                    currentItem.edit({enabled: false}, true);
+                    break;
+                }
+            }
+            tvc.table.toolbar.uiptoolbar.save();
+        }
+
+        tvcMenuItemClicked(itemDef.data);
+    },
+    getServiceURL: function(service, args) {
+        var url = JSON_URL + '/' + service;
+        if (args && args.length) {
+            var params = [];
+            for (var i = 0; i < args.length; i++) {
+                params.push('arg' + i + '=' + (args[i] ? encodeURIComponent(args[i]) : ''));
+            }
+            url += '?' + params.join('&');
+        }
+        return url;
+    },
+    /**
+     * Enables/disables items based on the number of selected items in the table.
+     */
+    onSelectionChange: function() {
+        if (!tvc.table.toolbar.uiptoolbar) {
+            return;
+        }
+
+        var selectionCount = tvcGetSelectionCount();
+
+        tvcGetBottomFrame().tvc.pagination.updateSelectedCount(selectionCount);
+
+        tvc.table.toolbar.uiptoolbar.visitItems(function(item) {
+            tvc.table.toolbar.toggleEnabled(item, selectionCount);
+        });
+        tvc.table.toolbar.uiptoolbar.save();
+    },
+
+    // Currently only working for toolbar items and NOT for menu items, will be resolved when using redux (hopefully)
+    toggleEnabled: function(item, selectionCount) {
+        var requiredSelection = (item.def.data && item.def.data.rowSelect) || 'none';
+        var valid = false;
+        switch (requiredSelection) {
+            case 'none':
+                valid = true;
+                break;
+            case 'single':
+                valid = selectionCount === 1;
+                break;
+            case 'multiple':
+                valid = selectionCount > 0;
+                break;
+            case 'prevent':
+                valid = selectionCount === 0;
+                break;
+            default:
+                valid = true;
+                console.warn('Unknown row selection type', requiredSelection, itemConfig);
+                break;
+        }
+
+        if (item.state.enabled !== valid) {
+            item.edit({ enabled: valid }, true);
+        }
+    },
+
+    saveCustomizations: function() {
+        var persistId = tvc.table.toolbar.uiptoolbar.getSettings().persistId;
+        var customizations = tvc.table.toolbar.uiptoolbar.getCustomizations();
+        tvc.toolbar
+            .getInstance()
+            .saveTableCustomizations(getTableBeanName(), persistId, customizations);
+    },
+
+    resetCustomizations: function() {
+        var persistId = tvc.table.toolbar.uiptoolbar.getSettings().persistId;
+        tvc.toolbar
+            .getInstance()
+            .resetTableCustomizations(getTableBeanName(), persistId)
+            .then(function() {
+                tvcReloadPage();
+            });
+    },
+
+    setWrapContent: function(wrap, wrapItemDef) {
+        var items = tvc.table.toolbar.uiptoolbar.items();
+
+        var currentItemIndex = _.findIndex(items, function(item) {
+            return item.id === wrapItemDef.id;
+        });
+        var toggleToItemIndex = _.findIndex(items, function(item) {
+            return item.id === wrapItemDef.data.toggleTo;
+        });
+        var currentItem = items[currentItemIndex];
+        var toggleToItem = items[toggleToItemIndex];
+
+        var $toolbarItem = $('#toolbar-container div.item.' + wrapItemDef.id);
+        if ($toolbarItem) {
+            $toolbarItem.parent().popup('hide');
+        }
+
+        if (currentItem && toggleToItem) {
+            tvcWrapContent(wrapItemDef.data.wrapContent);
+            currentItem.edit({ visible: false });
+            toggleToItem.edit({ visible: true });
+            tvcSaveTableWrapContent(wrapItemDef.data.wrapContent);
+        }
+    },
+
+    inlinecompare: {
+        open: function() {
+            tvc.inlinecompare.toggleForm();
+        }
+    }
+};
+
+/**
+ * Util methods for generating drop content
+ */
+tvc.table.drop = {
+    checkboxList: function(id, cssClasses, values, labels, selected) {
+        return tvc.table.drop._inputList(
+            id,
+            cssClasses,
+            values,
+            labels,
+            selected,
+            'checkbox',
+            'ui checkbox'
+        );
+    },
+
+    radioList: function(id, cssClasses, values, labels, selected) {
+        return tvc.table.drop._inputList(
+            id,
+            cssClasses,
+            values,
+            labels,
+            selected,
+            'radio',
+            'ui radio checkbox'
+        );
+    },
+
+    _inputList: function(id, cssClasses, values, labels, selected, type, liCssClasses) {
+        var $form = $('<div>')
+            .attr('id', id)
+            .addClass('ui form');
+        for (var i = 0; i < values.length; i++) {
+            var $list = $('<div>')
+                .addClass('inline field')
+                .appendTo($form);
+            var name = id + '_choice',
+                itemId = name + '_' + i;
+            var $li = $('<div>')
+                .addClass(liCssClasses)
+                .appendTo($list);
+            var $input = $('<input>')
+                .attr('type', type)
+                .attr('id', itemId)
+                .attr('name', name)
+                .attr('value', values[i])
+                .prop('checked', selected != null && selected.indexOf(values[i]) != -1)
+                .appendTo($li);
+            var $label = $('<label>')
+                .attr('for', itemId)
+                .text(labels[i])
+                .appendTo($li);
+        }
+        return $form;
+    },
+
+    /**
+     * Create a select field with support for opt-groups
+     */
+    chooser: function(id, cssClasses, values, labels, selected, groups, mode, size) {
+        var $select = $('<select>').attr('id', id);
+        if (cssClasses !== undefined) {
+            $select.addClass(cssClasses);
+        }
+        var $optionContainer = $select;
+        var lastGroup = null,
+            currGroup = null;
+        for (var i = 0; i < values.length; i++) {
+            if (groups !== undefined) {
+                currGroup = groups[i];
+                if (currGroup != lastGroup) {
+                    if (currGroup != null) {
+                        $optionContainer = $('<optgroup>').attr('label', currGroup);
+                        $select.append($optionContainer);
+                    } else {
+                        $optionContainer = $select;
+                    }
+                    lastGroup = currGroup;
+                }
+            }
+            var value = values[i],
+                label = labels[i];
+            var $o = $('<option>')
+                .attr('value', value)
+                .text(label);
+            if (selected != null && selected == value) {
+                $o.attr('selected', 'selected');
+            }
+            $optionContainer.append($o);
+        }
+        if (mode === 'multiple') {
+            $select.prop('multiple', 'multiple');
+        }
+        if (size !== undefined) {
+            $select.prop('size', size);
+        }
+        return $select;
+    },
+
+    /**
+     * Create a select field
+     */
+    select: function(id, values, selectedValue) {
+        var $select = $('<select>')
+            .attr('id', id)
+            .addClass('ui dropdown');
+        for (var i = 0; i < values.length; i++) {
+            var value = values[i].value ? values[i].value : '';
+            var label = values[i].label ? values[i].label : value;
+            var $o = $('<option value="' + value + '">').text(label);
+            if (selectedValue == values[i].value) {
+                $o.attr('selected', 'selected');
+            }
+            $select.append($o);
+        }
+
+        return $select;
+    }
+};
+
+(function(scope) {
+    function ComboBoxItem() {}
+
+    ComboBoxItem.prototype = {
+        render: function(item, itemDef) {
+            this.item = item;
+            this.itemDef = itemDef;
+
+            var $el = $('<div>');
+
+            if (itemDef.text !== undefined) {
+                $el.text(itemDef.text + ':');
+            }
+
+            var $select = $('<select>');
+            for (var i = 0; i < itemDef.data.values.length; i++) {
+                var value = itemDef.data.values[i];
+                var label = itemDef.data.labels[i];
+
+                var $option = $('<option>')
+                    .attr('value', value)
+                    .text(label);
+                if (value === itemDef.data.selected) {
+                    $option.attr('selected', 'selected');
+                }
+                $select.append($option);
+            }
+
+            $select.change(this.onChange.bind(this));
+
+            $el.append($select);
+            this.$select = $select;
+
+            return $el[0];
+        },
+
+        onChange: function() {
+            execFn(this.itemDef.data.submitHandler, window, this, this.$select.val(), this.$select);
+        }
+    };
+
+    function CheckBoxItem() {}
+
+    CheckBoxItem.prototype = {
+        render: function(item, itemDef) {
+            this.item = item;
+            this.itemDef = itemDef;
+            var isChecked = this.$input ? this.$input[0].checked : false;
+
+            var $el = $('<div>');
+
+            if (itemDef.text !== undefined) {
+                $el.text(itemDef.text + ':');
+            }
+
+            var $input = $('<input>');
+            if (itemDef.data.checkboxId !== undefined) {
+                $input.attr('id', itemDef.data.checkboxId);
+            }
+            if (itemDef.data.cssClass !== undefined) {
+                $input.addClass(itemDef.data.cssClass);
+            }
+            $input.attr('type', 'checkbox');
+            $input.attr('checked', isChecked);
+            $input.change(this.onClick.bind(this));
+            if (itemDef.tooltip !== undefined) {
+                $input.attr('title', itemDef.tooltip);
+            }
+            $el.append($input);
+            this.$input = $input;
+
+            return $el[0];
+        },
+
+        onClick: function() {
+            execFn(
+                this.itemDef.data.submitHandler,
+                window,
+                this,
+                this.$input.prop('checked'),
+                this.$input
+            );
+        }
+    };
+
+    scope.ComboBoxItem = ComboBoxItem;
+    scope.CheckBoxItem = CheckBoxItem;
+})(tvc.table.toolbar);
+
+/**
+ * Closes drops when clicking in any frame.
+ */
+var closeOnClickAnywhere = (function() {
+    var instance;
+
+    function init(toolbar) {
+        function onClickAnywhere(e) {
+            if (!isToolbarFrame(e.view) && toolbar) {
+                toolbar.closeDrops();
+            }
+        }
+
+        function isToolbarFrame(eventWindow) {
+            return window == eventWindow;
+        }
+
+        return {
+            enable: function() {
+                tvc.event.enable(
+                    {
+                        event: 'click',
+                        namespace: 'toolbar'
+                    },
+                    onClickAnywhere
+                ),
+                    tvc.event.enable(
+                        {
+                            event: 'contextmenu',
+                            namespace: 'toolbar'
+                        },
+                        onClickAnywhere
+                    );
+            },
+
+            disable: function() {
+                tvc.event.disable({
+                    event: 'click',
+                    namespace: 'toolbar'
+                }),
+                    tvc.event.disable({
+                        event: 'contextmenu',
+                        namespace: 'toolbar'
+                    });
+            }
+        };
+    }
+
+    return {
+        getInstance: function(toolbar) {
+            if (!instance) {
+                instance = init(toolbar);
+            }
+
+            return instance;
+        }
+    };
+})();
+
+$(window)
+    .load(function() {
+        if (tvc.table.toolbar.uiptoolbar) {
+            closeOnClickAnywhere.getInstance(tvc.table.toolbar.uiptoolbar).enable();
+            tvc.table.toolbar.uiptoolbar.on('toggleOrientation', tvcResizeContentFrame);
+            tvc.table.toolbar.uiptoolbar.on(
+                'toggleOrientation',
+                tvc.table.toolbar.saveCustomizations
+            );
+            tvc.table.toolbar.uiptoolbar.on('save', tvc.table.toolbar.saveCustomizations);
+            // Update enabled / disabled buttons after saving / canceling
+            tvc.table.toolbar.uiptoolbar.on('save', triggerDelayedSelectionChange);
+            tvc.table.toolbar.uiptoolbar.on('cancel', triggerDelayedSelectionChange);
+            tvc.table.toolbar.uiptoolbar.on('reset', tvc.table.toolbar.resetCustomizations);
+        }
+    })
+    .unload(function() {
+        closeOnClickAnywhere.getInstance().disable();
+    });
+
+function triggerDelayedSelectionChange() {
+    setTimeout(tvc.table.toolbar.onSelectionChange, 100);
+}
+
+function execFn(fn, win, context /**, args **/) {
+    try {
+        var args = [].slice.call(arguments).splice(3);
+        var f = $.isFunction(fn) ? fn : stringToFunction(fn, win);
+        return f.apply(context, args);
+    } catch (err) {
+        console.error("Error executing function '" + fn + "(args)'.", {}, err);
+    }
+}
+
+function stringToFunction(functionName, win) {
+    var fname = functionName.replace(/ *\([^)]*\); */g, '');
+    var namespaces = fname.split('.');
+    var func = namespaces.pop();
+    namespaces.forEach(function(namespace) {
+        win = win[namespace];
+    });
+    return win[func];
+}

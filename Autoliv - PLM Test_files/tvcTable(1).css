@@ -1,0 +1,246 @@
+body.content {
+	background-image: url("../../../../../common/images/utilContentBackground.gif");
+	background-repeat: repeat;
+	background-attachment: scroll;
+	background-position: 0 0;
+	background-color: #E4E7F0;
+}
+
+body.default {
+	background-color: transparent;
+}
+
+table.contentTable tr.odd,
+table.contentTable tr.even {
+	background-color: transparent ! important;
+}
+
+tr.odd td.c,tr.odd td.str, tr.odd td.es, tr.odd td.ee, tr.odd td.e {
+	background-color: #ffffff;
+}
+
+tr.even td.c,tr.even td.str, tr.even td.es, tr.even td.ee, tr.even td.e {
+	background-color: #e4e6e8;
+}
+
+tr.h td.c,tr.h td.str,tr.h td.e,tr.h td.es,tr.h td.ee {
+	color: black;
+	/*background-color: #d8d8e4;*/
+    background-image: url('../images/highlighted_row.png');
+    background-position:0 0;
+    background-repeat:repeat;
+    /*background-color:#eaeaea;*/
+    /*border-top: 1px solid red ! important;
+    border-bottom: 1px solid red ! important;*/
+}
+
+tr.h td.pen {
+	background-image:
+		url('../../../../structurebrowser/images/incelleditpen.gif');
+	background-repeat: no-repeat;
+	background-position: top right;
+}
+
+tr.ghx td {
+    border-right: 1px solid transparent;
+    padding-left: 5px;
+    padding-right: 5px;
+    height: 0;
+    min-width: 30px;
+}
+
+table.pagination {
+	background-color: #eeeeee;
+}
+
+table.contentTable {
+	border-collapse: collapse;
+	empty-cells: show;
+}
+
+div.gh {
+	background-image: url("../../../../../common/images/bgnd-groupheader.png");
+	background-repeat: repeat-x;
+	background-attachment: scroll;
+	background-position: 0 center;
+	background-color: transparent;
+	color: #22608C;
+	min-height: 30px;
+	padding: 5px;
+    margin: 0 1px;
+	text-align: center;
+	vertical-align: bottom;
+	box-sizing: border-box;
+}
+
+tr.ghr td.ghc {
+	box-sizing: border-box; 
+}
+
+tr.ghr td.ghcl {
+	border-right: 1px solid transparent;
+}
+
+th.h {
+	background-image: url("../../../../core/themes/v6r2012/images/table/h1.png");
+	background-repeat: repeat-x;
+	background-attachment: scroll;
+	background-position: 0 center;
+	background-color: #3479AF;
+	font-weight: bold;
+	color: white;
+	border-right: 1px solid #4E6E90;
+	box-sizing: border-box; 
+	padding-left: 5px
+}
+
+th.h th {
+    color: white;
+}
+
+/*tr.repeated th {
+	background-color: #999999 ! important;
+}*/
+
+tr.repeated th.h {
+	background-color: #999999 ! important;
+	border-right: 1px solid #999999 ! important;
+	color: #717471 ! important;
+}
+
+th a {
+	color: white;
+}
+
+th a:hover {
+	color: #ccffff;
+}
+
+th i {
+    font-size: 14px;
+    color: #ffffff;
+    cursor: pointer;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.coldesc {
+	border: 1px solid black;
+	color: black;
+	background-color: #ffffe5;
+}
+
+div.errors {
+	background-image: url("../../../../../common/images/bgnd-search-results-bar.png");
+	background-repeat: repeat-x;
+	background-attachment: scroll;
+	background-position: 0 -1px;
+	background-color: #BAD8F0;
+	margin-bottom: 0px;
+	padding-bottom: 9px;
+	padding-top: 9px;
+}
+
+div.errors,.error {
+	color: #000000;
+}
+
+.akn_suspended {
+	border: 2px solid #F1CA7E !important;
+}
+
+td.oddsm {
+	color: #13345a;
+	background-color: #dbdbdb;
+}
+
+td.evensm {
+	color: #13345a;
+	background-color: #ffffff;
+}
+
+td.c {
+	color: #000000;
+	border-right: 1px solid #b7c9e2 ! important;
+    /*border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    border-left: 1px solid transparent;*/
+}
+
+td.str {
+	border-right: 1px solid #b7c9e2 ! important;
+    /*border-top: 1px solid transparent;
+    border-bottom: 1px solid transparent;
+    border-left: 1px solid transparent;*/
+}
+
+td.calc {
+	color: #333;
+	border-bottom: 1px solid #ccc;
+	background-color: white;
+}
+
+td.calcHeader {
+	color: #fff;
+	background-color: #3479AF;
+	background-image: url("../../../../core/themes/v6r2012/images/table/h1.png");
+	background-position: 0 center;
+	background-repeat: repeat-x;
+}
+
+td.e {
+    color: #000000;
+    border-color: #004080;
+}
+
+td.es {
+	color: #000000;
+	border-right: 1px solid #b7c9e2 ! important;
+}
+
+td.ee {
+	color: #000000;
+	border-color: #ff0000;
+}
+
+tr.oddError {
+	background-color: #ffffff;
+}
+
+tr.evenError {
+	background-color: #eeeeee;
+}
+
+tr.evenError td.c,
+tr.oddError td.c {
+	color: #ff0000;
+}
+
+tr.evenError input,
+tr.oddError input,
+tr.evenError select,
+tr.oddError select,
+tr.evenError textarea,
+tr.oddError textarea {
+	color: #ff0000;
+}
+
+#empty_row td {
+	color: #000000;
+	font-size: 14px;
+	font-style: italic;
+	font-weight: bold;
+	height: 40px;
+}
+
+td.separator {
+	background-color: transparent !important;
+	border-right: none !important;
+	background-image: none !important;
+}
+
+th.separator {
+	background-color: transparent !important;
+	background-image: none !important;
+	border-right: none !important;
+}

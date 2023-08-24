@@ -1,0 +1,21 @@
+div.tabContainer ul li:only-child {
+    display: none;
+}
+.tabContainer .selectedTab .closetab {
+    display: none;
+}
+.tabContainer .closetab {
+    display: none;
+}
+.closetab {
+    display: none;
+}
+.tabContainer .selectedTab a.tablink {
+    padding-right: 7px;
+}
+.tabContainer a.tablink {
+    padding-right: 7px;
+}
+div#tvcTabs0content {    
+    top: -2px;
+}

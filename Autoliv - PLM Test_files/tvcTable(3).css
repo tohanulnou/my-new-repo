@@ -1,0 +1,17 @@
+input.tvcJSDropzone {
+    color: transparent;
+    background-image: url('../images/drop.png') !important;
+    background-position: center !important;
+	background-repeat: no-repeat !important;
+}
+
+input.tvcJSDropzone.h {
+    background-image: none !important;
+    background-position: center;
+	background-repeat: no-repeat;
+	color: transparent;
+}
+
+div.html-cell {
+    -ms-overflow-y: hidden;
+}

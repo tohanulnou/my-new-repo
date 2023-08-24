@@ -1,0 +1,175 @@
+window.tvc = window.tvc || {};
+
+var TVCFrozenTableRef = (function(_super, $) {
+    TVCFrozenTableRef.inherits(_super);
+
+    function TVCFrozenTableRef() {
+        _super.apply(this, arguments);
+
+        this.frozen = true;
+        this.tables = null;
+        this.$tables = null;
+        this.$tableBody = null;
+        this.containers = null;
+        this.$containers = null;
+    }
+
+    var behaviours = {
+        init: function() {
+            this.initTables();
+            this.initHeaders();
+            this.initContainers();
+        },
+
+        initTables: function() {
+            this.$tables = {
+                $thl: $('#thl'),
+                $thr: $('#thr'),
+                $tbl: $('#tbl'),
+                $tbr: $('#tbr')
+            };
+            this.tables = {
+                thl: this.$tables.$thl[0],
+                thr: this.$tables.$thr[0],
+                tbl: this.$tables.$tbl[0],
+                tbr: this.$tables.$tbr[0]
+            };
+            this.$tableBody = $('#tb');
+        },
+
+        initHeaders: function() {
+            this.$columns = {
+                $thl: this.$tables.$thl.find('thead > tr:first').children(),
+                $thr: this.$tables.$thr.find('thead > tr:first').children()
+            };
+            this.$rows = {
+                $thl: this.$tables.$thl.find('thead > tr:last'),
+                $thr: this.$tables.$thr.find('thead > tr:last')
+            };
+            this.$headers = {
+                $thl: this.$rows.$thl.children('th'),
+                $thr: this.$rows.$thr.children('th')
+            };
+            this.$groupheaders = {
+                $thl: this.$tables.$thl.find('tHead > tr:nth-child(2)'),
+                $thr: this.$tables.$thr.find('tHead > tr:nth-child(2)')
+            };
+        },
+
+        initContainers: function() {
+            this.$containers = {
+                $thl: $('#thlc'),
+                $thr: $('#thrc'),
+                $tbl: $('#tblc'),
+                $tbr: $('#tbrc')
+            };
+            this.containers = {
+                thl: this.$containers.$thl[0],
+                thr: this.$containers.$thr[0],
+                tbl: this.$containers.$tbl[0],
+                tbr: this.$containers.$tbr[0]
+            };
+        },
+
+        getHeaderHeight: function() {
+            return this.$rows.$thr.height();
+        },
+
+        getHeaders: function() {
+            return this.$headers.$thr;
+        },
+
+        getRows: function() {
+            return this.$tables.$tbl.find('> tbody > tr');
+        },
+
+        getScrollPosition: function() {
+            var $tbr = this.$containers.$tbr;
+            return {
+                scrollTop: $tbr.scrollTop(),
+                scrollLeft: $tbr.scrollLeft()
+            };
+        },
+
+        findTableId: function($cell) {
+            var parentId = $cell.parent().attr('id');
+            var defaultTableId = 'th';
+            if (parentId) {
+                defaultTableId += parentId.charAt(0);
+            }
+            return defaultTableId;
+        },
+
+        findColumn: function($cell, cellIndex) {
+            var lr = this.findTableId($cell);
+            var $columns = this.$columns['$' + lr];
+            return $columns.eq(cellIndex);
+        },
+
+        findColumnIndex: function($cell, cellIndex) {
+            var lr = this.findTableId($cell);
+            var $headers = this.$headers['$' + lr];
+            var $th = $headers.eq(cellIndex);
+            return $th.attr('colindex');
+        }
+    };
+
+    TVCFrozenTableRef.behaves(behaviours);
+
+    return TVCFrozenTableRef;
+})(Function.Super, window.$);
+
+var TVCSimpleTableRef = (function(_super, $) {
+    TVCSimpleTableRef.inherits(_super);
+
+    function TVCSimpleTableRef() {
+        _super.apply(this, arguments);
+
+        this.simple = true;
+        this.$tableBody = null;
+    }
+
+    var behaviours = {
+        init: function() {
+            this.$tableBody = $('#contentTable');
+            this.$headers = this.$tableBody.find('> thead > tr:last > th');
+        },
+
+        getHeaders: function() {
+            return this.$headers;
+        },
+
+        getRows: function() {
+            return this.$tableBody.find('> tbody > tr, > thead > tr');
+        },
+
+        getScrollPosition: function() {
+            var $window = $(window);
+            return {
+                scrollTop: $window.scrollTop(),
+                scrollLeft: $window.scrollLeft()
+            };
+        },
+
+        findColumn: function($cell, cellIndex) {
+            return null;
+        },
+
+        findColumnIndex: function($cell, cellIndex) {
+            var $th = this.$headers.eq(cellIndex);
+            return $th.attr('colindex');
+        }
+    };
+
+    TVCSimpleTableRef.behaves(behaviours);
+
+    return TVCSimpleTableRef;
+})(Function.Super, window.$);
+
+if (!tvc.sbTableRef) {
+    tvc.sbTableRef = parent.tvcIsSplitTable() ? new TVCFrozenTableRef() : new TVCSimpleTableRef();
+}
+
+$(function() {
+    tvc.sbTableRef.init();
+});

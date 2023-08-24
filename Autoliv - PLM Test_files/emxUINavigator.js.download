@@ -1,0 +1,750 @@
+/*=================================================================
+ *  JavaScript Navigator Object
+ *  emxUINavigator.js
+ *  Version 1.0
+ *  Requires: emxUIConstants.js, emxUICore.js
+ *
+ *  This file contains class definition for the main navigator window.
+ *
+ *  Copyright (c) 1992-2012 Dassault Systemes. All Rights Reserved.
+ *  This program contains proprietary and trade secret information 
+ *  of MatrixOne,Inc. Copyright notice is precautionary only
+ *  and does not evidence any actual or intended publication of such program
+ * 
+ *  static const char RCSID[] = $Id: emxUINavigator.js.rca 1.8 Wed Oct 22 15:48:16 2008 przemek Experimental przemek $
+ *=================================================================
+ */
+
+//=================================================================
+// Constants
+//=================================================================
+
+
+var emxUINavigator = new emxUIObject;
+
+emxUINavigator.IMG_BTN_SHRINK = emxUIConstants.DIR_IMAGES + "buttons/buttonShrinkTopFrame.gif";
+emxUINavigator.IMG_BTN_GROW = emxUIConstants.DIR_IMAGES + "buttons/buttonGrowTopFrame.gif";
+
+emxUINavigator.contentFrame = null;
+emxUINavigator.shrunkDisplay = null;
+emxUINavigator.grownDisplay = null;
+emxUINavigator.toolbar = null;
+emxUINavigator.grown = true;
+emxUINavigator.button = null;
+emxUINavigator.image = "";
+emxUINavigator.text = "";
+emxUINavigator.username = "";
+emxUINavigator.contentURL = "about:blank";
+emxUINavigator.smallLogo = "";
+
+//constants
+emxUINavigator.LAYOUT_GROWN = true;
+emxUINavigator.LAYOUT_SHRUNK = false;
+
+//add style sheet (NCZ, 22-Jul-03)
+emxUINavigator.stylesheet = emxUICore.getStyleSheet("emxUINavigator");
+//emxUICore.addStyleSheet("emxUINavigator");
+
+//-----------------------------------------------------------------
+//! Protected Method emxUINavigator.createDOM()
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//      Nicholas C. Zakas (NCZ), 18-Jul-03
+//
+//  EDITOR(S)
+//
+//  DESCRIPTION
+//!     This method creates the DOM for the page.
+//
+//  PARAMETERS
+//      (none)
+//
+//  RETURNS
+//      (nothing)
+//-----------------------------------------------------------------
+emxUINavigator.createDOM = function _emxUINavigator_createDOM() {
+
+        //get the content frame (NCZ, 18-Jul-03)
+        this.contentFrame = document.getElementById("content");
+        this.contentFrame.frameBorder = 0;
+        if('submitPost' == this.contentURL){
+        	this.contentURL= "about:blank";        	
+        }else{
+        this.contentFrame.src = this.contentURL;
+        }
+
+        //create the grown display (NCZ, 18-Jul-03)
+        //this.grownDisplay = document.createElement("div");
+        //this.grownDisplay.id = "divGrown";
+        //this.grownDisplay.innerHTML = "<div id=\"divGrownLogo\"><img src=\"" + this.image + "\" border=\"0\" /></div>";
+        this.grownDisplay = document.getElementById("divGrown");
+        
+        //create the shrunk display (NCZ, 18-Jul-03)
+        //this.shrunkDisplay = document.createElement("div");
+        //this.shrunkDisplay.id = "divShrunk";
+        //this.shrunkDisplay.innerHTML = "<div id=\"divShrunkText\">" + this.text + "</div>";
+        //this.shrunkDisplay.innerHTML = "<div id=\"divShrunkLogo\"><img src=\"" + this.smallLogo + "\" border=\"0\" /></div>";
+        this.shrunkDisplay = document.getElementById("divShrunk");
+        
+        //create the image button (NCZ, 18-Jul-03)
+        //this.button = document.createElement("img");
+        //this.button.id = "imgButton";
+        //this.button.onclick = new Function("emxUINavigator.toggleHeader()");
+        //document.body.appendChild(this.button);
+        
+        //create the toolbar (NCZ, 18-Jul-03)
+        //this.toolbarLayer = document.createElement("div");
+        //this.toolbarLayer.id = "divToolbar";
+        //this.toolbarLayer.className = "toolbar-container";
+        //document.body.insertBefore(this.toolbarLayer, this.contentFrame);
+        this.toolbarLayer = document.getElementById("divToolbar");
+        
+        //create container for buttons (NCZ, 21-Jul-03)
+        //this.buttonsLayer = document.createElement("div");
+        //this.buttonsLayer.id = "divToolbarButtons";
+        //this.buttonsLayer.className = "toolbar-container";
+        //document.body.appendChild(this.buttonsLayer);
+        
+}; //End: emxUINavigator.createDOM = function _emxUINavigator_createDOM()
+
+//-----------------------------------------------------------------
+//! Protected Method emxUINavigator.createDragItem()
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//      Nicholas C. Zakas (NCZ), 18-Jul-03
+//
+//  EDITOR(S)
+//
+//  DESCRIPTION
+//!     This method creates the DOM for the page.
+//
+//  PARAMETERS
+//      objElement (HTMLElement) - the element to create a duplicate of.
+//
+//  RETURNS
+//      (nothing)
+//-----------------------------------------------------------------
+emxUINavigator.createDragItem = function _emxUINavigator_createDragItem(objElement, intX, intY) {
+
+        var objDiv = document.createElement("div");
+        objDiv.style.cssText = "position: absolute; width: 100px; height: 25px; background-color: red; z-index: 10;";
+        //objDiv.style.left 
+
+        
+}; //End: emxUINavigator.createDragItem = function _emxUINavigator_createDragItem()
+
+
+//-----------------------------------------------------------------
+//! Protected Method emxUINavigator.grow()
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//      Nicholas C. Zakas (NCZ), 18-Jul-03
+//
+//  EDITOR(S)
+//
+//  DESCRIPTION
+//!     This method grows the top banner of the app.
+//
+//  PARAMETERS
+//      (none)
+//
+//  RETURNS
+//      (nothing)
+//-----------------------------------------------------------------
+emxUINavigator.grow = function _emxUINavigator_grow() {
+
+        //hide the shrunk display (NCZ, 18-Jul-03)
+        //if (this.shrunkDisplay.parentNode == document.body) {
+        //        document.body.removeChild(this.shrunkDisplay);
+        //} //End: if (this.shrunkDisplay.parentNode != null)
+        
+        //show the grown display (NCZ, 18-Jul-03)
+        //document.body.insertBefore(this.grownDisplay, this.toolbarLayer);
+        
+        //change image for the button (NCZ, 18-Jul-03)
+        //this.button.src = emxUINavigator.IMG_BTN_SHRINK;
+        
+        //set the height of the content frame (NCZ, 18-Jul-03)
+        //this.contentFrame.style.height = (emxUICore.getWindowHeight() - this.grownDisplay.offsetHeight - this.toolbarLayer.offsetHeight) + "px";
+
+        //move the menubar (NCZ, 21-Jul-03)
+        //this.menu.moveTo(0, 63);
+        //this.toolbar.container.style.top = "63px";
+
+        //set the grown flag (NCZ, 18-Jul-03)
+        this.grown = true;
+}; //End: emxUINavigator.grow = function _emxUINavigator_grow()
+
+//-----------------------------------------------------------------
+//! Protected Method emxUINavigator.init()
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//      Nicholas C. Zakas (NCZ), 18-Jul-03
+//
+//  EDITOR(S)
+//
+//  DESCRIPTION
+//!     This method initializes the object.
+//
+//  PARAMETERS
+//      (none)
+//
+//  RETURNS
+//      (nothing)
+//-----------------------------------------------------------------
+emxUINavigator.init = function _emxUINavigator_init() {
+
+        //create the DOM (NCZ, 18-Jul-03)
+        this.createDOM();
+        
+        //initialize the toolbar (NCZ, 21-Jul-03)
+        this.toolbar.init("divToolbar");
+        
+        //initialize the menu (NCZ, 21-Jul-03)
+        //this.menu.init();
+
+        //initialize the display (NCZ, 18-Jul-03)
+        if (this.grown) {
+                this.grow();
+        } else {
+                this.shrink();
+        } //End: contentFrame
+        
+}; //End: emxUINavigator.init = function _emxUINavigator_init()
+
+//-----------------------------------------------------------------
+//! Protected Method emxUINavigator.resize()
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//      Nicholas C. Zakas (NCZ), 18-Jul-03
+//
+//  EDITOR(S)
+//
+//  DESCRIPTION
+//!     This method toggles shrinking/growing the header.
+//
+//  PARAMETERS
+//      (none)
+//
+//  RETURNS
+//      (nothing)
+//-----------------------------------------------------------------
+emxUINavigator.resize = function _emxUINavigator_resize() {
+
+        if (this.grown) {
+                this.grow();
+        } else {
+                this.shrink();
+        } //End: if (this.grown)
+        
+}; //End: emxUINavigator.resize = function _emxUINavigator_resize()
+
+emxUINavigator.resizeTimeout = null;
+
+emxUINavigator.redrawToolbar = function _emxUINavigator_redrawToolbar() {
+		
+	clearTimeout(this.resizeTimeout);
+	
+	this.resizeTimeout = setTimeout(function _delayed_redraw() {
+		 emxUINavigator.toolbar.drawToolbar("divToolbar");
+		 
+	},500); 
+    
+};
+
+//-----------------------------------------------------------------
+//! Protected Method emxUINavigator.setContent()
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//      Nicholas C. Zakas (NCZ), 21-Jul-03
+//
+//  EDITOR(S)
+//
+//  DESCRIPTION
+//!     This method sets the URL of the content frame.
+//
+//  PARAMETERS
+//      strURL (String) - the url to use.
+//
+//  RETURNS
+//      (nothing)
+//-----------------------------------------------------------------
+emxUINavigator.setContent = function _emxUINavigator_setContent(strURL) {
+        
+        //set the URL (NCZ, 21-Jul-03)
+        this.contentURL = strURL;
+                
+}; //End: emxUINavigator.setContent = function _emxUINavigator_setContent(strURL)
+
+//-----------------------------------------------------------------
+//! Protected Method emxUINavigator.setLayout()
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//      Nicholas C. Zakas (NCZ), 18-Jul-03
+//
+//  EDITOR(S)
+//
+//  DESCRIPTION
+//!     This method sets the layout of the page to either grown or shrunk.
+//
+//  PARAMETERS
+//      blnMode (boolean) - either emxUINavigator.LAYOUT_GROWN or emxUINavigator.LAYOUT_SHRUNK.
+//
+//  RETURNS
+//      (nothing)
+//-----------------------------------------------------------------
+emxUINavigator.setLayout = function _emxUINavigator_setLayout(blnMode) {
+        this.grown = blnMode;
+}; //End: emxUINavigator.setLayout = function _emxUINavigator_setLayout(blnMode)
+
+//-----------------------------------------------------------------
+//! Protected Method emxUINavigator.setLogo()
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//      Nicholas C. Zakas (NCZ), 18-Jul-03
+//
+//  EDITOR(S)
+//
+//  DESCRIPTION
+//!     This method sets the image of the navigator page.
+//
+//  PARAMETERS
+//      strImage (String) - the image to use.
+//
+//  RETURNS
+//      (nothing)
+//-----------------------------------------------------------------
+emxUINavigator.setLogo = function _emxUINavigator_setLogo(strImage) {
+        this.image = strImage;
+}; //End: emxUINavigator.setLogo = function _emxUINavigator_setLogo(strImage)
+
+//-----------------------------------------------------------------
+//! Protected Method emxUINavigator.setSmallLogo()
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//      Nicholas C. Zakas (NCZ), 5-Aug-03
+//
+//  EDITOR(S)
+//
+//  DESCRIPTION
+//!     This method sets the small logo of the navigator page.
+//
+//  PARAMETERS
+//      strImage (String) - the image to use.
+//
+//  RETURNS
+//      (nothing)
+//-----------------------------------------------------------------
+emxUINavigator.setSmallLogo = function _emxUINavigator_setSmallLogo(strImage) {
+        this.smallLogo = strImage;
+}; //End: emxUINavigator.setSmallLogo = function _emxUINavigator_setSmallLogo(strImage)
+
+//-----------------------------------------------------------------
+//! Protected Method emxUINavigator.setText()
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//      Nicholas C. Zakas (NCZ), 18-Jul-03
+//
+//  EDITOR(S)
+//
+//  DESCRIPTION
+//!     This method sets the text to display when the header is shrunk.
+//
+//  PARAMETERS
+//      setText (String) - the text to use.
+//
+//  RETURNS
+//      (nothing)
+//-----------------------------------------------------------------
+emxUINavigator.setText = function _emxUINavigator_setText(strText) {
+        this.text = strText;
+}; //End: emxUINavigator.setText = function _emxUINavigator_setText(strText)
+
+//-----------------------------------------------------------------
+//! Protected Method emxUINavigator.shrink()
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//      Nicholas C. Zakas (NCZ), 18-Jul-03
+//
+//  EDITOR(S)
+//
+//  DESCRIPTION
+//!     This method shrinks the top banner of the app.
+//
+//  PARAMETERS
+//      (none)
+//
+//  RETURNS
+//      (nothing)
+//-----------------------------------------------------------------
+emxUINavigator.shrink = function _emxUINavigator_shrink() {
+
+        //set the height of the content frame (NCZ, 18-Jul-03)
+        //this.contentFrame.style.height = (emxUICore.getWindowHeight() - this.toolbarLayer.parentNode.offsetHeight) + "px";
+
+        //set the grown flag (NCZ, 18-Jul-03)
+        this.grown = false;
+}; //End: emxUINavigator.shrink = function _emxUINavigator_shrink()
+
+//-----------------------------------------------------------------
+//! Protected Method emxUINavigator.toggleHeader()
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//      Nicholas C. Zakas (NCZ), 18-Jul-03
+//
+//  EDITOR(S)
+//
+//  DESCRIPTION
+//!     This method toggles shrinking/growing the header.
+//
+//  PARAMETERS
+//      (none)
+//
+//  RETURNS
+//      (nothing)
+//-----------------------------------------------------------------
+emxUINavigator.toggleHeader = function _emxUINavigator_toggleHeader() {
+
+        if (this.grown) {
+                this.shrink();
+        } else {
+                this.grow();
+        } //End: if (this.grown)
+        
+}; //End: emxUINavigator.toggleHeader = function _emxUINavigator_toggleHeader()
+
+
+//Initialization
+emxUINavigator.toolbar = new emxUIToolbar(emxUIToolbar.MODE_NORMAL,"Global");
+emxUINavigator.toolbar.maxWidth = -1;
+
+/*=================================================================
+ *  emxUIShortcutsButton Class Definition
+ *=================================================================
+ */
+
+//-----------------------------------------------------------------
+//! Class emxUIShortcutsButton
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//      Nicholas C. Zakas (NCZ), 30-Jun-03
+//
+//  EDITOR(S)
+//
+//  INHERITS FROM
+//      emxUIToolbarButton
+//
+//  DESCRIPTION
+// !    This object represents a separator on a toolbar.
+//
+//  PARAMETERS
+//      intFormat (int) - the format for the button. One of
+//              emxUIToolbar.ICON_ONLY, emxUIToolbar.TEXT_ONLY,
+//              or emxUIToolbar.ICON_AND_TEXT.
+//      strIcon (String) - the icon for the button.
+//      strText (String) - the text for the button.
+//      strURL (String) - the URL for the button.
+//      strTarget (String) - the name of the target for the URL (optional).
+//
+//  SUPPORTED EVENTS
+//      click, mouseover, mouseout
+//-----------------------------------------------------------------
+function emxUIShortcutsButton (intFormat, strIcon, strText, strURL, strTarget) {
+        
+        //---------------------------------------------------------------------------------
+        // Inherit Properties from emxUIToolbarButton
+        //---------------------------------------------------------------------------------
+        this.superclass = emxUIToolbarButton;
+        this.superclass(intFormat, strIcon, strText, strURL, strTarget);
+        delete this.superclass;
+        //---------------------------------------------------------------------------------
+            
+        //---------------------------------------------------------------------------------
+        // Private Properties
+        //---------------------------------------------------------------------------------
+        this.emxClassName = "emxUIShortcutsButton";       //internal class name (NCZ, 30-Jun-03)
+        //---------------------------------------------------------------------------------
+    
+} //End: function emxUIShortcutsButton ()
+
+//inherit methods from emxUIToolbarButton
+emxUIShortcutsButton.prototype = new emxUIToolbarButton;
+
+//-----------------------------------------------------------------
+//! Private Method emxUIShortcutsButton.createDOM()
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//      Nicholas C. Zakas (NCZ), 30-Jun-03
+//
+//  EDITOR(S)
+//
+//  DESCRIPTION
+//!     This methods creates the DOM for the item.
+//
+//  PARAMETERS
+//!     (none)
+//
+//  RETURNS
+//!     The DOM element representing this menu item.
+//-----------------------------------------------------------------
+emxUIShortcutsButton.prototype.emxUIToolbarButtonCreateDOM = emxUIShortcutsButton.prototype.createDOM;
+emxUIShortcutsButton.prototype.createDOM = function _emxUIShortcutsButton_createDOM() {
+
+        //call original method (NCZ, 4-Sep-03)
+        this.emxUIToolbarButtonCreateDOM();
+        
+        var objThis = this;
+
+        //set event handlers so this is a drop target (NCZ, 4-Sep-03)
+        this.element.ondragover = function () {
+        
+                //get the text in the datatransfer object (NCZ, 4-Sep-03)
+                var strText = window.event.dataTransfer.getData("text");
+                
+                //make sure it begins with "EMX:" (NCZ, 4-Sep-03)
+                if (strText.indexOf("EMX:::") == 0) {
+
+                        window.event.returnValue = false;
+                        objThis.fireEvent("dragover", window.event);
+                } //End: if (strText.indexOf("EMX:") == 0)        
+        
+        };  
+        
+        this.element.ondragenter = function () {
+                window.event.returnValue = false;        
+        };
+        
+        this.element.ondragleave = function () {
+
+                //get the text in the datatransfer object (NCZ, 4-Sep-03)
+                var strText = window.event.dataTransfer.getData("text");
+                
+                //make sure it begins with "EMX:" (NCZ, 4-Sep-03)
+                if (strText.indexOf("EMX:::") == 0) {
+                        objThis.fireEvent("dragout", window.event);
+                } //End: if (strText.indexOf("EMX:") == 0)        
+        
+        };  
+        
+        this.element.ondrop =  function () {
+                objThis.fireEvent("drop", window.event);   
+        };  
+
+}; //End: emxUIShortcutsButton.prototype.createDOM = function _emxUIShortcutsButton_createDOM()
+
+//-----------------------------------------------------------------
+//! Private Method emxUIShortcutsButton.handleEvent()
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//  Nicholas C. Zakas (NCZ), 30-Jun-03
+//
+//  EDITOR(S)
+//
+//  DESCRIPTION
+//!     This method handles the events for this object.
+//
+//  PARAMETERS
+//      strType (String) - the type of event.
+//
+//  RETURNS
+//      (nothing)
+//-----------------------------------------------------------------
+emxUIShortcutsButton.prototype.emxUIToolbarButtonHandleEvent = emxUIShortcutsButton.prototype.handleEvent;
+emxUIShortcutsButton.prototype.handleEvent = function _emxUIShortcutsButton_handleEvent(strType, objEvent) {
+        
+        
+        switch(strType) {
+        
+                case "dragover":
+                        emxUICore.addClass(this.element, "button-drag-hover");                
+                        break;
+                        
+                case "dragout":
+                        emxUICore.removeClass(this.element, "button-drag-hover");                
+                        break;
+                        
+                case "drop":
+                
+                        //remove the class (NCZ, 9-Sep-03)
+                        emxUICore.removeClass(this.element, "button-drag-hover");
+                        
+                        //get the data (NCZ, 9-Sep-03)
+                        var strData = objEvent.dataTransfer.getData("text");
+                        
+                        //split into an array (NCZ, 9-Sep-03)
+                        var arrData = strData.split(":::");
+                        
+                        //add shortcut (NCZ, 9-Sep-03)                        
+                        this.addShortcut(arrData[1], arrData[2], arrData[3], arrData[4]);
+                        break;                        
+        
+                default:
+                        this.emxUIToolbarButtonHandleEvent(strType, objEvent);
+        } //End: switch(strType)
+
+}; //End: emxUIShortcutsButton.prototype.handleEvent = function _emxUIShortcutsButton_handleEvent(strType)
+
+//-----------------------------------------------------------------
+//! Private Method emxUIShortcutsButton.init()
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//      Nicholas C. Zakas (NCZ), 7-Aug-03
+//
+//  EDITOR(S)
+//
+//  OVERRIDES
+//      emxUICoreToolbarItem.init()
+//
+//  DESCRIPTION
+//!     This method initializes the item.
+//
+//  PARAMETERS
+//      (none)
+//
+//  RETURNS
+//      (nothing)
+//-----------------------------------------------------------------
+emxUIShortcutsButton.prototype.emxUIToolbarButtonInit = emxUIShortcutsButton.prototype.init;
+emxUIShortcutsButton.prototype.init = function _emxUIShortcutsButton_init() {
+        
+        //call the default (NCZ, 9-Sep-03)
+        this.emxUIToolbarButtonInit();
+        
+        //register additional event handlers (NCZ, 9-Sep-03)
+        var objThis = this;
+        this.registerEventHandler("drop", function (objEvent) { objThis.handleEvent("drop", objEvent) });
+        this.registerEventHandler("dragover", function (objEvent) { objThis.handleEvent("dragover", objEvent) });
+        this.registerEventHandler("dragout", function (objEvent) { objThis.handleEvent("dragout", objEvent) });
+
+}; //End: emxUIShortcutsButton.prototype.init = function _emxUIShortcutsButton_init()
+
+//-----------------------------------------------------------------
+//! Private Method emxUIShortcutsButton.addShortcut()
+//-----------------------------------------------------------------
+//  BROWSER(S)
+//      Internet Explorer 5.5+
+//      Mozilla 1.0.1+ (Netscape 7.0+)
+//
+//  AUTHOR(S)
+//      Nicholas C. Zakas (NCZ), 7-Aug-03
+//
+//  EDITOR(S)
+//
+//  DESCRIPTION
+//!     This method adds a new shortcut to the menu.
+//
+//  PARAMETERS
+//      strIcon (String) - the icon to display in the menu.
+//      strText (String) - the text to display in the menu.
+//      strURL (String) - the URL for the menu.
+//      strTarget (String) - the target for the URL.
+//
+//  RETURNS
+//      (nothing)
+//-----------------------------------------------------------------
+emxUIShortcutsButton.prototype.addShortcut = function _emxUIShortcutsButton_addShortcut(strIcon, strText, strURL, strTarget) {
+
+        //create menu item (NCZ, 8-Sep-03)
+        var objItem = new emxUIToolbarMenuItem(emxUIToolbar.ICON_AND_TEXT, strIcon, strText, strURL, strTarget);
+        
+        //add it to this button's menu (NCZ, 8-Sep-03)
+        this.menu.addItem(objItem);
+        
+        //rebuild the menu (NCZ, 8-Sep-03)
+        this.menu.createDOM();
+
+}; //End: emxUIShortcutsButton.prototype.addShortcut = function _emxUIShortcutsButton_addShortcut(strIcon, strText, strURL)
+
+//add global event handlers (NCZ, 4-Sep-03)
+emxUICore.addEventHandler(window, "load", function () { emxUINavigator.init(); });
+emxUICore.addEventHandler(window, "resize", function () { emxUINavigator.resize(); emxUINavigator.redrawToolbar(); });
+emxUIToolbar.IMG_MENU_ARROW = emxUIConstants.DIR_IMAGES + "utilNavMenuArrow.gif";
+emxUIToolbar.IMG_CHEVRON = emxUIConstants.DIR_IMAGES + "utilNavigatorToolbarChevron.gif";
+
+
+
+var StructureNavigator = {
+		currButton: emxUIConstants.STR_NAV_CLOSE,
+        cols :null,
+	
+	getCurrButton: function _getCurrButton(){
+		return this.currButton;
+	},
+
+	setCurrButton: function _setCurrButton(currMode){
+		this.currButton = currMode;
+	},
+	
+	getCols:function _getCols(){
+		return this.cols;
+	},
+	
+	setCols:function _setCols(cols){
+		this.cols = cols;
+	}
+}
+

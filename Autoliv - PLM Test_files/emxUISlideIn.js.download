@@ -1,0 +1,244 @@
+//=================================================================
+// JavaScript emxUISlideIn.js
+// version: 2.0.1
+// Copyright (c) 1992-2012 Dassault Systemes.
+//=================================================================
+
+var shortcutState;
+
+var emxUISlideIn = {
+        last_slidein : [],
+        current_slidein : null,
+        is_closed : true,
+        slidein_template : function (name) {
+            if($('#' + name + 'SlideIn').length){
+                return $('#' + name + 'SlideIn');
+            } else {
+                var objElm = $('<div id="' + name + 'SlideIn" class="slide-in-panel dialog viewer"></div>');
+                if (name == "right") {
+                    objElm.append($('<iframe frameborder="0" name="slideInFrame"></iframe>'));
+                    objElm.css({'right':'0px'});
+                }
+                $('form[name="navigatorForm"]', top.document).append(objElm);
+                return objElm;
+            }
+        },
+        get_last_slidein : function () {
+            return this.last_slidein.pop();
+        },
+        set_last_slidein : function (slideIn) {
+            this.last_slidein.push(slideIn);
+        },
+        left : {
+            page_content_css : function () { 
+                return {'left' : emxUISlideIn.current_slidein.css('width')};
+            },
+            panel_slidein_css : {
+                'left': '0'
+            }
+        },
+        right : {
+            page_content_css : function () { 
+                return {'right' : emxUISlideIn.current_slidein.css('width')};
+            },
+            panel_slidein_css : {
+                'right': '0'
+            }
+        },
+        set_current : function (slideIn) {
+            this.current_slidein = slideIn;
+        },
+        close_current : function (obj) {
+            if(this.current_slidein){
+                var dir    = this.current_slidein.dir;
+                if (obj && obj.dir !== dir) {//don't close if it is the same side as last dialog
+                    closeSlideInDialog({'panel' : this.current_slidein});
+                }
+            }
+        },
+        set_closed : function () {
+            this.is_closed = true;
+            this.current_slidein = null;
+        },
+        set_opened : function () {
+            this.is_closed = false;
+        }
+};
+function showSlideInDialog(url, isModal, openerFrame, direction){
+    var dir = (direction == "left") ? "left" : "right";
+    //close other slideins
+    emxUISlideIn.close_current({'dir' : dir});
+    //open this slidein
+    var slideIn = emxUISlideIn.slidein_template(dir);
+    slideIn.dir = dir;
+    emxUISlideIn.set_current(slideIn);
+
+	if(isModal) {
+		$("div#layerOverlay").css('display', 'block');
+        slideIn.css('z-index', '250');
+	}
+
+    if (dir == "right") {
+        if(url.indexOf("javascript:") == 0){
+		eval(url);
+        } else {
+            findFrame(top, 'slideInFrame').location.href = url + "&targetLocation=slidein&openerFrame="+openerFrame;
+            slideIn.slideInFrame = 'slideInFrame';
+        }
+    } else {
+        slideIn.load(url, function () {
+            emxUIAutoFilter._scrollToQuadrant(url);
+            emxUIAutoFilter._set_id(url);
+        });
+    }
+    
+    //Modified by Autoliv to set the default width of slide In window to 350 px if its not loaded for Quick Access menu.
+    if(url.indexOf("alvUserRecentActionsLayout") == -1) {
+        slideIn.css('width', '350px');
+    }
+
+    if (emxUISlideIn.is_closed){//only slidein if not already there
+	if(emxUIConstants.STR_SLIDEIN_ANIMATIONTYPE == 'fade'){
+            $("div#pageContentDiv").css(emxUISlideIn[dir].page_content_css());
+            slideIn.css(emxUISlideIn[dir].panel_slidein_css)
+            .fadeIn(emxUIConstants.NUM_SLIDEIN_ANIMATIONSPEED);
+	} else {
+            slideIn.animate(emxUISlideIn[dir].panel_slidein_css, emxUIConstants.NUM_SLIDEIN_ANIMATIONSPEED);
+            $("div#pageContentDiv").animate(emxUISlideIn[dir].page_content_css(), emxUIConstants.NUM_SLIDEIN_ANIMATIONSPEED);
+	}
+
+        slideIn.css('display', 'block');
+        emxUISlideIn.set_opened();
+    }
+
+	//jQuery was returning the default value for style when it's actually null and hence we are fetching the value using getElementById
+	var dispalyStyle = document.getElementById('windowshadeMask').style.display;
+    if(top && top.closeWindowShadeDialog && $("div#windowshadeMask") && dispalyStyle.length != 0 && dispalyStyle != "none" ) {
+    	top.closeWindowShadeDialog();
+    }
+}
+
+function showShortcutDialog(){
+	shortcutState=true;
+	var key = top.window.name;
+	if(!key){
+		key="Shortcut_Content";
+	}
+	
+	$.ajax({
+		   url: "../common/emxShortcutGetData.jsp?action=initializeShortcutMap&key="+key,
+		   cache: false
+	});
+	
+	var ts = new Date().getTime();//prevent caching of filter page in IE
+    top.showSlideInDialog('../common/emxShortcut.jsp?no-cache='+ts+'&key='+key, false);
+}
+
+function closeShortcutDialog(){
+	shortcutState=false;
+	closeSlideInPanel();
+}
+
+function refreshShortcut(){
+	if(shortcutState == true){
+		setTimeout("showShortcutDialog()",100);
+	}
+}
+
+function closeSlideInDialog(obj){
+	closeSlideInPanel(obj);
+	
+	if(shortcutState == true){
+		setTimeout("showShortcutDialog()",20);
+	}
+}
+
+function closeSlideInPanel(obj) {
+    obj = obj || {'panel' : emxUISlideIn.current_slidein};
+    var dir = obj.panel.dir,
+        fadeWidth = "-" + obj.panel.css('width');
+	if(emxUIConstants.STR_SLIDEIN_ANIMATIONTYPE == 'fade'){
+        obj.panel.fadeOut(emxUIConstants.NUM_SLIDEIN_ANIMATIONSPEED, function() {
+            obj.panel.css(dir, fadeWidth);
+            $("div#pageContentDiv").css(dir,'0px');
+		});
+	}else {
+		if(dir=='right'){
+        obj.panel.animate({'right': fadeWidth}, emxUIConstants.NUM_SLIDEIN_ANIMATIONSPEED);
+		}else{
+		obj.panel.animate({'left': fadeWidth}, emxUIConstants.NUM_SLIDEIN_ANIMATIONSPEED);	
+		}		
+        $("div#pageContentDiv").animate({'left': '0px', 'right' : '0px'}, emxUIConstants.NUM_SLIDEIN_ANIMATIONSPEED);
+	}
+
+    obj.panel.css('display', 'none');
+    obj.panel.css('z-index', '50');
+
+	$("div#layerOverlay").css('display', 'none');
+    if (dir == 'right') {
+        findFrame(top, 'slideInFrame').location.href = "../common/emxBlank.jsp";
+}
+    emxUISlideIn.set_closed();
+}
+
+var gSearchURL = "";
+function showDefaultSearch() {
+	if(gSearchURL.length == 0){
+		showWindowShadeDialog("../common/emxFullSearch.jsp?table=AEFGeneralSearchResults&selection=multiple&hideHeader=true&showInitialResults=false&genericDelete=true", true);
+	}
+	else{
+		showWindowShadeDialog("","",true);
+	}
+}
+/*Modified for Release highlights window shade. Added bottom margin value*/
+function showWindowShadeDialog(url, isModal,showOnlyDiv){
+    if(true) {
+		$("div#layerOverlay").css('display', 'block');
+		$("div#windowshadeMask").css('z-index', '250');
+	}
+	if(url && url.indexOf('emxFullSearch.jsp')>- 1){
+		gSearchURL = url;
+	}
+	if(!showOnlyDiv){
+	frames['windowShadeFrame'].location.href = url + "&targetLocation=windowshade";
+	}
+	var closeHeight = $("div#windowshadeMask").height() + "px";
+	$("div.windowshade").css("bottom", closeHeight);
+
+	if(emxUIConstants.STR_WINDOWSHADE_ANIMATIONTYPE == 'fade'){
+	    $("div.windowshade").css("bottom", '10%');
+		if(!$.browser.safari){
+			$("div.windowshade").fadeIn(emxUIConstants.NUM_WINDOWSHADE_ANIMATIONSPEED);
+		}
+	} else {
+		$("div.windowshade").animate({bottom:'0px'}, emxUIConstants.NUM_WINDOWSHADE_ANIMATIONSPEED);
+	}
+	$("div#windowshadeMask").css('display', 'block');
+	$("div.windowshade").css('display', 'block');
+
+}
+
+
+function closeWindowShadeDialog(){
+	var closeHeight = $("div#windowshadeMask").height() + "px";
+	top.refreshShortcut();
+	if(emxUIConstants.STR_WINDOWSHADE_ANIMATIONTYPE == 'fade'){
+		$("div.windowshade").fadeOut(emxUIConstants.NUM_WINDOWSHADE_ANIMATIONSPEED, function(){
+			$("div#windowshadeMask").css('display', 'none');
+			$("div#windowshadeMask").css('z-index', '50');
+			$("div.windowshade").css('display', 'none');
+			$("div.windowshade").css('bottom', closeHeight);
+			//frames['windowShadeFrame'].location.href = "about:blank";
+			$("div#layerOverlay").css('display', 'none');
+		});
+	} else {
+		$("div.windowshade").animate({bottom: closeHeight}, emxUIConstants.NUM_WINDOWSHADE_ANIMATIONSPEED, function(){
+			$("div#windowshadeMask").css('display', 'none');
+			$("div#windowshadeMask").css('z-index', '50');
+			$("div.windowshade").css('display', 'none');
+			//frames['windowShadeFrame'].location.href = "about:blank";
+			$("div#layerOverlay").css('display', 'none');
+		});
+	}
+}
+

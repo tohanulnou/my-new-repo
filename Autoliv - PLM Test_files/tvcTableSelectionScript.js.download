@@ -1,0 +1,288 @@
+function tvcSubmitForm(actionURL, targetFrame, parameters) {
+    tvcPrepareFormElementsForSubmit(actionURL, true, parameters);
+    tvcDoSubmitForm(targetFrame);
+}
+
+function tvcDoSubmitForm(targetFrame) {
+    var form = tvcGetForm();
+    if (targetFrame) {
+        form.target = targetFrame;
+    } else {
+        form.target = '_self';
+    }
+
+    if (tvc.agent.isChrome && targetFrame === 'tableHiddenFrame') {
+        var url = $(form).attr('action');
+        var isPublish = this.isURLhasPublishParam(url);
+        var publishParam;
+        if (isPublish) {
+            params = tvc.parseQuery(url);
+        }
+        var _self = this;
+        var $parentDiv;
+        var eventTarget;
+        if (event) {
+            eventTarget = event.target;
+        }
+        if (eventTarget) {
+            parentDiv = eventTarget.parentElement;
+        }
+
+        var suffix = window.frameElement.id;
+        var hiddenFrameName = 'tableHiddenFrame';
+        var attributeConfig = 'configname';
+        if (window.frameElement.getAttribute(attributeConfig)) {
+            suffix = window.frameElement.getAttribute(attributeConfig);
+        }
+        var renameHiddenFrame = hiddenFrameName.concat('_').concat(suffix);
+        var len = window.parent.frames.length;
+        var frames = window.parent.frames;
+        for (var i = 0; i < len; i++) {
+            if (frames[i].name === hiddenFrameName) {
+                frames[hiddenFrameName].name = renameHiddenFrame;
+                break;
+            }
+        }
+
+        form.target = renameHiddenFrame;
+        form.submit();
+
+        if (isPublish) {
+            _self.publishOnSuccess(params['publish'][0]);
+        } else {
+            if (parentDiv.hasAttribute('data-id')) {
+                var dataId = parentDiv.getAttribute('data-id');
+                if (dataId) {
+                    _self.publishOnSuccess(dataId);
+                }
+            }
+        }
+    } else {
+        form.submit();
+    }
+}
+
+function publishOnSuccess(publishParam) {
+    var w = parent;
+    if (w.tvc && w.tvc.acknowledgePublisher) {
+        try {
+            if (publishParam) {
+                tvc.acknowledgePublisher(publishParam);
+            }
+        } catch (E) {
+            console.error('An error occurs while acknowledgeing publisher', E);
+        }
+    }
+}
+
+function isURLhasPublishParam(currentUrl) {
+    return currentUrl.indexOf('publish') > -1;
+}
+
+var _prepreFormForSubmitCB = null;
+
+function tvcSetPrepareFormForSubmitCB(cb) {
+    _prepreFormForSubmitCB = cb;
+}
+
+function tvcPrepareFormElementsForSubmit(actionURL, bUseSelectionElements, parameters) {
+    var form = tvcGetForm();
+    tvcRemoveTemporaryFormElements(form);
+    if (bUseSelectionElements) {
+        var checkboxes = tvcGetSelectionElements();
+        if (checkboxes.length) {
+            for (var i = 0; i < checkboxes.length; i++) {
+                if (
+                    (checkboxes[i].checked || checkboxes[i].getAttribute('checked') == 'checked') &&
+                    !checkboxes[i].disabled
+                ) {
+                    tvcAddTempFormElement(form, checkboxes[i].name, checkboxes[i].value);
+                }
+            }
+            var dataElements = tvcGetDataIDElements();
+            for (var i = 0; i < dataElements.length; i++) {
+                if (!dataElements[i].disabled) {
+                    tvcAddTempFormElement(form, dataElements[i].name, dataElements[i].value);
+                }
+            }
+        }
+    }
+    if (parameters) {
+        for (var i = 0; i < parameters.length; i++) {
+            tvcAddTempFormElement(form, parameters[i].name, parameters[i].value);
+        }
+    }
+    if (_prepreFormForSubmitCB) {
+        _prepreFormForSubmitCB(form);
+    }
+    tvcAddTempFormElement(form, 'parentWindowName', parent.name);
+    form.action = actionURL;
+    return form;
+}
+
+function tvcGetForm() {
+    return document.forms['tvcTableForm'];
+}
+
+function tvcGetElements(selectable) {
+    return $(selectable, tvcGetTableBodyRightFrame().tvcGetForm()).toArray();
+}
+
+function tvcGetSelectionElements() {
+    return tvcGetElements('input[name=emxTableRowId]');
+}
+
+function tvcGetDataIDElements() {
+    return tvcGetFormElements('dataId');
+}
+
+function tvcGetFormElements(name) {
+    var elements = null;
+    var rightFrame = tvcGetTableBodyRightFrame();
+    if (rightFrame != null) {
+        elements = rightFrame.tvcGetForm().elements[name];
+    }
+    return ensureArray(elements);
+}
+
+function tvcGetSelectAllElement() {
+    return ensureArray(tvcGetTableBodyRightFrame().tvcGetForm().elements['tvcSelectAll']);
+}
+
+function tvcGetNonSelectedSelections() {
+    return tvcGetElements(
+        'input[name=emxTableRowId]:not(:checked),input[name=emxTableRowId][type=hidden]:not([checked])'
+    );
+}
+
+function tvcGetSelectedSelections() {
+    return tvcGetElements(
+        'input[name=emxTableRowId]:checked,input[name=emxTableRowId][type=hidden][checked]'
+    );
+}
+
+function tvcTableHasSelections() {
+    return tvcGetSelectionCount() > 0;
+}
+
+function tvcGetSelectionCount() {
+    return tvcGetSelectedSelections().length;
+}
+
+function tvcUnselectAll() {
+    /*
+     * FIXME: This will not work correctly when a selection behavior is in use.
+     */
+    var oElements = tvcGetSelectionElements();
+    if (oElements.length) {
+        var bf = tvcGetTableBodyRightFrame();
+        for (var i = 0; i < oElements.length; i++) {
+            var e = oElements[i];
+            if ((e.checked || e.getAttribute('checked') == 'checked') && !e.disabled) {
+                e.checked = false;
+                bf.__hl(e);
+                bf.__data(e, false);
+            }
+        }
+        var a = tvcGetSelectAllElement();
+        if (a) {
+            a[0].checked = false;
+        }
+    }
+}
+
+function tvcUpdateSelectAll() {
+    var selectAll = tvcGetSelectAllElement();
+    if (selectAll) {
+        var selectedCount = tvcGetSelectionCount();
+        var allSelected = selectedCount != 0 && selectedCount == tvcGetSelectionElements().length;
+        for (var i = 0; i < selectAll.length; i++) {
+            selectAll[i].checked = allSelected;
+        }
+    }
+}
+
+function unCheckRowSelect() {
+    var tableBodyRightFrame = tvcGetTableBodyRightFrame();
+    if (!tableBodyRightFrame) {
+        return;
+    }
+
+    var tableBodyRightFrameElement = tableBodyRightFrame.frameElement;
+
+    var playPathElement = tableBodyRightFrameElement.contentDocument.getElementsByClassName(
+        'play-path'
+    );
+    for (var i = 0; i < playPathElement.length; i++) {
+        var el = tableBodyRightFrameElement.contentDocument.querySelector(
+            'input[dataid="' + playPathElement[i].dataset.rowid + '"]'
+        );
+        el.checked = false;
+        tableBodyRightFrameElement.contentWindow.fakeSelection(el);
+    }
+}
+
+function highlightRowByPath(path, on) {
+    var rowId = findRowIdByPath(path);
+    if (rowId) {
+        preventSBCallback();
+        handleRowSelect(rowId, on);
+    } else {
+        if (on) {
+            showMessage(
+                'There is no matching Part in structure. It could be due to pagination or collapsed rows.',
+                4000
+            );
+        }
+    }
+}
+
+function findRowIdByPath(path) {
+    var frame = tvcGetTableBodyRightFrame();
+    var $inputs = frame.frameElement.contentDocument.getElementById(path);
+    return $inputs && $inputs.dataset && $inputs.dataset.rowid ? $inputs.dataset.rowid : null;
+}
+
+function preventSBCallback() {
+    this.isPreventSBCallback = true;
+    var self = this;
+    setTimeout(function() {
+        self.isPreventSBCallback = false;
+    }, 500);
+}
+
+function handleRowSelect(rowId, on) {
+    var tableBodyRightFrame = tvcGetTableBodyRightFrame();
+    if (!tableBodyRightFrame) {
+        return;
+    }
+    var $input = tableBodyRightFrame.frameElement.contentDocument.getElementById('l' + rowId);
+    if ($input) {
+        var el = tableBodyRightFrame.frameElement.contentDocument.querySelector(
+            'input[dataid="' + rowId + '"]'
+        );
+        el.checked = on;
+        $input.highlighted = true;
+        tableBodyRightFrame.frameElement.contentWindow.fakeSelection(el);
+        if (on) {
+            tableBodyRightFrame.frameElement.contentWindow.tvcScrollToRow(rowId);
+        }
+    }
+}
+
+function showMessage(message, millis) {
+    var tableBodyRightFrame = tvcGetTableBodyRightFrame();
+    if (tableBodyRightFrame) {
+        tableBodyRightFrame.parent.showMsgAboveTable([message]);
+        if (millis) {
+            setTimeout(hideMessage, millis);
+        }
+    }
+}
+
+function hideMessage() {
+    var tableBodyRightFrame = tvcGetTableBodyRightFrame();
+    if (tableBodyRightFrame) {
+        tableBodyRightFrame.parent.$('#tvcMsgContainer').slideUp(200);
+    }
+}

@@ -1,0 +1,40 @@
+table.form th {
+    background-image: none;
+    background: #b0e2f2;
+    background: -moz-linear-gradient(top,  #b6ecf9 0%, #b0e2f2 100%);
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#b6ecf9), color-stop(100%,#b0e2f2));
+    background: -webkit-linear-gradient(top,  #b6ecf9 0%,#b0e2f2 100%);
+    background: -o-linear-gradient(top,  #b6ecf9 0%,#b0e2f2 100%);
+    background: -ms-linear-gradient(top,  #b6ecf9 0%,#b0e2f2 100%);
+    background: linear-gradient(to bottom,  #b6ecf9 0%,#b0e2f2 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#b6ecf9', endColorstr='#b0e2f2',GradientType=0 );
+    color: #2a4757;
+}
+
+th.default {
+    border-right: 1px solid #FFFFFF;
+}
+
+tr.even {
+    background-color: #F5F5F5;
+}
+
+td.default {
+    border-bottom: 1px solid #e6e6e6 !important;
+    border-right: 1px solid #e6e6e6 !important;
+}
+
+td.inputField {
+    background-color: #eef0f0;
+    border: 1px solid #FEFEFE;
+}
+
+td.label {
+    background-color: #e0e0e0;    
+    border: 1px solid #FEFEFE;
+    color: black;
+}
+
+td.labelRequired {
+    border: 1px solid #FEFEFE;
+}

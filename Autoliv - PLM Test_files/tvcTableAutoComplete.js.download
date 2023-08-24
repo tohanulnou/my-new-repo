@@ -1,0 +1,176 @@
+if (!window.tvc) {
+    window.tvc = {};
+}
+if (!window.tvc.tableautocomplete) {
+    window.tvc.tableautocomplete = {
+        init: function(field, focus) {
+            // validate input
+            if (typeof field === 'undefined') {
+                alert('No field supplied when init autocomplete');
+                return;
+            }
+            focus = typeof focus !== 'undefined' ? focus : false;
+            var $field = $(field);
+
+            // Settings
+            var settings = tvc.tableautocomplete.getSettings($field);
+            if (settings.maxItems && settings.maxItems > 1) {
+                alert(
+                    'Only supported to select one item (maxItems:1) for autocomplete in the Structure Browser table. Aborting.'
+                );
+                return;
+            }
+
+            // start selectize
+            $field.tvcselectize(settings);
+            var selectize = $field[0].selectize;
+            selectize.$wrapper.removeClass('ac-hidden');
+
+            if (focus) {
+                selectize.focus();
+            }
+
+            // store original value
+            selectize.savedValue = $field.val();
+
+            // close dropdown on scroll (only resizable)
+            selectize.on('dropdown_open', function() {
+                tvc.tableautocomplete.onDropdownOpen.apply(selectize, arguments);
+            });
+            selectize.on('dropdown_close', function() {
+                tvc.tableautocomplete.onDropdownClose.apply(selectize, arguments);
+            });
+
+            return selectize;
+        },
+
+        initMock: function(mock) {
+            if (typeof mock === 'undefined') {
+                return;
+            }
+
+            var $mock = $(mock);
+            var $field = $mock.siblings('[data-autocompletefield=true]');
+            if ($field.data('mode') === 'INLINE_COMPARE') {
+                $field[0].disabled = $mock.disabled;
+                $field.attr('row', $mock.attr('data-row'));
+                $field.attr('data-row', $mock.attr('data-row'));
+            }
+            var selectize = tvc.tableautocomplete.init($field, true);
+            $mock.remove();
+        },
+
+        getSettings: function($field) {
+            var defaultSettings = {
+                jsonUrl: $field.data('url'),
+                handler: {
+                    name: $field.data('handler'),
+                    dataId: $field.attr('row'),
+                    col: $field.attr('col'),
+                    object: parent.getTableBeanName()
+                }
+            };
+            if ($field.data('mode') === 'TABLE_CELL') {
+                defaultSettings.onBlur = function() {
+                    tvc.tableautocomplete.save(this);
+                };
+                defaultSettings.onItemAdd = function(value, $item) {
+                    tvc.tableautocomplete.resizeTableColumn(value, $item);
+                    tvc.tableautocomplete.save(this);
+                };
+            }
+            var customSettings = window[$field.attr('data-var-name')];
+            if ($field.data('mode') === 'INLINE_COMPARE') {
+                customSettings = {
+                    handler: {
+                        dataset: $field.attr('inline_dataset'),
+                        label: $field.attr('label'),
+                        classname: $field.attr('class-name')
+                    }
+                };
+            }
+            if (customSettings && customSettings.onBlur) {
+                alert('Autocomplete settings contain onBlur setting. It is ignored.');
+                delete customSettings['onBlur'];
+            }
+            if (customSettings && customSettings.onItemAdd) {
+                alert('Autocomplete settings contain onItemAdd setting. It is ignored.');
+                delete customSettings['onItemAdd'];
+            }
+            return $.extend(true, {}, defaultSettings, customSettings);
+        },
+
+        // Adjust column width to fit added item
+        resizeTableColumn: function(value, $item) {
+            var $cell = $item.parents('td');
+            var isInCellEdit = $cell[0].hasAttribute('ice');
+
+            if (tvc.sbTableResizeMgr && !isInCellEdit) {
+                var w = $cell.measure(function() {
+                    return this.outerWidth();
+                });
+
+                if (w > $cell.width()) {
+                    var col = tvc.tableautocomplete.findCol(
+                        $cell,
+                        tvc.tableautocomplete.findCellIndex($cell)
+                    );
+                    tvc.sbTableResizeMgr.setColWidth(col, w);
+                    tvc.sbTableResizeMgr.refreshLayout();
+                }
+            }
+        },
+
+        findCol: function($cell, cellIndex) {
+            if (tvc.sbTableResizeMgr) {
+                var lr = $cell
+                    .parent()
+                    .attr('id')
+                    .charAt(0);
+                return $('> thead > tr:first > :nth-child(' + cellIndex + ')', $('#th' + lr));
+            } else {
+                return null;
+            }
+        },
+
+        findCellIndex: function($cell) {
+            return $cell.index() + 1;
+        },
+
+        save: function(selectize) {
+            if (selectize.getValue() == selectize.savedValue) {
+                return;
+            }
+            selectize.lock();
+            parent.tvcEditCell(selectize.$input.get(0), selectize.getValue(), function(result) {
+                switch (result.status) {
+                    case 'success':
+                    case 'script':
+                        selectize.savedValue = selectize.getValue();
+                        break;
+                    case 'error':
+                        tvc.tableautocomplete.reset(selectize);
+                        break;
+                }
+                selectize.unlock();
+            });
+        },
+
+        reset: function(selectize) {
+            selectize.setValue(selectize.savedValue);
+        },
+
+        onDropdownOpen: function() {
+            var self = this;
+            $('#tbrc').on(['scroll' + self.eventNS, 'resize' + self.eventNS].join(' '), function() {
+                if (self.isOpen) {
+                    self.blur();
+                }
+            });
+        },
+
+        onDropdownClose: function() {
+            $('#tbrc').off(['scroll' + this.eventNS, 'resize' + this.eventNS].join(' '));
+        }
+    };
+}

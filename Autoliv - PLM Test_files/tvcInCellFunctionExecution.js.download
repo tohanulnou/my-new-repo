@@ -1,0 +1,76 @@
+var TVCFuntionExecutor = (function(_super, $, tvc) {
+
+    TVCFuntionExecutor.inherits(_super);
+
+    function TVCFuntionExecutor() {
+        _super.apply(this, arguments);
+
+        this.ref = null;
+        this.$container = null;
+        this.fnAttr = 'data-function';
+        this.fnMap = {};
+    }
+
+    var behaviours = {
+        init : function(ref, resizer) {
+            this.ref = ref;
+            this.resizer = resizer;
+            this.$container = (ref && ref.$tableBody) || $(document.body);
+            this.initialize();
+        },
+
+        initialize : function() {
+            this.executeFunction();
+            this.syncView();
+        },
+
+        getFunctionCells : function() {
+            return $('td[' + this.fnAttr + ']:not([rendered])', this.$container);
+        },
+
+        getDataFunction : function(fnName) {
+            if (!this.fnMap[fnName]) {
+                try {
+                    this.fnMap[fnName] = eval(fnName);
+                } catch (e) {
+                    alert('column function ' + fnName + ' does not exist');
+                    this.fnMap[fnName] = Function.prototype;
+                }
+            }
+            return this.fnMap[fnName];
+        },
+
+        executeFunction : function() {
+            var $fnCells = this.getFunctionCells();
+            $.each($fnCells, function(index, cell) {
+                var $cell = $(cell);
+                var dataFunction = $cell.data('function');
+                var dataValue = $cell.data('value');
+                this.getDataFunction(dataFunction)(dataValue, $cell);
+                $cell.attr('rendered','true');
+            }.bind(this));
+        },
+
+        syncView : function() {
+            if (this.resizer) {
+                this.resizer.setRefresh(true);
+                this.resizer.refreshLayout();
+            }
+        }
+    };
+
+    TVCFuntionExecutor.behaves(behaviours);
+
+    return TVCFuntionExecutor;
+
+})(Function.Super, window.$, window.tvc || (window.tvc = {}));
+
+if (!tvc.functionExecutor) {
+    tvc.functionExecutor = new TVCFuntionExecutor();
+}
+
+function bootstrapFunctionExecutor() {
+    tvc.functionExecutor.init(tvc.sbTableRef, tvc.sbTableResizeMgr);
+}
+
+tvc.onDocumentRendered(bootstrapFunctionExecutor, 100);

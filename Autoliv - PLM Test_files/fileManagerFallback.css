@@ -1,0 +1,131 @@
+#tvcFileManagerOverlay {
+    position: absolute;
+    font-size: 1.3em;
+    z-index: 15002;
+    top: 0px;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+}
+
+#tvcFileManagerOverlay #tvcFileManagerOverlayContent {
+    position: absolute;
+    background-color: white;
+    top: 0 !important;
+    bottom: 0;
+    left: 0 !important;
+    right: 0;
+    width: 90% !important;
+    height: 90% !important;
+    margin: auto;
+}
+
+#tvcFileManagerOverlayContent #tvcFileManagerDropZoneLabel {
+    cursor: pointer;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 3em;
+    line-height: 1em;
+    white-space: nowrap;
+    color: #ddd;
+}
+
+#tvcFileManagerOverlayContent #tvcFileManagerDropZone {
+    height: 100%;
+    overflow-y: scroll;
+    border: dashed 4px #ddd;
+    box-sizing: border-box;
+    padding: 10px;
+}
+
+#tvcFileManagerDropZone .buttonContainer {
+    margin-top: 20px;
+    clear: both;
+}
+
+#tvcFileManagerDropZone .buttonContainer #tvcFileManagerSubmitButton {
+    margin-right: 5px;
+}
+
+#tvcFileManagerDropZone #tvcFileManagerSelectedFile {
+    margin-top: 10px;
+    display: none;
+}
+
+#tvcFileManagerDropZone #tvcFileManagerSelectedFile .tvcFileManagerFileItemRemoveIcon {
+    display: none;
+}
+
+#tvcFileManagerDropZone .tvcFileManagerUserInputHolder {
+    display: table-cell;
+    padding-left: 10px;
+}
+
+#tvcFileManagerDropZone .tvcFileManagerUserInputHolder .tvcUserInputField {
+    margin-top: 10px;
+}
+
+#tvcFileManagerDropZone .tvcFileManagerUserInputHolder .tvcUserInputField label.required {
+    color: red;
+}
+#tvcFileManagerDropZone .tvcFileManagerUserInputHolder .tvcUserInputField .inputFieldContainer {
+    margin-top: 5px;
+}
+
+#tvcFileManagerDropZone .tvcFileManagerFileItemStatus {
+    display: table-cell;
+    padding-left: 10px;
+    max-width: 500px;
+}
+#tvcFileManagerDropZone .tvcFileManagerFileItemStatus.error {
+    color: #bf0000;
+}
+#tvcFileManagerDropZone .tvcFileManagerFileItemStatus.info {
+    color: #00af00;
+}
+#tvcFileManagerDropZone .tvcFileManagerFileItemProgress {
+    display: table-cell;
+    padding-left: 10px;
+}
+
+#tvcFileManagerDropZone .tvcFileManagerFileItemProgress progress {
+    -webkit-appearance: progress-bar;
+    box-sizing: border-box;
+    display: none;
+    width: 250px;
+}
+
+#tvcFileManagerDropZone .tvcFileManagerFileItemRemoveIcon {
+    display: table-cell;
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAfElEQVR42mNgGFRAVVXVCIifA3EXFrkuIH4IUoNP80cg/g/E35ENgWr+DpV7i9UQoOAbqIL/yIagaYbhh9gMWIhF4W8g/oXNYFzewGYIcZrRDPmNRfMvgpqRDPhLlgEUeQGH5l9EByI0kVAUjUbQREJeQkIy5CFZSXnAAADRq5M9sm55aAAAAABJRU5ErkJggg==');
+    background-repeat: no-repeat;
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+#tvcFileManagerDropZone .tvcFileManagerFileItem {
+    display: table-row;
+    height: 20px;
+}
+#tvcFileManagerDropZone .tvcFileManagerFileItemName {
+    display: table-cell;
+    white-space: nowrap;
+    padding-left: 10px;
+}
+#tvcFileManagerDropZone .tvcFileManagerFileItemSize {
+    display: table-cell;
+    white-space: nowrap;
+    padding-left: 10px;
+    text-align: right;
+}
+#tvcFileManagerDropZone .tvcFileManagerFileError {
+    display: table-cell;
+    white-space: nowrap;
+    padding-left: 10px;
+    text-align: right;
+    color: red;
+}

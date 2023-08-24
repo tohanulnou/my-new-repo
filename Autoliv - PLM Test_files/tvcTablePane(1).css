@@ -1,0 +1,31 @@
+.paneouter {
+    border-color: #B4B4B4 #8E8E8E #8E8E8E #B4B4B4;
+    box-shadow: #444 1px 1px 2px;
+}
+.paneinner {
+    border-color: #FFFFFF #C1C1C1 #C1C1C1 #FFFFFF;
+    background-color: #E4E4E4;
+}
+.loading {
+    border-color: #8E8E8E #B4B4B4 #B4B4B4 #8E8E8E;
+    background-image: url('../../../images/load-blue-white-big.gif');
+    background-position: center center;
+    background-repeat: no-repeat;
+}
+.paneheader {
+    color: #369;
+    border-bottom: 1px solid #369;
+}
+.panesubheader {
+    color: #666;
+    border-bottom: 1px solid #ccc;
+}
+.panecontent {
+    color: black;
+}
+.panebottomouter {
+    border-top: 1px solid #AAAAAA;
+}
+.panebottominner {
+    border-top: 1px solid #FAFAFA;
+}

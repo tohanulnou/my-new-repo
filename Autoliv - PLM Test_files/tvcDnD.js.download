@@ -1,0 +1,370 @@
+if (!window.tvc)window.tvc={};
+tvc.dnd = {};
+
+/**
+ * Public function to register a drag/drop area.
+ */
+tvc.dnd.registerArea = function(area) {
+    tvc.dnd.areas.push(area);
+}
+
+/*
+ * Custom event handlers that can be defined.
+ */
+tvc.dnd.onDrop = null;
+tvc.dnd.onBeforeDrag = null;
+tvc.dnd.onDragStart = null;
+tvc.dnd.onDragEnd = null;
+tvc.dnd.onDrag = null;
+
+tvc.dnd.preventDragInputFields = true;
+
+/*
+ * The class used for the place holder
+ */
+tvc.dnd.placeHolderClass = "dndPlaceHolder";
+
+
+/*
+ * Everything below is private to the DnD
+ */
+
+// private members.
+tvc.dnd.areas = [];
+tvc.dnd.isDragging=false;
+tvc.dnd.dragItem=null;
+tvc.dnd.dragItemXOffset=0;
+tvc.dnd.dragItemYOffset=0;
+tvc.dnd.dragItemYDelta=0;
+tvc.dnd.dragItemArea=null;
+tvc.dnd.dragItemSibling=null;
+tvc.dnd.dragDropArea=null;
+tvc.dnd.dragDropAreaInsertBefore=null;
+tvc.dnd.dragPlaceHolder=null;
+tvc.dnd.dragMoveContainer=null;
+tvc.dnd.scrollable = null;
+
+tvc.dnd.getScrolledTop = function() {
+    return (tvc.dnd.scrollable && tvc.dnd.scrollable.scrollTop) || 0;
+};
+
+// returns whether the specified element is registered as a drag/drop area.
+tvc.dnd.isRegisteredArea = function(element) {
+    for (var i = 0; i < tvc.dnd.areas.length; i++) {
+        if (element == tvc.dnd.areas[i]) {
+            return true;
+        }
+    }
+};
+
+tvc.dnd.within = function(x,y,pos,element) {
+    return x >= pos.x && 
+        y >= pos.y && 
+        x <= (pos.x+element.offsetWidth) && 
+        y <= (pos.y+element.offsetHeight);
+};
+
+// returns relevant information based on the given mouse pointer position.
+tvc.dnd.getDragInfo = function(x,y,forDragStart) {
+    y += tvc.dnd.getScrolledTop();
+    y -= tvc.dnd.dragItemYDelta;
+    for (var i = 0; i < tvc.dnd.areas.length; i++) {
+        var a = tvc.dnd.areas[i];
+        var p = tvc.dnd.getPageXY(a);
+        if (tvc.dnd.within(x,y,p,a)) {
+            var c = tvc.dnd.getNextElement(a.firstChild);
+            var insertBefore = null;
+            var hover = null;
+            var hoverXOffset = 0;
+            var hoverYOffset = 0;
+            while (c) {
+                if (c != tvc.dnd.dragPlaceHolder) {
+                    var cy = p.y + c.offsetTop;
+                    var ch = c.offsetHeight;
+                    if (insertBefore == null && (y <= cy + (ch / 2))) {
+                        insertBefore = c;
+                    }
+                    if ((y >= cy) && (y <= cy + ch)) {
+                        hover = c;
+                        hoverXOffset = x - (p.x + c.offsetLeft);
+                        hoverYOffset = y - cy;
+                    }
+                    if (insertBefore != null && hover != null) {
+                        if (forDragStart && tvc.dnd.preventDragInputFields) {
+                            var inputs = hover.getElementsByTagName("INPUT"); // todo check SELECT boxes...
+                            for (var index = 0; index<inputs.length; index++) {
+                                var input = inputs.item(index);
+                                if (tvc.dnd.within(x,y,tvc.dnd.getPageXY(input),input)) {
+                                    return null;
+                                }
+                            }
+                        }
+                        var disabledFields = $('.notDraggable');
+                        for (var index = 0; index<disabledFields.length; index++) {
+                        	var disabledField = disabledFields[index];
+                            if (tvc.dnd.within(x,y,tvc.dnd.getPageXY(disabledField),disabledField)) {
+                                return null;
+                            }
+                        }
+                        break;
+                    }
+                } 
+                c = tvc.dnd.getNextElement(c.nextSibling);
+            }
+            return { 
+                area: a, 
+                insertBefore: insertBefore, 
+                hover: hover,
+                hoverXOffset: hoverXOffset,
+                hoverYOffset: hoverYOffset
+            };
+        }
+    }
+    return null;
+};
+
+// returns the argument if it is an element, if not the next sibling which is an element is returned.
+tvc.dnd.getNextElement = function(node) {
+    while  ((node != null) && (node.nodeType != 1)) {
+        node = node.nextSibling;
+    }
+    return node;
+};
+
+// calculates the x and y coordinates of the specified element's top-left corner.
+tvc.dnd.getPageXY = function(element) {
+    var x = 0;
+    var y = 0;
+    var node = element;
+    while (node) {
+        if (node.offsetLeft) {
+            x += node.offsetLeft;
+        }
+        if (node.offsetTop) {
+            y += node.offsetTop;
+        }
+        node = node.offsetParent;
+    }
+    return { x: x, y: y };
+};
+
+// called when the are being dragged over might have changed.
+tvc.dnd.setCurrentDropArea = function(area,insertBefore,item) {
+    var ph = tvc.dnd.dragPlaceHolder;
+    if (area == null) {
+        if (ph != null) {
+            ph.parentNode.removeChild(ph);
+            ph = null;
+        }
+    } else {
+        var create = false;
+        if (ph == null) {
+            create = true;
+        } else if (area != tvc.dnd.dragDropArea) {
+            ph.parentNode.removeChild(ph);
+            create = true;
+        }
+        if (create) {
+            ph = tvc.dnd.createPlaceHolder(area, item);
+            tvc.dnd.addChild(area, ph, insertBefore);
+        } else if (tvc.dnd.dragDropAreaInsertBefore != insertBefore) {
+            ph.parentNode.removeChild(ph);
+            tvc.dnd.addChild(area, ph, insertBefore);
+        }
+    }
+    tvc.dnd.dragPlaceHolder = ph;
+    tvc.dnd.dragDropArea = area;
+    tvc.dnd.dragDropAreaInsertBefore = insertBefore;
+};
+
+// create a place holder that will show where the element will be placed if dropped.
+tvc.dnd.createPlaceHolder = function(area, item) {
+    var x = area.ownerDocument.createElement("DIV");
+    x.className = tvc.dnd.placeHolderClass;
+    x.style.width = (item.offsetWidth) + "px";
+    x.style.height = (item.offsetHeight) + "px";	
+    return x;
+};
+
+// add a child to the parent element, if before is not null add the child before that element.
+tvc.dnd.addChild = function(parent, child, before) {
+    if (before == null) {
+        parent.appendChild(child);
+    } else {
+        parent.insertBefore(child, before);
+    }
+};
+
+// called when a drag has ended for some reason, e.g., the mouse button was 
+// released or the mouse pointer was moved outside the bounds of the HTML document.
+tvc.dnd.dragEnded = function() {
+    if (tvc.dnd.isDragging) {
+        var item = tvc.dnd.dragItem;
+        var container = tvc.dnd.dragMoveContainer;
+        container.style.display="none";
+        container.removeChild(item);
+        var newParent = tvc.dnd.dragDropArea;
+        var newBefore = tvc.dnd.dragDropAreaInsertBefore;
+        var newLocation = true;
+        if (newParent == null) {
+            newParent = tvc.dnd.dragItemArea;
+            newBefore = tvc.dnd.dragItemSibling;
+            newLocation = false;
+        } else if ((newParent == tvc.dnd.dragItemArea)
+                && (newBefore == tvc.dnd.dragItemSibling)) {
+            newLocation = false;
+        }
+        tvc.dnd.setCurrentDropArea(null, null, null);
+        tvc.dnd.addChild(newParent, item, newBefore);
+        if (newLocation && tvc.dnd.onDrop != null) {
+            var rv = tvc.dnd.onDrop(item, newParent);
+            if (rv == false) {
+                newParent.removeChild(item);
+                tvc.dnd.addChild(
+                    tvc.dnd.dragItemArea, 
+                    item, tvc.dnd.dragItemSibling);
+            }
+        }
+        if (tvc.dnd.onDragEnd != null) {
+            tvc.dnd.onDragEnd(item, newParent);
+        }
+    }
+    tvc.dnd.isDragging=false;
+    tvc.dnd.dragItem=null;
+    tvc.dnd.dragItemXOffset=0;
+    tvc.dnd.dragItemYOffset=0;
+    tvc.dnd.dragItemYDelta=0;
+    tvc.dnd.dragItemArea=null;
+    tvc.dnd.dragItemSibling=null;
+};
+
+// called to update the state of the document during a drag.
+// clientX and clientY specifies the current position of the mouse pointer.
+tvc.dnd.doDrag = function(clientX, clientY) {
+    if (tvc.dnd.isDragging) {
+        var item = tvc.dnd.dragItem;
+        var container = tvc.dnd.dragMoveContainer;
+        container.style.left = (clientX-tvc.dnd.dragItemXOffset)+"px";
+        container.style.top = (clientY-tvc.dnd.dragItemYOffset)+"px";
+        var info = tvc.dnd.getDragInfo(clientX,clientY,false);
+        if (info==null) {
+            tvc.dnd.setCurrentDropArea(null, null, null);
+            container.style.cursor = "no-drop";
+        } else {
+            tvc.dnd.setCurrentDropArea(info.area, info.insertBefore, item);
+            container.style.cursor = "move";
+        }
+        if (tvc.dnd.onDrag != null) {
+            tvc.dnd.onDrag(item, tvc.dnd.dragDropArea);
+        }
+    }
+};
+
+// called to investigate whether a drag will be started.
+// clientX and clientY specifies the position of the mouse pointer when lmb was pressed.
+tvc.dnd.dragStarted = function(clientX, clientY) {
+    var info = tvc.dnd.getDragInfo(clientX,clientY,true);
+    if (info != null) {
+        var item = info.hover;
+        if (item != null) {
+            if (tvc.dnd.onBeforeDrag != null) {
+                var rv = tvc.dnd.onBeforeDrag(item, info.area);
+                if (rv == false) {
+                    return;
+                }
+            }
+            tvc.dnd.isDragging=true;
+            tvc.dnd.dragItem=item;
+            tvc.dnd.dragItemXOffset=info.hoverXOffset;
+            tvc.dnd.dragItemYOffset=info.hoverYOffset;
+            tvc.dnd.dragItemYDelta=info.hoverYOffset-(item.offsetHeight/2);
+            tvc.dnd.dragItemArea=info.area;
+            var sibling = tvc.dnd.getNextElement(item.nextSibling);
+            tvc.dnd.dragItemSibling=sibling;
+            tvc.dnd.setCurrentDropArea(info.area, sibling, item);
+            var container = tvc.dnd.dragMoveContainer;
+            var itemHeight = item.offsetHeight;
+            var itemWidth = item.offsetWidth;
+            item.parentNode.removeChild(item);
+            container.style.height = itemHeight + "px";
+            container.style.width = itemWidth + "px";
+            container.style.left = (clientX-tvc.dnd.dragItemXOffset)+"px";
+            container.style.top = (clientY-tvc.dnd.dragItemYOffset)+"px";
+            container.appendChild(item);
+            if (tvc.dnd.onDragStart != null) {
+                tvc.dnd.onDragStart(item, info.area);
+            }
+            container.style.display = "block";
+        }
+    }
+};
+
+tvc.dnd.handleEvent = function(object, event, func) {
+    if (object && func) {
+        if (typeof object.addEventListener == "function") {
+            object.addEventListener(event, func, false);
+        } else if (typeof object.attachEvent != "undefined") {
+            object.attachEvent("on"+event, func);
+        }
+    }
+};
+
+tvc.dnd.unhandleEvent=function(object, event, func) {
+    if (object && func) {
+        if (typeof object.removeEventListener == "function") {
+            object.removeEventListener(event, func, false);
+        } else if (typeof object.detachEvent != "undefined") {
+            object.detachEvent("on" + event, func);
+        }
+    }
+};
+
+tvc.dnd.__dragMousedown = function(e) {
+    tvc.dnd.dragStarted(e.clientX, e.clientY);
+};
+
+tvc.dnd.__dragMousemove = function(e) {
+    tvc.dnd.doDrag(e.clientX, e.clientY);
+};
+
+tvc.dnd.__dragMouseup = function(e) {
+    tvc.dnd.dragEnded();
+};
+
+tvc.dnd.__dragMouseout = function(e) {
+    if (!e) var e=window.event;
+    var tgt = e.target || e.src;
+    if (tgt && tgt.tagName == "HTML" && e.relatedTarget == null) {
+        // the mouse pointer was moved outside the bounds of the document.
+        tvc.dnd.dragEnded();
+    }
+};
+
+tvc.dnd.unregisterDragEventSource = function(doc) {
+    tvc.dnd.unhandleEvent(doc, "mousedown", tvc.dnd.__dragMousedown);
+    tvc.dnd.unhandleEvent(doc, "mouseup", tvc.dnd.__dragMouseup);
+    tvc.dnd.unhandleEvent(doc, "mouseout", tvc.dnd.__dragMouseout);
+    tvc.dnd.unhandleEvent(doc, "mousemove", tvc.dnd.__dragMousemove);
+};
+
+tvc.dnd.registerDragEventSource = function(doc) {
+    tvc.dnd.unregisterDragEventSource(doc);
+    tvc.dnd.handleEvent(doc, "mousedown", tvc.dnd.__dragMousedown);
+    tvc.dnd.handleEvent(doc, "mouseup", tvc.dnd.__dragMouseup);
+    tvc.dnd.handleEvent(doc, "mouseout", tvc.dnd.__dragMouseout);
+    tvc.dnd.handleEvent(doc, "mousemove", tvc.dnd.__dragMousemove);
+};
+
+// initialize the dnd functionality.
+tvc.dnd.init = function(doc, scrollable) {
+    tvc.dnd.registerDragEventSource(doc);
+    var container = doc.createElement("DIV");
+    container.style.position = "absolute";
+    container.style.display = "none";
+    container.style.zIndex = "10000";
+    container.style.cursor = "move";
+    container.style.overflow = "hidden";
+    doc.body.appendChild(container);
+    tvc.dnd.dragMoveContainer = container;
+    tvc.dnd.scrollable = scrollable;
+};

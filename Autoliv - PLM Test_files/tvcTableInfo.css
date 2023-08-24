@@ -1,0 +1,26 @@
+html {
+    margin: 0px 0px 0px 0px;
+    overflow: hidden;
+}
+body {
+    margin: 10px 10px 0px 10px;
+    overflow: hidden;
+    cursor: default;
+}
+.pageHeader {
+    font-family: Arial, Helvetica, Sans-Serif;
+    font-weight: bold;
+    font-size: 12pt;
+    text-decoration: none;
+    white-space: nowrap;
+    padding-top: 4px;
+    padding-left: 4px;
+}
+.pageSubTitle {
+    font-family: Arial, Helvetica, Sans-Serif;
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-decoration: none;
+    white-space: nowrap;
+    padding-left: 5px;
+}

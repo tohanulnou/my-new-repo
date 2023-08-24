@@ -1,0 +1,70 @@
+(function(window, i18n) {
+    if (!window.tvc) {
+        window.tvc = {};
+    }
+    if (!window.tvc.fileManager) {
+        window.tvc.fileManager = {};
+    }
+
+    function notSupported() {
+        alert(i18n('tvc.filemanager.client.fpdNotSupportedError'));
+    }
+
+    window.tvc.fileManager.html5API = {
+        view: function(e, objectId, format, fileName, callback) {
+            tvc.fileManager.html5.downloadFile(e, objectId, format, fileName, false);
+        },
+        preview: function(e, objectId, format, fileName, callback) {
+            tvc.fileManager.html5.downloadFile(e, objectId, format, fileName, false, true);
+        },
+        download: function(e, objectId, format, fileName, callback) {
+            tvc.fileManager.html5.downloadFileAsAttachment(e, objectId, format, fileName, false);
+        },
+        checkout: function(e, objectId, format, fileName, callback) {
+            tvc.fileManager.listeners.register(e, objectId, callback);
+            tvc.fileManager.html5.downloadFile(e, objectId, format, fileName, true);
+        },
+        checkin: function(
+            e,
+            objectId,
+            format,
+            fileName,
+            tryFindExisting,
+            callback,
+            isHETrueWidget
+        ) {
+            tvc.fileManager.listeners.register(e, objectId, callback, isHETrueWidget);
+            tvc.fileManager.html5.showCheckinFileUI(objectId, format, fileName);
+        },
+        checkinNew: function(e, objectId, callback, isHETrueWidget) {
+            tvc.fileManager.listeners.register(e, objectId, callback, isHETrueWidget);
+            tvc.fileManager.html5.showCheckinNewFileUI(objectId);
+        },
+        callMXCheckout: function(e, objectId, action, format, fileName) {
+            tvc.fileManager.enovia.checkoutFile(e, objectId, action, format, fileName);
+        },
+        callMXViewer: function(e, viewerURL, objectId, format, fileName) {
+            tvc.fileManager.enovia.openViewer(e, viewerURL, objectId, format, fileName);
+        },
+        lock: function(e, objectId, objectIdOnRow, callback) {
+            tvc.fileManager.services.lockOrUnlock(e, objectId, objectIdOnRow, true, callback);
+        },
+        unlock: function(e, objectId, objectIdOnRow, callback) {
+            tvc.fileManager.services.lockOrUnlock(e, objectId, objectIdOnRow, false, callback);
+        },
+        deleteFile: function(e, objectId, format, fileName, callback) {
+            tvc.fileManager.services.deleteFile(e, objectId, format, fileName, callback);
+        },
+        deleteVersion: function(e, objectId, objectIdOnRow, callback) {
+            tvc.fileManager.services.deleteVersion(e, objectId, objectIdOnRow, callback);
+        },
+        fpdStart: function(packageId) {
+            notSupported();
+        },
+        fpdCancel: function(packageId) {
+            notSupported();
+        },
+        showWindow: function() {},
+        hideWindow: function() {}
+    };
+})(window, i18n);

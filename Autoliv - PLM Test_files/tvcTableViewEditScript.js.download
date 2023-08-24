@@ -1,0 +1,152 @@
+// Requires: tvcCommonScript.js (core)
+if (!tvc) {
+    alert('WARNING: tvcCommonScript.js NOT LOADED');
+}
+
+function handleEditError(field, error) {
+    tvc.inCellEdit && tvc.inCellEdit.setErr(true);
+    // Alert an error to the user indicating that the
+    // value entered in the field is invalid.
+    alert(error.message);
+    // var td = tvc.getAncestorWithNodeName(field, 'TD');
+    var td = _getTD(field);
+    if (td) {
+        td.className = 'ee' + (tvc.inCellEdit ? ' ice' : '');
+    }
+    setTimeout(function() {
+        parent.tvcRequestFocus(field);
+    }, 100);
+
+    return false;
+}
+
+function handleEditCommit(field, value, callback) {
+    if (value != null) {
+        tvc.inCellEdit && tvc.inCellEdit.setProcessing(true);
+        parent.tvcEditCell(field, value, function() {
+            tvc.inCellEdit && tvc.inCellEdit.setProcessing(false);
+            callback && callback();
+        });
+    }
+    return true;
+}
+
+// called to edit a field
+function e(event, field, callback) {
+    try {
+        var value = window.parent.tvcGetNewCellValue(field);
+        return handleEditCommit(field, value, callback);
+    } catch (error) {
+        return handleEditError(field, error, callback);
+    }
+}
+
+function ed(event, field) {
+    var newValue = window.parent.tvcGetNewCellValue(field);
+    if (newValue != null && newValue != 'unassigned') {
+        try {
+            var value = window.parent.table.completeDate(newValue);
+            if (value != null) {
+                field.setAttribute('isovalue', value.iso);
+                return handleEditCommit(field, value.display);
+            } else {
+                alert('Unable to parse date "' + newValue + '"');
+            }
+        } catch (error) {
+            return handleEditError(field, error);
+        }
+    }
+    return true;
+}
+
+function onSelectDate() {
+    var field = this.config().field;
+    e(null, field, function() {
+        var isInCellEdit = $(field).parents('.ice').length > 0;
+        if (!isInCellEdit) {
+            var picker = TVCCalendar.getPicker(getDatePickerOptions(field));
+            field.focus();
+            field.setAttribute('isovalue', picker.getPikaday().toString('YYYY-MM-DD'));
+            // Nasty timeout in order to make the date picker hide properly on IE11
+            window.setTimeout(function() {
+                picker.hide();
+            }, 0);
+        }
+    });
+}
+
+function dp(id, event) {
+    var field = getDateField(id, event);
+    TVCCalendar.getPicker(getDatePickerOptions(field)).show();
+}
+
+function clr(id, event) {
+    var field = getDateField(id, event);
+    TVCCalendar.getPicker(getDatePickerOptions(field)).clear();
+    if (field) {
+        e(null, field);
+        field.setAttribute('isovalue', '');
+        field.focus();
+    }
+}
+
+function f(event, field) {
+    TVCCalendar.getPicker(getDatePickerOptions(field)).show();
+}
+
+function getDatePickerOptions(field) {
+    var defaultOption = {
+        field: field,
+        onSelect: onSelectDate
+    };
+    var isCalendarWithTodaysDate = field.getAttribute('opencalendarwithtodaysdate');
+    if (isCalendarWithTodaysDate) {
+        defaultOption['onOpen'] = function() {
+            this.gotoToday();
+            checkPosition(field);
+        };
+    }
+    return defaultOption;
+}
+
+function checkPosition(field) {
+    var element = field.tvccalendar.pikaday.el;
+
+    if (!TVCCalendar.isCalendarInViewport(element)) {
+        TVCCalendar.popout(element);
+    } else if (parseInt(element.style.top, 10) < 0) {
+        var $win = $(window.parent);
+        var winInfo = {
+            width: $win.width(),
+            height: $win.height()
+        };
+        var calendarInfo = element.getClientRects()[0];
+        var inputInfo = field.getClientRects()[0];
+        var space = {
+            right: winInfo.width - inputInfo.right,
+            left: inputInfo.left
+        };
+
+        if (space.right >= calendarInfo.width) {
+            element.style.left = inputInfo.right + 'px';
+        } else if (space.left >= calendarInfo.width) {
+            element.style.left = inputInfo.left - calendarInfo.width + 'px';
+        }
+        element.style.top = Math.max(winInfo.height - calendarInfo.height, 0) + 'px';
+    }
+}
+
+function u(col) {
+    parent.tvcMassUpdate(col);
+}
+
+function getDateField(elementId, event) {
+    var fieldNo = getFieldIndex(event);
+    var field = tvcGetForm().elements[elementId];
+    return field instanceof HTMLInputElement ? field : field[fieldNo];
+}
+
+function getFieldIndex(event) {
+    var $targetParentDivClass = $(event.target).closest('div.tile-details-cell');
+    return $targetParentDivClass.length > 0 ? 1 : 0;
+}

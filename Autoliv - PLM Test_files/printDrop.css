@@ -1,0 +1,42 @@
+.print-drop {
+    width: 20em;
+}
+
+.print-drop label {
+    margin-left: 0.5em;
+    margin-right: 1.2em;
+}
+
+.print-drop .printmarginlabel {
+    padding: 0.3em 0 0 0.1em;
+    font-size: 0.7em;
+}
+
+.print-drop .printmarginvalue {
+    padding: 0 0.1em;
+}
+
+#pf_topMargin, #pf_rightMargin, #pf_bottomMargin, #pf_leftMargin {
+    width: 2.5em;
+    padding: 0.1em;
+    text-align: right;
+    height: 1.7em;
+}
+
+#pf_marginUnit {
+    width: 4em;
+    padding: 0.1em;
+    height: 1.7em;
+}
+
+.print-drop .text {
+    margin-top: 0.3em;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 2em;
+}
+
+.print-drop select {
+    width: 10em;
+}

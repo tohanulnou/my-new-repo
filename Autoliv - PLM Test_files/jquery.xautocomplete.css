@@ -1,0 +1,44 @@
+div.AutoCompleteList {
+    position: absolute;
+    display: none;
+    background-color: white;
+    padding: 0px;
+    margin: 0px;
+    overflow: auto;
+}
+
+div.AutoCompleteListItem {
+    font-family: arial,verdana,sans-serif;
+    font-size: 8pt;
+    font-weight: normal;
+    text-decoration: none;
+    margin: 0px;
+    padding: 3px 5px 5px 3px;
+    margin: 0px;
+    cursor: pointer;
+}
+
+div.AutoCompleteListItemSeparator {
+    font-family: arial,verdana,sans-serif;
+    font-size: 7pt;
+    font-weight: bold;
+    text-decoration: none;
+    color: white;
+    background-color: black;
+    margin: 0px;
+    padding: 2px 5px 2px 5px;
+    margin: 0px;
+    cursor: pointer;
+}
+
+div.AutoCompleteLoading {
+    font-family: arial,verdana,sans-serif;
+    font-size: 7pt;
+    font-style: italic;
+    font-weight: normal;
+    text-decoration: none;
+    margin: 0px;
+    padding: 1px 1px 1px 20px;
+    margin: 0px;
+    line-height: 22px;
+}

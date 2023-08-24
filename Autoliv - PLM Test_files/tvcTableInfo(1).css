@@ -1,0 +1,23 @@
+body {
+    background-image: url("../../../../../common/images/bgnd-page-head.png");
+	background-repeat: repeat-x;
+	background-attachment: scroll;
+	background-position: left top;
+	background-color: #D5D9DB;
+}
+/*
+.pageBorder {
+    border-top: 1px solid #036;
+}
+*/
+.pageHeader {
+    color: #082C52;
+}
+.pageSubTitle {
+    color: #082C52;
+}
+
+body.header .pageHeader,
+body.header .pageSubTitle {
+    color: white;
+}

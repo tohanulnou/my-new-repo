@@ -1,0 +1,29 @@
+// Requires: tvcCommonScript.js (core)
+if (!tvc) {
+    alert("WARNING: tvcCommonScript.js NOT LOADED");
+}
+
+// A clipboard link was clicked
+function cb(id) {
+    var sObj = parent.getTableBeanName();
+    var fs = parent.parent;
+    fs.tvc.inlineFrame.load(
+        fs.tvc.inlineFrame.NON_STICKY_ID, 
+        fs.getActionURL("showClipboard") + "?object=" + sObj, 
+        fs.CLIPBOARD_WIDTH, 
+        "auto", 
+        "addObject('" + sObj + "','" + id + "')", 
+        false);
+}
+
+function cb2(oids) {
+    var sObj = parent.getTableBeanName();
+    var fs = parent.parent;
+    fs.tvc.inlineFrame.load(
+        fs.tvc.inlineFrame.NON_STICKY_ID, 
+        fs.getActionURL("showClipboard") + "?object=" + sObj, 
+        fs.CLIPBOARD_WIDTH, 
+        "auto", 
+        "addObjects(['" + oids.reverse().join("','") + "'])", 
+        false);
+}

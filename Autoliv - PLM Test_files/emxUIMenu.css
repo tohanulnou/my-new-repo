@@ -1,0 +1,567 @@
+/* --------------------------------------------------------------------------
+    Menu Stylesheet for Windows/Mac Platforms
+    emxUIMenu.css
+
+    Release: 2013xHF11
+    Version: 1.1
+	
+    Copyright (c) 1992-2013 Dassault Systemes ENOVIA Corp. All Rights Reserved.
+    This program contains proprietary and trade secret information 
+    of Dassault Systemes ENOVIA Corp. Copyright notice is precautionary only
+    and does not evidence any actual or intended publication of such program
+   -------------------------------------------------------------------------- */
+ 
+/* -------------------------------------------------------------------------
+	Megamenus
+   ------------------------------------------------------------------------- */
+
+/* ---------------------------------
+	Containers
+   --------------------------------- */
+
+div.mmenu {
+	position:absolute;
+	z-index:1000;
+}
+
+div.mmenu-container {
+	position:relative;
+	margin:0 auto;
+	margin-left:12px;
+}
+
+div.mmenu-container div.shadow-e,
+div.mmenu-container div.shadow-w,
+div.mmenu-container div.shadow-se,
+div.mmenu-container div.shadow-sw {
+	background:transparent url("../images/shadow-master.png") no-repeat top right;
+}
+
+div.mmenu-container div.shadow-e {
+	position:relative;
+	padding:0 12px 0 0;
+}
+
+div.mmenu-container div.shadow-w {
+	position:absolute;
+	top:0;
+	left:0;
+	width:12px;
+	left:-12px;
+	height:100%;
+	background-position:top left;
+}
+
+div.mmenu-container div.shadow-se {
+	position:relative;
+	width:100%;
+}
+
+div.mmenu-container div.shadow-se,
+div.mmenu-container div.shadow-se div.shadow-sw {
+	height:12px;
+	font-size:1px;
+}
+
+div.mmenu-container div.shadow-se {
+	background-position:right bottom;
+	height:12px;
+	width:100%;
+}
+
+div.mmenu-container div.shadow-se {}
+
+div.mmenu-container div.shadow-sw {
+	position:absolute;
+	width:12px;
+	height:100%;
+	top:0;
+	left:-12px;
+	background-position:bottom left;
+}
+
+div.mmenu-content {
+	padding:4px;
+	background-color:#85a9cf;
+}
+
+div.mmenu-border {
+	position:relative;
+	max-width:924px;
+	padding:4px;
+    overflow:auto;
+	overflow-y:hidden;
+    background: #ffffff; /* Old browsers */
+    background: -moz-linear-gradient(top,  #ffffff 0%, #fefefe 50%, #f5f5f5 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ffffff), color-stop(50%,#fefefe), color-stop(100%,#f5f5f5)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #ffffff 0%,#fefefe 50%,#f5f5f5 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #ffffff 0%,#fefefe 50%,#f5f5f5 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #ffffff 0%,#fefefe 50%,#f5f5f5 100%); /* IE10+ */
+    background: linear-gradient(top,  #ffffff 0%,#fefefe 50%,#f5f5f5 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffffff', endColorstr='#f5f5f5',GradientType=0 ); /* IE6-9 */
+}
+
+div.mmenu-inset {
+	overflow:hidden;
+	position:relative;
+}
+
+div.mmenu-group {
+    position:relative;
+    float:left;
+	margin:0 0 -1000px 0;
+	padding:0 0 1000px 0;
+    border-left:2px dotted #AAA;
+	}
+
+div.mmenu-group.first-child {border:none;}
+
+div.mmenu-column {
+    position:relative;
+    float:left;
+	margin:0 0 -1000px 0;
+	padding:0 0 1006px 0;
+	width:230px;
+	line-height:12px;
+	border-right:1px dotted #CCC;
+	cursor:default;
+	-moz-user-select:none;
+	-webkit-user-select:none;
+}
+
+div.mmenu-column.last-child {border:none;}
+
+/* Page-Level & Menu Dialog Styling */
+div.mmenu.page div.mmenu-content,
+div.mmenu.dialog div.mmenu-content {
+	padding:4px;
+	background-color:#85a9cf;
+}
+
+div.mmenu.page div.mmenu-border,
+div.mmenu.dialog div.mmenu-border {padding:4px;}
+
+div.mmenu.page div.mmenu-group,
+div.mmenu.dialog div.mmenu-group {padding-top:0;}
+
+/*display images on page-level menu items */
+div.mmenu.page div.mmenu-column ul li span.icon {background-image:none;}
+
+div.mmenu.page div.mmenu-column ul li span img {display:block;}
+
+
+/* ---------------------------------
+	Content
+   --------------------------------- */
+
+/* this styling is reserved for the group header design */
+div.mmenu-content h2 {
+	background:#353C44;
+	margin:0 0 2px 0;
+	padding:4px 3px 4px 5px;
+	font:bold 14px Arial, Helvetica;
+	color:#DDDEDE;
+}
+
+/* Menu Item Containers */
+div.mmenu-column h3,
+div.mmenu-column>ul {position:relative;margin-right:4px;}
+
+/* Menu Items */
+div.mmenu-column h3,
+div.mmenu-column li {
+    position:relative;
+    display:block;
+    margin-bottom:2px;
+    padding:2px 0 0 21px;
+    font-size:0;
+    word-wrap:break-word;
+}
+
+/* clear floated elements in list items */
+div.mmenu-column h3:after,
+div.mmenu-column li:after {
+    content:".";
+    display:block;
+    font-size:1px;
+    height:0;
+    clear:both;
+    visibility:hidden;
+}
+ 
+ div.mmenu-column h3 {
+	margin-top:10px;
+	margin-left:2px;
+	font-weight:bold;
+	color:#3567BD;
+}
+
+div.mmenu-column h3:first-child {margin-top:0;}
+
+div.mmenu-column ul {margin-left:12px;}
+
+/* Danger, Will Robinson! */
+div.mmenu-column a {border:2px solid red;background:pink;}
+
+div.mmenu.page div.mmenu-column span {color:#555;}
+
+div.mmenu-column h3.link,
+div.mmenu-column li.link {
+    min-height:18px;
+    -moz-border-radius:3px;
+    -webkit-brder-radius:3px;
+    border-radius:3px;
+    cursor:pointer;
+}
+
+div.mmenu-column h3.link:hover,
+div.mmenu-column li.link:hover {
+    background: #85a9cf; /* Old browsers */
+    background: -moz-linear-gradient(top,  #85a9cf 0%, #5290ce 100%); /* FF3.6+ */
+    background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#85a9cf), color-stop(100%,#5290ce)); /* Chrome,Safari4+ */
+    background: -webkit-linear-gradient(top,  #85a9cf 0%,#5290ce 100%); /* Chrome10+,Safari5.1+ */
+    background: -o-linear-gradient(top,  #85a9cf 0%,#5290ce 100%); /* Opera 11.10+ */
+    background: -ms-linear-gradient(top,  #85a9cf 0%,#5290ce 100%); /* IE10+ */
+    background: linear-gradient(top,  #85a9cf 0%,#5290ce 100%); /* W3C */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#85a9cf', endColorstr='#5290ce',GradientType=0 ); /* IE6-9 */
+}
+
+div.mmenu-column h3.link:hover span,
+div.mmenu-column li.link:hover span {color:#fff;}
+
+div.mmenu-column h3 span,
+div.mmenu-column li span {
+    position:relative;
+    font-size:11px;
+    line-height:14px;
+}
+
+/* menu level icons */
+div.mmenu-column h3 span.icon,
+div.mmenu-column ul li span.icon {
+	position:absolute;
+	top:2px;
+	left:2px;
+	height:16px;
+	width:16px;
+	margin:0;
+	padding:0;
+}
+
+/* level 1 and default */
+div.mmenu-column li span.icon {background:url("../images/utilMmenuBullets.gif") 0 -1px no-repeat;}
+div.mmenu-column li.link:hover span.icon {background-position:0 -17px;}
+div.mmenu-column li.disabled span.icon {background-position:0 -33px;}
+
+/* level 2 */
+div.mmenu-column ul ul li span.icon {background-position:-16px -1px;}
+div.mmenu-column ul ul li.link:hover span.icon {background-position:-16px -17px;}
+div.mmenu-column ul ul li.disabled span.icon {background-position:-15px -33px;}
+
+/* level 3 */
+div.mmenu-column ul ul ul li span.icon {background-position:-32px -1px;}
+div.mmenu-column ul ul ul li.link:hover span.icon {background-position:-32px -17px;}
+div.mmenu-column ul ul ul li.disabled span.icon {background-position:-32px -33px;}
+	
+/* level 4 */
+div.mmenu-column ul ul ul ul li span.icon {background-position:-48px -1px;}
+div.mmenu-column ul ul ul ul li.link:hover span.icon {background-position:-48px -17px;}
+div.mmenu-column ul ul ul ul li.disabled span.icon {background-position:-48px -33px;}
+
+div.mmenu-column h3 em,
+div.mmenu-column ul li em {
+    color:#959595;
+    font-weight:normal;
+    margin-left:0;
+}
+
+div.mmenu-column ul li.submenu span {cursor:default;}
+
+div.mmenu-column ul li.disabled span,
+div.mmenu.page div.mmenu-column ul li.disabled span {color:#999;}
+
+div.mmenu-column ul li.selected span.icon {background:url("../images/iconStatusSelected.gif") 3px 0 no-repeat;}
+
+/* suppress all images on menu items */ 
+div.mmenu-column ul li span img {display:none;}
+
+/* menu separators */
+div.mmenu-column span.separator {
+	height:0;
+	padding:0;
+	line-height:1px;
+	font-size:1px;
+	border-top:1px solid #B3B3B3;
+}
+
+div.mmenu-column hr {
+    display:block;
+    position:absolute;
+    left:5px;
+    right:5px;
+    height:1px;
+    background:#B3B3B3;
+    border:none;
+}
+
+
+/* -------------------------------------------------------------------------
+	Input Controls
+   ------------------------------------------------------------------------- */
+
+div.mmenu-column ul li.input,
+div.mmenu-column ul li.submit {
+	margin:0 2px;
+	padding:4px 0 0 0;
+	padding:0;
+	background:url("../images/utilMenuInputDivider.gif") 8px top no-repeat;
+	cursor:default;
+}
+
+div.mmenu-column ul li.input + li {
+	margin-top:4px;
+	background:url("../images/utilMenuInputDivider.gif") 8px top no-repeat;
+}
+
+div.mmenu-column ul li.input + li.submit {
+	background-image:none;
+	padding-top:0;
+	padding-bottom:4px;
+}
+
+div.mmenu-column ul li.submit table {
+	float:right;
+	margin-right:5px;
+}
+
+div.mmenu-column ul li.input:first-child {
+	margin-top:0;
+	background-image:none;
+}
+	
+div.mmenu-column ul li.input span {margin-left:10px;}
+
+div.mmenu-column ul li.input label {
+	display:block;
+	font-weight:bold;
+	line-height:11px;
+	margin:6px 0 2px 8px;
+	padding-top:6px;
+}
+
+div.mmenu-column h3+ul li:first-child.input label {
+	margin-top:0;
+	padding-top:0;
+}
+
+div.mmenu-column ul li.input table {
+	margin:0 0 0 8px;
+	width:auto;
+}
+
+div.mmenu-column ul li.input table tr td {
+	padding:0 2px 0 0;
+	vertical-align:middle;
+	white-space: normal;
+}
+
+div.mmenu-column ul li.input textarea {
+    margin-left:8px;
+    width:90%;
+	min-height:50px;
+}
+
+div.mmenu-column ul li.input select {margin-top:2px;}
+
+div.mmenu-column ul li.input select option {padding-right:10px;}
+
+div.mmenu-column ul li.input table.fluid {width:95%;}
+
+div.mmenu-column ul li.input table.fluid tr td {width:1%;}
+
+div.mmenu-column ul li.input table.fluid tr td.input {width:90%;}
+
+div.mmenu-column ul li.input table.fluid tr td.input input[type="text"] {width:94%;}
+
+div.mmenu-column ul li.input table.fluid tr td.input select {width:100%;}
+	
+div.mmenu-column ul li.input table tr td img {vertical-align:middle;}
+
+div.mmenu-column ul li input[type="button"],
+div.mmenu-column ul li input[type="submit"] {
+	font-size:10px;
+	padding-bottom:2px;
+}
+
+div.mmenu-column ul li.input input[type="checkbox"],
+div.mmenu-column ul li.input input[type="radio"] {margin-top:3px;}
+
+div.mmenu-column ul li.input.single table,
+div.mmenu-column ul li.input.multiple table {
+	margin-top:2px;	
+	width:auto;
+}
+
+
+/* ---------------------------------
+	Menu Dialog
+   --------------------------------- */
+
+.dialog div.mmenu-column ul:first-child li.input label {margin-top:0;}
+
+.dialog div.mmenu-column ul li.input {background-position:0 0;}
+
+.dialog div.mmenu-column ul li.input,
+.dialog div.mmenu-column ul li.submit,
+.dialog div.mmenu-column ul li.input label,
+.dialog div.mmenu-column ul li.input table,
+.dialog div.mmenu-column ul li textarea,
+.dialog div.mmenu-column ul li p {margin-left:2px;}
+
+p.hint {
+	margin-top:3px;
+	margin-left:8px;
+	font-size:10px;
+	color:#555;
+	white-space:normal;
+}
+
+.dialog p.hint {margin-left:0;}
+
+/* -------------------------------------------------------------------------
+	Cascading Menus
+   ------------------------------------------------------------------------- */
+
+/* Menu body */
+.menu-layer {
+	background-color:#EEE;
+	background-image:url(../images/utilMenuBG.gif);
+	background-repeat:repeat-y;
+	border-right:1px solid #636363;
+	border-bottom:1px solid #636363;
+	border-top:1px solid #FFF;
+	border-left:1px solid #8e8e8e;
+	position:absolute;  
+	z-index:1000;
+}
+
+/* Menu Separator Line Appearance */
+.menu-layer div.menu-separator { 
+	border-bottom:1px solid #FFF; 
+	border-top:1px solid #948C8C; 
+	margin-left:25px;
+	overflow:hidden;
+}
+
+/* Text display for menu item */
+.menu-layer td.menu-label {
+	background-position:3px 4px;
+	cursor:pointer;
+	cursor:hand;
+	height:22px;
+	padding:2px 4px 3px 28px;
+}
+
+/* Text display for menu item */
+.menu-layer td.menu-title {
+	color:#A0410D;
+	cursor:default;
+	font-weight:bold;
+	padding:2px 4px 3px 28px;
+}
+
+/* arrow for menu item with submenu */
+tr.submenu td div {
+	background-image:url(../images/utilSubmenuArrow.gif);
+	background-repeat:no-repeat;
+	background-position:right center;
+} 
+
+/* highlight for menu item with submenu */
+tr.submenu-selected td div {
+	background-image:url(../images/utilSubmenuArrowWhite.gif);
+	background-repeat:no-repeat;
+	background-position:right center;
+} 
+
+/* Background color for  menu item */
+.menu-layer tr.menu-item { 
+}
+
+/* Background color for selected menu item */
+.menu-layer tr.menu-item-selected {background-color:#B6CBE4;}
+
+/* Text display for selected menu item */
+.menu-layer tr.menu-item-selected td.menu-label { 
+	background-image:none;
+	cursor:pointer;
+	cursor:hand;
+	height:22px;
+	padding:2px 4px 3px 28px;
+}
+
+/* Display for disabled menu item row */
+.menu-layer tr.menu-item-disabled td.menu-label { 
+	background-image:none;
+	cursor:default;
+	height:22px;
+	padding:2px 4px 3px 28px;
+}
+
+/* Text display for disabled menu item (change both this and the one above together) */
+.menu-layer tr.menu-item-disabled div {color:#9a9a9a;}
+
+/* Scroll Up Button on the menu */
+.menu-layer div.upbutton {
+	background:#C9C9C9 url(../images/utilActionScrollArrowUp.gif) center center no-repeat;
+	border:1px solid #EEE;
+	border-bottom:1px solid #B4B4B0;
+	border-right:1px solid #B4B4B0;
+	cursor:pointer;
+	cursor:hand;
+	height:14px;
+	width:100%;
+}
+
+/* Up Button (for mouse over) */
+.menu-layer div.upbutton-hover {}
+
+/* Down Button */
+.menu-layer div.downbutton {
+	background:#C9C9C9 url(../images/utilActionScrollArrowDown.gif) center center no-repeat;
+	border:1px solid #EEE;
+	border-bottom:1px solid #B4B4B0;
+	border-right:1px solid #B4B4B0;
+	cursor:pointer;
+	cursor:hand;
+	height:14px;
+	width:100%;
+}
+
+/* -------------------------------------------------------------------------
+   Calendar Menus
+   ------------------------------------------------------------------------- */
+
+div.mmenu.page.calendar div.mmenu-border {
+    overflow-x:hidden;
+    overflow-y:auto;
+}
+
+/* remove padding and menu bullets to resolve issue in IE8 - temporary fix - */ 
+div.mmenu.page.calendar ul {margin-left:0;padding-left:0;}
+div.mmenu.page.calendar ul li {margin-left:0;padding-left:4px;}
+div.mmenu.page.calendar ul li span.icon {display:none;}
+
+
+/* ---- UNVERIFIED ---- */
+/* Below two properties are added to fix the display issue of Input controls inside overflow menu - PMC Bug:370007 */
+body.menu-layer div.content table tbody tr td.menu-label {white-space:nowrap;}
+
+body.menu-layer div.content table tbody tr td.menu-label input,
+body.menu-layer div.content table tbody tr td.menu-label select,
+body.menu-layer div.content table tbody tr td.menu-label option {
+	font-family:Verdana,Arial,Helvetica,sans-serif;
+	font-size:11px;
+	height:auto;
+	margin:0;
+}

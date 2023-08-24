@@ -1,0 +1,36 @@
+var qam = {
+
+    'createWrapper': function () {
+        var $quickAccess = $('<div id="alvQuickAccessMenu" class="alvQuickAccessMenu"><i class="fa fa-angle-double-left" aria-hidden="true"></i> ' +
+            '<a href="javascript:void(0)" onclick="javascript:emxUISlideIn.slidein_template(\'right\');$(\'div#rightSlideIn\').css(\'width\',\'250px\');setTimeout(top.showSlideInDialog(\'../common/alvUserRecentActionsLayout.jsp?&suiteKey=\',false , \'\'),100);$(\'#displaybox\').css(\'display\',\'block\');" ' +
+            'title="Show Quick Access Menu">Quick Access Menu</a>' +
+            '</div>');
+        $quickAccess.insertAfter('#pageHeadDiv');
+
+        var $loading = $('<div id="displaybox" style="display:none;"><img src="../tvc/structurebrowser/images/load-blue-white-big.gif"/><h2 class="loadingMessage">Loading data, Please wait...</h2></div>');
+        $loading.insertAfter('#alvQuickAccessMenu');
+
+        return $('#alvQuickAccessMenu', $quickAccess);
+    },
+
+    'init': function () {
+        this.createWrapper();
+
+        //Added below code to either show or hide Quick Access menu based on user preference.
+        alvBreadCrumbService.getQuickAccessMenuUserPreference("", function (result) {
+            if (null == result.data || "" == result.data || "Show" == result.data) {
+                emxUISlideIn.slidein_template("right");
+                $('div#rightSlideIn').css('width', '250px');
+                $('#displaybox').css('display', 'block');
+                top.showSlideInDialog("../common/alvUserRecentActionsLayout.jsp?", false);
+            }
+        });
+    }
+};
+
+
+$(window).load(function () {
+    $("#alv-breadcrumb").ready(function () {
+        qam.init();
+    });
+});

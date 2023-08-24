@@ -1,0 +1,21 @@
+.dropmenuitemhover,
+.dropmenuitemhover td {
+    background-color: #b0e2f2;
+}
+
+
+.dropmenu {
+    border-top: 1px solid #AAAAAA;
+    border-right: 1px solid #AAAAAA;
+    border-bottom: 1px solid #AAAAAA;
+    border-left: 1px solid #AAAAAA;
+    background-color: #F7F7F7;
+}
+
+.dropmenuitemimage {
+    background-color: #F7F7F7;
+}
+
+.dropmenuitemseparatorimage {
+    background-color: #F7F7F7;
+}

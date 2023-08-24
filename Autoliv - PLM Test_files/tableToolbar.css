@@ -1,0 +1,97 @@
+.uip-toolbar .ti, .uip-menu .ti {
+    width: 24px;
+    height: 24px;
+}
+
+#tvcTableChooser .table-profile {
+    margin-left: 20px;
+}
+
+.table-drop .ui.radio.checkbox label, .viewChooser-drop .ui.radio.checkbox label {
+    cursor: pointer;
+}
+
+.table-drop .table-config {
+    display: flex;
+    vertical-align: middle;
+    align-items: center;
+    margin-top: 1.5em;
+}
+
+.table-drop .table-config .ti-c {
+    font-size: 1.25em;
+    width: 1.25em;
+    height: 1.25em;
+}
+
+.table-drop .table-config div {
+    color: #428bca;
+}
+
+.uip-list {
+    /* Fixes a bug in Semantic UI which injects group content in <html> element */
+    position: relative;
+}
+
+.uip-toolbar .viewChooser .selected-item, .uip-toolbar .tableChooser .selected-item
+    {
+    font-size: 0.8em;
+    display: inline-block;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 8em;
+}
+
+.uip-toolbar .item.viewChooser .text, .uip-toolbar .item.tableChooser .text {
+    line-height: 1em;
+}
+
+/* Make drop content slightly smaller */
+.ui.popup.uip-dropcontent {
+    font-size: 0.9rem;
+}
+
+.uip-dropcontent div, input[type="text"], select, textarea {
+    font-size: unset !important;
+}
+
+.uip-dropcontent .button {
+    float: right;
+    margin: 1em 0 0 0.5em;
+}
+
+.uip-dropcontent select.ui.dropdown {
+    height: auto;
+    padding: 0.35em;
+}
+
+.ui.popup.uip-dropcontent .ui.header {
+    margin-bottom: 0.5em;
+}
+
+.ui.popup.uip-dropcontent .ui.header:not (:first-child ) {
+    margin-top: 0.8em;
+}
+
+/* Prevent actions menu to fall out of the page */
+.uip-groupcontent._toolbar-actions {
+    margin-right: 0.2em !important;
+}
+
+/* Divider in vertical menus, e.g. clipboard and collections in traditional mode */ 
+.ui.menu.toolbar.vertical > .divider {
+    height: 0;
+    margin: 0;
+    border-top: 1px solid rgba(34, 36, 38, 0.1);
+}
+
+.uip-toolbar.edit .edit-actions {
+    margin-left: 0.5em;
+}
+
+/* Reset font family and size set by Semantic UI */
+.ui.menu {
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 15px;
+}

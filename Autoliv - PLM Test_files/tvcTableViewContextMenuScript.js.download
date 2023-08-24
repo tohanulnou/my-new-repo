@@ -1,0 +1,52 @@
+// Requires: tvcCommonScript.js (core)
+if (!tvc) {
+    alert("WARNING: tvcCommonScript.js NOT LOADED");
+}
+
+function ctxm(e) {
+    if (!e) var e = window.event;
+    if (parent.ctxMenu) {
+        var tr = _getTR(e.target ? e.target : e.srcElement);
+        var id = tr.id.substring(1);
+        var se = parent.tvcGetSelectionElements();
+        var element = null;
+        for (var i = 0; i < se.length; i++) {
+            if (se[i].getAttribute("dataid") == id) {
+                element = se[i];
+                if (!element.checked) {
+                    element.checked = true;
+                    __hl(element);
+                }
+            } else if (se[i].checked && !se[i].disabled) {
+                se[i].checked = false;
+                __hl(se[i]);
+            }
+        }
+        var sa = parent.tvcGetSelectAllElement();
+        if (sa && sa[0]) {
+            sa[0].checked = false;
+        }
+        if (element != null) {
+            var posx = 0, posy = 0;
+            if (tvc.agent.isMSIE) {
+                posx = e.screenX;
+                posy = e.screenY;
+            } else {
+                posx = e.pageX;
+                posy = e.pageY;
+                var topHeight = parent.parent.getTopFrameHeight();
+                var f = document.defaultView.frameElement;
+                posx += tvc.pageLeft(f) - $(document).scrollLeft();
+                posy += topHeight + tvc.pageTop(f) - $(document).scrollTop();
+            }
+            openContextMenu(posx, posy, id, element, function() {
+                element.checked = false;
+                __hl(element);
+                var win = window.parent;
+                win.tvcGetBottomFrame().tvc.pagination.updateSelectedCount(win.tvcGetSelectionCount());
+            });
+        }
+    }
+    window.parent.tvcGetBottomFrame().tvc.pagination.updateSelectedCount(1);
+    return false;
+}

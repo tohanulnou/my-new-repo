@@ -1,0 +1,218 @@
+if (!window.tvc) {
+    window.tvc = {};
+}
+if (!window.tvc.pagination) {
+    window.tvc.pagination = {};
+}
+
+function updatePageControl() {
+    tvc.pagination.updatePageControl();
+}
+
+tvc.pagination.PAGINATION = null;
+tvc.pagination.ACTIVE = true;
+tvc.pagination._dispTableCell = tvc.agent.isMSIE ? 'inline-block' : 'table-cell';
+tvc.pagination._dispTable = tvc.agent.isMSIE ? 'block' : 'table';
+tvc.pagination._images = [];
+(function() {
+    // NOTE: the image URLs are generated in the TableRenderer.
+    for (var i = 0; i < paginationImages.length; i++) {
+        var img = new Image();
+        img.src = paginationImages[i];
+        tvc.pagination._images.push(img);
+    }
+})();
+
+tvc.pagination.getTableContentFrame = function() {
+    return parent.frames['tableContentFrame'];
+};
+tvc.pagination.setCurrentPage = function(page) {
+    if (tvc.pagination.ACTIVE) {
+        try {
+            tvc.pagination.getTableContentFrame().setCurrentPage(page);
+            tvc.pagination.ACTIVE = false;
+        } catch (x) {}
+    }
+};
+tvc.pagination.setPaginated = function(on) {
+    if (tvc.pagination.ACTIVE) {
+        try {
+            tvc.pagination.getTableContentFrame().setPaginated(on);
+            tvc.pagination.ACTIVE = false;
+        } catch (x) {}
+    }
+};
+tvc.pagination.prev = function() {
+    var p = tvc.pagination.PAGINATION;
+    if (p != null && p.supported && p.currentPage > 1) {
+        tvc.pagination.setCurrentPage(p.currentPage - 1);
+    }
+};
+tvc.pagination.next = function() {
+    var p = tvc.pagination.PAGINATION;
+    if (p != null && p.supported && p.currentPage < p.pageCount) {
+        tvc.pagination.setCurrentPage(p.currentPage + 1);
+    }
+};
+tvc.pagination.go = function() {
+    var p = tvc.pagination.PAGINATION;
+    if (p != null && p.supported) {
+        var select = document.getElementById('tvcPageControlSelect');
+        var newPage = select.selectedIndex + 1;
+        tvc.pagination.setCurrentPage(newPage);
+        try {
+            tvc.pagination.getTableContentFrame().focus();
+        } catch (x) {}
+    }
+};
+tvc.pagination.on = function() {
+    var p = tvc.pagination.PAGINATION;
+    if (p != null && p.supported && !p.paginated) {
+        tvc.pagination.setPaginated(true);
+    }
+};
+tvc.pagination.off = function() {
+    var p = tvc.pagination.PAGINATION;
+    if (p != null && p.supported && p.paginated) {
+        tvc.pagination.setPaginated(false);
+    }
+};
+tvc.pagination.reload = function() {
+    var newinfo = null;
+    try {
+        newinfo = tvc.pagination.getTableContentFrame().PAGINATION;
+    } catch (x) {}
+
+    if (newinfo && tvc.pagination.PAGINATION && window.tvc.getTopWindow().IS_CROSS_DOMAIN) {
+        var data = { subscriber: 'tvcPaginationSubscribe' };
+        var topWindow = window.tvc.getTopWindow();
+        var referrer = topWindow.document.referrer;
+        var publisher = topWindow.parent;
+        var functionName = publisher.postMessage;
+        window.tvc.publisher(publisher, functionName, data, referrer);
+    } else if (newinfo && tvc.pagination.PAGINATION) {
+        var broker = tvc.getCurrentTvcBroker();
+        if (broker) {
+            var functionName = broker.publish;
+            window.tvc.publisher(broker, functionName, 'tvcPaginationSubscribe', data);
+        }
+    }
+
+    if (typeof newinfo != 'undefined') {
+        tvc.pagination.PAGINATION = newinfo;
+    } else {
+        tvc.pagination.PAGINATION = { supported: false };
+    }
+};
+tvc.pagination.updatePageControl = function() {
+    tvc.pagination.reload();
+    tvc.pagination.ACTIVE = true;
+    var p = tvc.pagination.PAGINATION;
+    var rc = document.getElementById('rowCounter');
+    if (rc != null) {
+        var f = tvc.pagination.getTableContentFrame();
+        if (f.getRowCount) {
+            var rowCount = f.getRowCount();
+            var txt = '';
+            if (rowCount == 0) {
+                txt = '<i>' + MSG_NOROWS + '</i>';
+            } else if (rowCount == 1) {
+                txt = '1 <i>' + MSG_ROW + '</i>';
+            } else if (rowCount > 1) {
+                txt = rowCount + ' <i>' + MSG_ROWS + '</i>';
+            }
+            rc.innerHTML = txt;
+        }
+    }
+    var pc = document.getElementById('tvcPageControl');
+    if (p != null && p.supported) {
+        pc.style.display = tvc.pagination._dispTable;
+        var grp1a = document.getElementById('tvcPageControlGrp1a');
+        var grp1b = document.getElementById('tvcPageControlGrp1b');
+        var grp1c = document.getElementById('tvcPageControlGrp1c');
+        if (p.paginated) {
+            grp1a.style.display = tvc.pagination._dispTableCell;
+            grp1b.style.display = tvc.pagination._dispTableCell;
+            grp1c.style.display = tvc.pagination._dispTableCell;
+
+            // update select
+            var select = document.getElementById('tvcPageControlSelect');
+            while (select.options.length > p.pageCount) {
+                select.removeChild(select.lastChild);
+            }
+            while (select.options.length < p.pageCount) {
+                var opt = document.createElement('OPTION');
+                var val = select.options.length + 1;
+                opt.value = val;
+                opt.appendChild(document.createTextNode(val));
+                select.appendChild(opt);
+            }
+            select.selectedIndex = p.currentPage - 1;
+            select.options[select.selectedIndex].selected = true;
+
+            // update page count
+            var count = document.getElementById('tvcPageControlCount');
+            count.innerHTML = p.pageCount;
+
+            // update prev button
+            var prev = document.getElementById('tvcPageControlPrev');
+            if (p.currentPage > 1) {
+                tvc.pagination.changeImg(prev, 1, true);
+            } else {
+                tvc.pagination.changeImg(prev, 0, false);
+            }
+
+            // update next button
+            var next = document.getElementById('tvcPageControlNext');
+            if (p.currentPage < p.pageCount) {
+                tvc.pagination.changeImg(next, 3, true);
+            } else {
+                tvc.pagination.changeImg(next, 2, false);
+            }
+        } else {
+            grp1a.style.display = 'none';
+            grp1b.style.display = 'none';
+            grp1c.style.display = 'none';
+        }
+        var grp2 = document.getElementById('tvcPageControlGrp2');
+        if (p.forced) {
+            grp2.style.display = 'none';
+        } else {
+            grp2.style.display = tvc.pagination._dispTableCell;
+
+            // update paginate on/off buttons
+            var on = document.getElementById('tvcPageControlOn');
+            var off = document.getElementById('tvcPageControlOff');
+            if (p.paginated) {
+                tvc.pagination.changeImg(on, 4, false);
+                tvc.pagination.changeImg(off, 7, true);
+            } else {
+                tvc.pagination.changeImg(on, 5, true);
+                tvc.pagination.changeImg(off, 6, false);
+            }
+        }
+    } else {
+        pc.style.display = 'none';
+    }
+};
+tvc.pagination.changeImg = function(img, num, enabled) {
+    var src = tvc.pagination._images[num].src;
+    if (img.src != src) {
+        img.src = src;
+    }
+    if (enabled) {
+        img.style.cursor = 'pointer';
+    } else {
+        img.style.cursor = 'default';
+    }
+};
+tvc.pagination.updateSelectedCount = function(selectedRowCount) {
+    var src = document.getElementById('selectedRowCounter');
+    if (src) {
+        var txt = '';
+        if (selectedRowCount > 0) {
+            txt = selectedRowCount + ' <i>' + MSG_SELECTED + '<i>';
+        }
+        src.innerHTML = txt;
+    }
+};

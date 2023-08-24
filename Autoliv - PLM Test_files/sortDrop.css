@@ -1,0 +1,19 @@
+.sort-drop .ti-c {
+    vertical-align: middle;
+    margin-left: 0.4em;
+    font-size: 1.1em;
+    width: 1.1em;
+    height: 1.1em;
+}
+
+.sort-drop .text {
+    margin: 0.5em 0;
+}
+
+.sort-drop .sort {
+    margin-top: 1em;
+}
+
+.sort-drop select {
+    max-width: 85%;
+}

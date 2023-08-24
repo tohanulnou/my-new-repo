@@ -1,0 +1,66 @@
+table.form {
+    border: medium none;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+table.form th {
+    background-image: url('../../../../../tvc/core/themes/v6r2012/images/table/h1.png');
+    background-repeat: repeat-x;
+    background-attachment: scroll;
+    background-position: 0 center;
+    background-color: #3479af;
+    font-weight: bold;
+    color: white;
+}
+
+th.default {
+    border-right: 1px solid #4e6e90;
+}
+
+td.default {
+    color: #000000;
+    border-right: 1px solid #b7c9e2;
+}
+
+td.label {
+    padding: 5px;
+    color: #535552;
+    background-color: #d6dbde;
+    border: 1px solid #959595;
+}
+
+td.labelRequired {
+    background-color: #d6dbde;
+    border: 1px solid #959595;
+    color: #dd0000;
+    font-style: italic;
+    text-align: left;
+    font-weight: bold;
+    padding: 5px;
+}
+
+td.inputField {
+    background-color: #ededed;
+    border: 1px solid #959595;
+    color: #535552;
+    padding: 5px;
+}
+
+td.requiredNotice {
+    color: #990000;
+}
+
+td.heading1 {
+    border-top: 1px solid #003366;
+}
+
+td.heading2 {
+    background-color: #dddddd;
+}
+
+@media all and (min-width: 801px) {
+    table.form {
+        width: calc(100% - 1px) !important;
+    }
+}

@@ -1,0 +1,90 @@
+//=================================================================
+// JavaScript emxUtility.js
+// Version 1.1
+//
+// Copyright (c) 1992-2012 Dassault Systemes.
+// All Rights Reserved.
+// This program contains proprietary and trade secret information of MatrixOne,Inc.
+// Copyright notice is precautionary only
+// and does not evidence any actual or intended publication of such program
+//=================================================================
+
+//-----------------------------------------------------------------
+// Function refreshContentPage()
+//-----------------------------------------------------------------
+// DESCRIPTION
+//  This function refreshes the content frame
+//
+//-----------------------------------------------------------------
+function refreshContentPage()
+{
+    var contentFrame = findFrame (top, "content");
+
+    if (contentFrame){
+      if(contentFrame.editableTable){
+    	  contentFrame.editableTable.loadData();
+    	  contentFrame.RefreshTableHeaders();
+    	  contentFrame.rebuildView();
+      }else{
+      contentFrame.location.href = contentFrame.location.href;
+      }
+    }else{
+        return false;
+    }
+   return true; 
+}
+
+//-----------------------------------------------------------------
+// Function refreshTreeDetailsPage()
+//-----------------------------------------------------------------
+// DESCRIPTION
+//  This function refreshes the "detailsDisplay" frame
+//
+//-----------------------------------------------------------------
+function refreshTreeDetailsPage()
+{
+    var treeDetailsFrame = findFrame (top, "detailsDisplay");
+
+    if (treeDetailsFrame){
+        if(treeDetailsFrame.editableTable){
+        	treeDetailsFrame.editableTable.loadData();
+        	treeDetailsFrame.RefreshTableHeaders();
+        	treeDetailsFrame.rebuildView();
+        }else{
+      treeDetailsFrame.location.href = treeDetailsFrame.location.href;
+        }
+      }else{
+        return false;
+      }
+   return true; 
+}        
+
+
+//-----------------------------------------------------------------
+// Function refreshTablePage()
+//-----------------------------------------------------------------
+// DESCRIPTION
+//  This function refreshes the "table display page - content or tree details page" frame
+//
+//-----------------------------------------------------------------
+function refreshTablePage()
+{
+    if( refreshTreeDetailsPage() == false)
+    {
+        if( refreshContentPage() == false)
+            return false;     
+    }
+    return true;
+}
+function refreshStructureTree(){
+    var objTreeBarFrame = top.findFrame(top, "emxUITreeBar");    
+    if(objTreeBarFrame != null && objTreeBarFrame.document != null){
+    var strUrl = objTreeBarFrame.document.location.href;
+	if(strUrl.indexOf("structureLoaded=")>-1){
+	    	var structLoadParam = strUrl.substring(strUrl.indexOf("structureLoaded="),strUrl.length);
+	    	structLoadParam = structLoadParam.substring(0,structLoadParam.indexOf("&")+1);
+	    	strUrl = strUrl.replace(structLoadParam,"");
+    	}
+    objTreeBarFrame.document.location.href = strUrl;
+    }
+}

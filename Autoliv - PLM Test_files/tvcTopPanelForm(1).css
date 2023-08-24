@@ -1,0 +1,49 @@
+a {
+	color: #406F96;
+}
+
+.TopPanelTitle {
+	color: #003366;
+}
+
+.TopPanelTitle span.title {
+	color: #003366;
+}
+
+.TopPanelTitle span.separator {
+	color: #003366;
+}
+
+.TopPanelTitle input {
+	color: #003366;
+}
+
+td.TopPanelDetailsField2 {
+	border-left: 1px dotted #ccc;
+}
+
+div.TopPanelDetailsFieldLabel {
+	color: #161938;
+}
+
+div.TopPanelDetailsFieldLabelHeader {
+	color: #161938;
+}
+
+div.TopPanelDetailsFieldValue {
+	color: #406F96;
+}
+
+div.TopPanelDetailsFieldValueHeader {
+	color: #406F96;
+}
+
+.editing {
+	background-color: #ddd !important;
+	color: #777 !important;
+}
+
+textarea.editing {
+	background-color: #ddd;
+	color: #777;
+}

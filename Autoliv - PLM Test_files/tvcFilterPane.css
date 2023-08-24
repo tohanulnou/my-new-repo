@@ -1,0 +1,63 @@
+table.filterlist {
+    font-size: 8pt;
+    font-family: Arial, Helvetica, Verdana !important;
+    width: 100%;
+    cursor: default;
+    -moz-user-select: none;
+}
+td.filtername {
+    padding-left: 0px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-right: 5px;
+}
+td.filtercheck {
+	vertical-align: middle;
+	width: 14px;
+	padding-left: 3px;
+}
+img.filtercheck {
+	height: 9px;
+	width: 11px;
+}
+tr.filteritem,
+tr.filteritembelowselected {
+	cursor: pointer;
+	height: 21px;
+}
+tr.filteritemselected {
+	cursor: pointer;
+	height: 21px;
+}
+div.filterlistcontainer {
+	position: absolute;
+	overflow: auto;
+	height: 163px;
+	width: 155px;
+	-moz-box-sizing: border-box;
+}
+div.filterselect {
+	position: absolute;
+	overflow: hidden;
+	width: 190px;
+	height: 255px;
+	-moz-box-sizing: border-box;
+}
+div.filterlinkcontainer {
+	position: absolute;
+	overflow: hidden;
+	width: 155px;
+	height: 18px;
+	top: 162px;
+	-moz-box-sizing: border-box;
+}
+img.filterlinkbutton,
+img.filterlinkbutton_hover,
+img.filterlinkbuttondisabled {
+	cursor: pointer;
+	border-style: none;
+	position: absolute;
+	display: block;
+	right: 3px;
+	top: 3px;
+}

@@ -1,0 +1,102 @@
+if (!window.tvc) {
+    window.tvc = {};
+}
+
+if (!window.tvc.invokeform) {
+    window.tvc.invokeform = {};
+}
+
+tvc.invokeform = {
+    serviceMethodCallback: function(formInput) {
+        return new Promise(function(resolve, reject) {
+            try {
+                var serviceResponse = tvc.invoke.response;
+                var obj = {};
+                if (tvc.invoke.inputParams && !tvc.invoke.inputParams.serviceURL) {
+                    var macroElements = tvc.invoke.inputParams.macroElements.split(',');
+                    for (var i = 0; i < macroElements.length; i++) {
+                        obj[macroElements[i]] = serviceResponse[i];
+                    }
+                    serviceResponse = obj;
+                }
+                serviceResponse = _.merge(serviceResponse, formInput[2]);
+                var formBodyResolver = tvc.invoke.formInput.bodyresolver;
+                if (formBodyResolver) {
+                    var formBodyInput = formBodyResolver.split(',');
+                    for (var len = 0; len < formBodyInput.length; len++) {
+                        var resolvedValue = eval('serviceResponse.' + formBodyInput[len]);
+                        tvc.invoke.formInput.body = tvc.invoke.formInput.body.replace(
+                            '{{' + formBodyInput[len] + '}}',
+                            resolvedValue
+                        );
+                    }
+                }
+
+                if (tvc.invoke.formInput.formcallback) {
+                    var callbackFn = tvc.stringToFunction(
+                        tvc.invoke.formInput.formcallback,
+                        window
+                    );
+                    callbackFn(formInput);
+                }
+                var ajaxOptions = {
+                    url: parent.getAbsoluteURL(tvc.invoke.formInput.url),
+                    contentType: 'application/json',
+                    type: tvc.invoke.formInput.method,
+                    data: tvc.invoke.formInput.body,
+                    success: function(response) {
+                        response = {
+                            status: 'success',
+                            form: [
+                                {
+                                    data: {
+                                        objects: []
+                                    }
+                                }
+                            ],
+                            messages: [
+                                {
+                                    data: {
+                                        relationshipId: ''
+                                    }
+                                }
+                            ]
+                        };
+                        resolve(response);
+                        tvcReloadTableContent();
+                    },
+                    error: function(jqXHR, exception) {
+                        var e = {};
+                        e.message =
+                            parent.M_SERVICE_FORM_FAILED + ' : ' + jqXHR.responseJSON.message;
+                        reject(e);
+                    }
+                };
+                ajaxOptions.headers = $.extend(
+                    {},
+                    ajaxOptions.headers,
+                    Boolean(tvc.invoke.formInput.addsecuritycontext)
+                        ? tvc.invoke.securityContext
+                        : {},
+                    tvc.invoke.getCsrfTokenObject(Boolean(tvc.invoke.formInput.addcsrftoken))
+                );
+                if (tvc.invoke.formInput.headers) {
+                    ajaxOptions.headers = $.extend(
+                        {},
+                        ajaxOptions.headers,
+                        JSON.parse(tvc.invoke.formInput.headers.replace(/'/g, '"'))
+                    );
+                }
+                if (tvc.invoke.formInput.contenttype) {
+                    ajaxOptions.contentType = tvc.invoke.formInput.contenttype;
+                }
+                $.ajax(ajaxOptions);
+            } catch (e) {
+                e.message = parent.M_SERVICE_FORM_FAILED + ' : ' + e.message;
+                console.error(e);
+                hideProgress();
+                throw e;
+            }
+        });
+    }
+};

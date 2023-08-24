@@ -1,0 +1,84 @@
+$(window).load(function () {
+    var topbar;
+    topbar = {
+        'init': function () {
+            this.notifications.init();
+            this.setExaleadPlaceHolder();
+            this.removeTooltips();
+            this.alignButtons();
+            
+        },
+
+        'setExaleadPlaceHolder': function () {
+            var $globalSearch = $('#AEFGlobalFullTextSearch');
+            if ($globalSearch) {
+                $globalSearch.attr('placeholder', 'PLM Finder');
+            }
+        },
+
+        // This will remove the tool tips from the main toolbar menus
+        'removeTooltips': function () {
+            $('.text-button').removeAttr("title");
+        },
+        'alignButtons': function () {
+            $('#pageHeadDiv .toolbar.group-right table tbody tr').closest("tr#alv-notifications").before($('#pageHeadDiv .toolbar.group-right table tbody tr td:nth-last-child(5)'));
+        },
+
+        'redraw': function () {
+            clearTimeout(this.resizeTimeout);
+            this.resizeTimeout = setTimeout(function () {
+                topbar.notifications.redraw();
+                topbar.setExaleadPlaceHolder();
+                topbar.removeTooltips();
+            }, 500);
+        },
+
+        'notifications': {
+
+            'createWrapper': function () {
+                $('#pageHeadDiv .toolbar.group-right table tbody tr').prepend('<tr id="alv-notifications"></tr>');
+                this.$element = $('#pageHeadDiv .toolbar.group-right table tbody tr#alv-notifications');
+                this.$element.click(function () {
+                    topbar.notifications.loadData();
+                });
+            },
+
+            'init': function () {
+                this.createWrapper();
+                this.loadData();
+            },
+
+            'loadData': function (cb) {
+                alvNotificationService.getNotifications(function (data) {
+                    topbar.notifications.reloadNotifications(data, cb);
+                });
+
+            },
+
+            'reloadNotifications': function (data, cb) {
+                if (data) {
+                    var html = '';
+                    for (var i = 0; i < data.length; i++) {
+                        var notification = data[i];
+                        html += decodeURIComponent(notification.html);
+                    }
+                    this.$element.html(html);
+                }
+                if (cb) {
+                    cb();
+                }
+            },
+
+            'redraw': function () {
+                topbar.notifications.init();
+            }
+
+        }
+
+
+    };
+    topbar.init();
+    $(window).resize(function () {
+        topbar.redraw();
+    });
+});

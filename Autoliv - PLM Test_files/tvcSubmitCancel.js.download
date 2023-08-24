@@ -1,0 +1,42 @@
+var __submitWasClicked = false;
+function __submitPage(
+    url,
+    target,
+    rowSelect,
+    isPopup,
+    width,
+    height,
+    confirm,
+    prog,
+    progMsg,
+    dblClk
+) {
+    if (dblClk) {
+        if (__submitWasClicked) {
+            return;
+        }
+        __submitWasClicked = true;
+    }
+    if (prog) {
+        try {
+            if (progMsg != null && progMsg.length > 0) {
+                parent.showProgressMessage(progMsg);
+            } else {
+                parent.showProgress();
+            }
+        } catch (E) {} // in case the progress gizmo isn't available
+    }
+    if (!tvcSubmitWithCheck(url, target, rowSelect, isPopup, width, height, confirm)) {
+        if (dblClk) {
+            __submitWasClicked = false;
+        }
+        if (prog) {
+            try {
+                parent.hideProgress();
+            } catch (E) {}
+        }
+    }
+}
+function resetSubmitButton() {
+    __submitWasClicked = false;
+}

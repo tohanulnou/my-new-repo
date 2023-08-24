@@ -1,0 +1,96 @@
+(function($) {
+    if (!window.tvc) {
+        window.tvc = {};
+    }
+    if (!window.tvc.tooltip) {
+        window.tvc.tooltip = {};
+    }
+
+    var tooltipConfig = {
+        style: {
+            tip: true,
+            classes: 'qtip-bootstrap'
+        },
+        show: {
+            ready: true,
+            event: false,
+            solo: true
+        },
+        position: {
+            viewport: $(window),
+            adjust: {
+                x: 10
+            },
+            my: 'top left',
+            at: 'bottom center'
+        },
+        hide: {
+            event: 'click mouseout',
+            fixed: true
+        }
+    };
+
+    var gridtipConfig = $.extend({}, tooltipConfig, {
+        hide: {
+            fixed: true
+        },
+        content: {
+            attr: 'data-tooltip'
+        }
+    });
+
+    var showMoreConfig = $.extend({}, tooltipConfig, {
+        suppress: false,
+        hide: {
+            fixed: true,
+            delay: 300
+        }
+    });
+
+    var tooltip = {
+        init: function() {
+            this.$body = $('body');
+            tooltip.bootstrapTooltip.call(this);
+        },
+
+        /**
+         * Registers qtip on elements
+         */
+        bootstrapTooltip: function() {
+            // Default Tooltips
+            this.$body.on('mouseover', '[data-tvc-tooltip="true"]', function() {
+                $(this).qtip(tooltipConfig);
+            });
+
+            // Gridbrowser Tooltips
+            this.$body.on('mouseover', '[data-tvc-gridtooltip="true"]', function(e) {
+                var holdForShift = $(this).attr('data-tvc-holdshift');
+                if (
+                    (holdForShift === 'true' && e.shiftKey) ||
+                    !holdForShift ||
+                    holdForShift === 'false'
+                ) {
+                    $(this).qtip(gridtipConfig);
+                }
+            });
+        },
+
+        /**
+         * Attach to passed jQuery element
+         */
+        launch: function($target, content, configOptions) {
+            var config = $.extend(
+                {},
+                showMoreConfig,
+                {
+                    content: content
+                },
+                configOptions
+            );
+            $target.qtip(config).show();
+        }
+    };
+
+    tvc.tooltip.launch = tooltip.launch;
+    tvc.onDocumentRendered(tooltip.init, 500);
+})(jQuery);

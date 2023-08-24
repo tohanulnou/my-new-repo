@@ -1,0 +1,139 @@
+body, th, td, p, div, layer {
+	font-family: Verdana, Helvetica, Arial, Sans-Serif;
+	font-size: 8pt;
+	font-weight: normal;
+}
+
+th {
+	text-align: left;
+}
+
+h1 {
+	font-size: 23px;
+	font-weight: bold;
+}
+
+h2 {
+	font-size: 19px;
+	font-weight: bold;
+}
+
+h3 {
+	font-size: 15px;
+	font-weight: bold;
+}
+
+h4 {
+	font-size: 12px;
+	font-weight: bold;
+}
+
+b {
+	font-weight: bold;
+}
+
+strong {
+	font-weight: bold;
+}
+
+i {
+	font-style: italic;
+}
+
+em {
+	font-style: italic;
+}
+
+input {
+	font-family: Arial, Helvetica;
+	font-size: 12px;
+}
+
+select {
+	font-family: Arial, Helvetica;
+	font-size: 12px;
+}
+
+textarea {
+	font-family: Arial, Helvetica;
+	font-size: 12px;
+}
+
+table {
+	font-family: Arial, Helvetica;
+	font-size: 12px;
+}
+
+td.yellow {
+	background-color: #FFFF00;
+}
+
+td.red {
+	background-color: #FF0000;
+}
+
+td.green {
+	background-color: #00FF00;
+}
+
+td.blue {
+	background-color: #0000FF;
+}
+
+.pageSubTitle {
+	font-family: Arial, Helvetica, Sans-Serif;
+	font-size: 11px;
+	letter-spacing: 0.3pt;
+	text-decoration: none;
+}
+
+.pageHeader {
+	font-family: Arial, Helvetica, Sans-Serif;
+	font-weight: bold;
+	font-size: 12pt;
+	letter-spacing: 0pt;
+	line-height: 22px;
+	text-decoration: none;
+}
+
+.pageSubheader {
+	font-family: Arial, Helvetica, Sans-Serif;
+	font-size: 13pt;
+	font-weight: bold;
+}
+
+fieldset {
+	padding-top: 3px;
+	padding-left: 5px;
+	padding-bottom: 7px;
+	padding-right: 5px;
+}
+
+input.fieldSet, select.fieldSet, button.fieldSet, label.fieldSet {
+	margin-top: 2px;
+}
+
+span.fieldSet {
+	white-space: nowrap;
+}
+
+input[type="text"]:focus, textarea:focus, select:focus {
+	border-color: #66AFE9;
+	box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset, 0 0 8px
+		rgba(102, 175, 233, 0.6);
+	outline: 0 none;
+}
+
+input[type="text"], textarea, select {
+	font-size: 8pt !important;
+	box-sizing: border-box;
+	box-shadow: none;
+	outline: 0;
+	border: 1px solid #ccc;
+	padding: 6px;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+.ui.popup.inverted div {
+	color: #fff;
+}

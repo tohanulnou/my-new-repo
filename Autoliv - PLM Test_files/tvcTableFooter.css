@@ -1,0 +1,28 @@
+html {
+    margin: 0px 0px 0px 0px;
+    overflow: hidden;
+}
+div#pagContainer {
+    position:absolute;
+    right:10px;
+    top:9px;
+}
+div#rowCounter, div#selectedRowCounter {
+    position:absolute;
+    top:15px;
+    font-family: verdana,helvetica,arial,sans-serif;
+    font-size: 8pt;
+    color: black;
+    font-weight: normal;
+}
+div#rowCounter {
+	left:10px;
+}
+div#selectedRowCounter {
+    left:100px;
+}
+table#submitCancelButtons td {
+    font-family: verdana,helvetica,arial,sans-serif;
+    font-size: 8pt;
+    font-weight: normal;
+}

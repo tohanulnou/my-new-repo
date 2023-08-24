@@ -1,0 +1,155 @@
+
+<!-- saved from url=(0070)https://plmtest.autoliv.int:12090/enovia/tvc-action/oi-initIntegration -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="./array-polyfill.js.download"></script>
+<script type="text/javascript" src="./index.js.download"></script>
+<script type="text/javascript" src="./jquery.js.download"></script>
+<script type="text/javascript" src="./json.js.download"></script>
+<script type="text/javascript" src="./jquery.ui.widget.js.download"></script>
+<script type="text/javascript" src="./jquery.iframe-transport.js.download"></script>
+<script type="text/javascript" src="./jquery.fileupload.js.download"></script>
+<script type="text/javascript" src="./tvcCommonScript.js.download"></script>
+<script type="text/javascript" src="./es6-promise.auto.min.js.download"></script>
+<script type="text/javascript" src="./tvcAjaxEngine.js.download"></script><script type="text/javascript">if(!window.office){window.office={};}
+office.URL="https://plmtest.autoliv.int:12090/enovia/tvc-action/ajax";
+office.deleteFile=function(a0,a1,a2,a3,c){tvc.ajaxEngine.call(office.URL,"UTF-8","office","deleteFile",[a0,a1,a2,a3],c,true);}
+office.addDocuments=function(a0,a1,c){tvc.ajaxEngine.call(office.URL,"UTF-8","office","addDocuments",[a0,a1],c,true);}
+office.setActive=function(a0,a1,c){tvc.ajaxEngine.call(office.URL,"UTF-8","office","setActive",[a0,a1],c,true);}
+office.unlock=function(a0,a1,a2,c){tvc.ajaxEngine.call(office.URL,"UTF-8","office","unlock",[a0,a1,a2],c,true);}
+office.lock=function(a0,a1,a2,c){tvc.ajaxEngine.call(office.URL,"UTF-8","office","lock",[a0,a1,a2],c,true);}
+office.deleteVersion=function(a0,a1,a2,c){tvc.ajaxEngine.call(office.URL,"UTF-8","office","deleteVersion",[a0,a1,a2],c,true);}
+office.deleteAttachment=function(a0,a1,a2,c){tvc.ajaxEngine.call(office.URL,"UTF-8","office","deleteAttachment",[a0,a1,a2],c,true);}
+</script>
+<script type="text/javascript">if(!window.fpdService){window.fpdService={};}
+fpdService.URL="https://plmtest.autoliv.int:12090/enovia/tvc-action/json/fpdService";
+fpdService._contentType="application/json";
+fpdService._dataType="json";
+fpdService.cancel=function(a0,c){fpdService._invoke("cancel",true,[a0],c);};
+fpdService.cancelPromise=function(a0){return fpdService._invokePromise("cancel",true,[a0]);};
+fpdService._invoke=function(a,b,c,d,e,f){var cb=null,ret=null,success=false;if(b){cb=d||Function.prototype;}else{cb=function(r,s){ret=r;success=s;};}$.ajax({type:'POST',dataType:e||fpdService._dataType,contentType:f||fpdService._contentType,url:fpdService.URL + '/' + a,data:JSON.stringify(c),success:function(s1,s2,s3){cb(s1,true);},error:function(e1,e2,e3){cb(e3,false);},async:b});if(!b){if(success){return ret;}else{throw ret;}}};
+fpdService._invokePromise=function(a,b,c,d,e,f){return new Promise(function(resolve,reject){$.ajax({type:'POST',dataType:e||fpdService._dataType,contentType:f||fpdService._contentType,url:fpdService.URL + '/' + a,data:JSON.stringify(c),success:function(s1,s2,s3){resolve(s1);},error:function(e1,e2,e3){reject({errorThrown:e3,textStatus:e2,jqXHR:e1});},async:b});});};
+</script>
+<script type="text/javascript">if(!window.fileManagerHtml5Service){window.fileManagerHtml5Service={};}
+fileManagerHtml5Service.URL="https://plmtest.autoliv.int:12090/enovia/tvc-action/json/fileManagerHtml5Service";
+fileManagerHtml5Service._contentType="application/json";
+fileManagerHtml5Service._dataType="json";
+fileManagerHtml5Service.checkinRequest=function(a0,a1,a2,a3,a4,a5,c){fileManagerHtml5Service._invoke("checkinRequest",true,[a0,a1,a2,a3,a4,a5],c,"JSON");};
+fileManagerHtml5Service.checkinRequestPromise=function(a0,a1,a2,a3,a4,a5){return fileManagerHtml5Service._invokePromise("checkinRequest",true,[a0,a1,a2,a3,a4,a5],undefined,"JSON");};
+fileManagerHtml5Service.download=function(a0,a1,a2,a3,c){fileManagerHtml5Service._invoke("download",true,[a0,a1,a2,a3],c,"JSON");};
+fileManagerHtml5Service.downloadPromise=function(a0,a1,a2,a3){return fileManagerHtml5Service._invokePromise("download",true,[a0,a1,a2,a3],undefined,"JSON");};
+fileManagerHtml5Service.unlock=function(a0,c){fileManagerHtml5Service._invoke("unlock",true,[a0],c,"JSON");};
+fileManagerHtml5Service.unlockPromise=function(a0){return fileManagerHtml5Service._invokePromise("unlock",true,[a0],undefined,"JSON");};
+fileManagerHtml5Service.checkinOneStepDone=function(a0,a1,a2,c){fileManagerHtml5Service._invoke("checkinOneStepDone",true,[a0,a1,a2],c,"JSON");};
+fileManagerHtml5Service.checkinOneStepDonePromise=function(a0,a1,a2){return fileManagerHtml5Service._invokePromise("checkinOneStepDone",true,[a0,a1,a2],undefined,"JSON");};
+fileManagerHtml5Service.cancelRequest=function(a0,c){fileManagerHtml5Service._invoke("cancelRequest",true,[a0],c,"JSON");};
+fileManagerHtml5Service.cancelRequestPromise=function(a0){return fileManagerHtml5Service._invokePromise("cancelRequest",true,[a0],undefined,"JSON");};
+fileManagerHtml5Service.downloadDone=function(a0,c){fileManagerHtml5Service._invoke("downloadDone",true,[a0],c,"JSON");};
+fileManagerHtml5Service.downloadDonePromise=function(a0){return fileManagerHtml5Service._invokePromise("downloadDone",true,[a0],undefined,"JSON");};
+fileManagerHtml5Service.lock=function(a0,c){fileManagerHtml5Service._invoke("lock",true,[a0],c,"JSON");};
+fileManagerHtml5Service.lockPromise=function(a0){return fileManagerHtml5Service._invokePromise("lock",true,[a0],undefined,"JSON");};
+fileManagerHtml5Service.checkinOneStepRequest=function(a0,a1,a2,a3,a4,c){fileManagerHtml5Service._invoke("checkinOneStepRequest",true,[a0,a1,a2,a3,a4],c,"JSON");};
+fileManagerHtml5Service.checkinOneStepRequestPromise=function(a0,a1,a2,a3,a4){return fileManagerHtml5Service._invokePromise("checkinOneStepRequest",true,[a0,a1,a2,a3,a4],undefined,"JSON");};
+fileManagerHtml5Service.cancelRequests=function(a0,c){fileManagerHtml5Service._invoke("cancelRequests",true,[a0],c,"JSON");};
+fileManagerHtml5Service.cancelRequestsPromise=function(a0){return fileManagerHtml5Service._invokePromise("cancelRequests",true,[a0],undefined,"JSON");};
+fileManagerHtml5Service.checkinDone=function(a0,a1,c){fileManagerHtml5Service._invoke("checkinDone",true,[a0,a1],c,"JSON");};
+fileManagerHtml5Service.checkinDonePromise=function(a0,a1){return fileManagerHtml5Service._invokePromise("checkinDone",true,[a0,a1],undefined,"JSON");};
+fileManagerHtml5Service._invoke=function(a,b,c,d,e,f){var cb=null,ret=null,success=false;if(b){cb=d||Function.prototype;}else{cb=function(r,s){ret=r;success=s;};}$.ajax({type:'POST',dataType:e||fileManagerHtml5Service._dataType,contentType:f||fileManagerHtml5Service._contentType,url:fileManagerHtml5Service.URL + '/' + a,data:JSON.stringify(c),success:function(s1,s2,s3){cb(s1,true);},error:function(e1,e2,e3){cb(e3,false);},async:b});if(!b){if(success){return ret;}else{throw ret;}}};
+fileManagerHtml5Service._invokePromise=function(a,b,c,d,e,f){return new Promise(function(resolve,reject){$.ajax({type:'POST',dataType:e||fileManagerHtml5Service._dataType,contentType:f||fileManagerHtml5Service._contentType,url:fileManagerHtml5Service.URL + '/' + a,data:JSON.stringify(c),success:function(s1,s2,s3){resolve(s1);},error:function(e1,e2,e3){reject({errorThrown:e3,textStatus:e2,jqXHR:e1});},async:b});});};
+</script>
+<script type="text/javascript" src="./messageformat.min.js.download"></script>
+<script type="text/javascript" src="./i18n.jsp"></script>
+<script type="text/javascript" src="./HTML5.js.download"></script>
+<script type="text/javascript" src="./APIManager.js.download"></script>
+<script type="text/javascript" src="./ClientCommon.js.download"></script>
+<script type="text/javascript" src="./AppletAPI.js.download"></script>
+<script type="text/javascript" src="./WebExtensionAPI.js.download"></script>
+<script type="text/javascript" src="./FallbackAPI.js.download"></script>
+<script type="text/javascript" src="./MXIntegrationScript.js.download"></script>
+<script type="text/javascript">var FILE_NAME_BAD_CHARS="\\'#$@&%~,";
+</script>
+<script type="text/javascript">
+$(document).ready(function() {
+    var isHETrueWidget = null;
+    var isExtensionAvailable = null;
+    
+    var disabled = false;
+    var ignoreWebExt = false;
+    var webExtInitArgs = {"messageType":"initClient","messageData":{"scheme":"https","hostName":"plmtest.autoliv.int","port":12090,"sessionId":"21A32C15564C5E1E5022476D6658BAF5.plmtest06-1","cookie":"JSESSIONID=21A32C15564C5E1E5022476D6658BAF5.plmtest06-1;ajs_user_id=671c0d42b9d81e3119fd43818555526ccf16a8a4;ajs_anonymous_id=52108177-f450-4b1a-8549-cdb4ecc210bc;PreviouslyLoggedInUser=super+Alexandru+Ilie","cookieEncoded":"JSESSIONID=21A32C15564C5E1E5022476D6658BAF5.plmtest06-1;ajs_user_id=671c0d42b9d81e3119fd43818555526ccf16a8a4;ajs_anonymous_id=52108177-f450-4b1a-8549-cdb4ecc210bc;PreviouslyLoggedInUser=super%2BAlexandru%2BIlie","cookieStrategy":"JSESSION","params":{"badFileNameChars":"'#$@&%~,","showLogo":"false","defaultCookieHandlerEnabled":"true","instance":"c3VwZXIgQWxleGFuZHJ1IElsaWU=","validateVersionUponCheckin":"true","showOnStartupEditable":"true","fontSizeOnPreferencesDialog":"12","packageCreatePollInterval":"1000","disableRunExecutables":"false","cookieStrategy":"jsession","makeSectionHeadersBoldOnPreferencesDialog":"false","locale":"en__","filenameConflict":"ask","makeFileReadOnlyWhenViewed":"true","useTempForView":"false","hideAfterCompleteEditable":"true","serverURL":"/enovia/tvc-action/oi","fileSuffixListForcesUsingPOI":"","maxConcurrentTransfers":"1","fakeNetworkLatency":"false","hideAfterComplete":"false","downloadFolder":"predefined","downloadFolderEditable":"true","managePropertiesInSeparateFile":"true","checkForNewVersions":"true","debug":"false","periodicSaveInterval":"300","disableStreamingMode":"false","loadLibraryFromSystemFolder":"false","sessionId":"21A32C15564C5E1E5022476D6658BAF5.plmtest06-1","deleteOnRemoveEditable":"true","removeAfterUploadEditable":"true","useWordToSaveProperties":"true","deleteOnRemove":"false","keepAliveInterval":"600","propertyWriteEnabled":"true","filenameConflictEditable":"true","disableConnectionHeaderParam":"true","checkForNewVersionsEditable":"true","maxFileCountOnCheckin":"-1","showOnStartup":"active","domain":"_enovia","osxPropertyWriteEnabled":"false","removeAfterUpload":"false","fileRenameEnabled":"WARN","useTempForViewEditable":"true","propertyReadEnabled":"false"}}};
+    var appletHTML = "<embed type=\"application/x-java-applet\" version=\"1.7+\" id=\"tvcFileManagerApplet\" width=\"0\" height=\"0\" mayscript=\"true\" scriptable=\"true\" code=\"com.technia.tvc.office.client.boot.TVCFileManagerApplet\" archive=\"/enovia/tvc/office/client/tvc-filemanager-core.jar,/enovia/tvc/office/client/tvc-filemanager-windows.jar\" showLogo=\"false\" instance=\"c3VwZXIgQWxleGFuZHJ1IElsaWU=\" validateVersionUponCheckin=\"true\" showOnStartupEditable=\"true\" fontSizeOnPreferencesDialog=\"12\" java_status_events=\"true\" packageCreatePollInterval=\"1000\" java_arguments=\"-Djsse.enableSNIExtension=false\" makeSectionHeadersBoldOnPreferencesDialog=\"false\" filenameConflict=\"ask\" makeFileReadOnlyWhenViewed=\"true\" hideAfterCompleteEditable=\"true\" serverURL=\"/enovia/tvc-action/oi\" fileSuffixListForcesUsingPOI=\"\" downloadFolderEditable=\"true\" checkForNewVersions=\"true\" periodicSaveInterval=\"300\" deleteOnRemoveEditable=\"true\" useWordToSaveProperties=\"true\" propertyWriteEnabled=\"true\" filenameConflictEditable=\"true\" checkForNewVersionsEditable=\"true\" domain=\"_enovia\" removeAfterUpload=\"false\" propertyReadEnabled=\"false\" badFileNameChars=\"&#039;#$@&amp;%~,\" defaultCookieHandlerEnabled=\"true\" disableRunExecutables=\"false\" cookieStrategy=\"jsession\" locale=\"en__\" codebase_lookup=\"false\" useTempForView=\"false\" maxConcurrentTransfers=\"1\" fakeNetworkLatency=\"false\" hideAfterComplete=\"false\" downloadFolder=\"predefined\" managePropertiesInSeparateFile=\"true\" debug=\"false\" disableStreamingMode=\"false\" loadLibraryFromSystemFolder=\"false\" sessionId=\"21A32C15564C5E1E5022476D6658BAF5.plmtest06-1\" removeAfterUploadEditable=\"true\" deleteOnRemove=\"false\" keepAliveInterval=\"600\" disableConnectionHeaderParam=\"true\" maxFileCountOnCheckin=\"-1\" showOnStartup=\"active\" osxPropertyWriteEnabled=\"false\" fileRenameEnabled=\"WARN\" useTempForViewEditable=\"true\"></embed>";
+        
+    if (!disabled) {
+        var loaded = false;
+        var $webExt = null;
+        
+        if(!isHETrueWidget){
+            $webExt = $(parent.document.getElementById("tvc-filemanager-webext"));
+            loaded = $webExt.data("extension-avail") ? true : false;;
+        }else{
+        	loaded = isExtensionAvailable;
+        }
+		
+        if (!ignoreWebExt && loaded && !isHETrueWidget) {
+            var version = $webExt.data("extension-version");
+            console.log("Web-extension detected", "Version", version);
+            // TODO: ensure that version is ok, if not, alert / hint user about old version
+            tvc.fileManager.webExtension.init(webExtInitArgs);
+        }else if(isExtensionAvailable && isHETrueWidget) {
+			console.log("Web-extension detected", "Version", version);
+            // TODO: ensure that version is ok, if not, alert / hint user about old version
+            tvc.fileManager.webExtension.init(webExtInitArgs);
+        }
+		
+        if (!loaded || ignoreWebExt) {
+            tvc.fileManager.applet.init(appletHTML)
+                .catch(function(err) {
+                    console.log(err);
+                    $("#tvcFileManagerApplet").remove();
+                });
+        }
+
+        var executeFMTask = function(apiMethod) {
+        	var api = tvc.fileManager.api;
+        	var fn = api[apiMethod];
+            if (fn) {
+                return fn.apply(api, Array.prototype.slice.call(arguments, 1));
+            }
+        }
+
+        var onFMFallbackMessageReceived = function(event) {
+        	var _event$data = event.data;
+        	var apiMethod = _event$data.apiMethod;
+        	var objectId = _event$data.objectId;
+        	var format = _event$data.format;
+        	var fileName = _event$data.fileName;
+        	var flag = _event$data.flag;
+        	var isHETrueWidget = _event$data.isHETrueWidget;
+        	var destination = _event$data.destination;
+        	var widgetId = _event$data.widgetId;
+        	var rowId = _event$data.rowId;
+        	
+            if (destination === 'fmFallback') {
+            	var callback = function callback() {
+            	    parent.postMessage({
+            	        widgetId: widgetId,
+            	        rowId: rowId,
+            	        subscriber: 'fmFallback'
+            	    }, '*');
+            	};
+                if (apiMethod === 'checkinNew') {                
+                	executeFMTask(apiMethod, parent, objectId, callback, isHETrueWidget);
+            	} else {
+            		executeFMTask(apiMethod, parent, objectId, format, fileName, flag, callback, isHETrueWidget);
+            	}
+            }
+        }
+
+        window.addEventListener('message', onFMFallbackMessageReceived, false);
+    }
+});
+</script>
+<link rel="stylesheet" type="text/css" href="./fileManagerFallback.css">
+</head>
+<body marginwidth="0" marginheight="0">
+<iframe src="./saved_resource(4).html" style="display:none;" id="tvcFileManagerHelperFrame" name="tvcFileManagerHelperFrame"></iframe>
+
+</body></html>

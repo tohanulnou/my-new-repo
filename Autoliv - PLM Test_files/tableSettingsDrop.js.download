@@ -1,0 +1,319 @@
+if (!window.tvc) {
+    window.tvc = {};
+}
+if (!window.tvc.tableSettingsDrop) {
+    window.tvc.tableSettingsDrop = {
+        /**
+         * Entry point for creating the drop
+         */
+        create: function(itemDef, api) {
+            tvc.tableSettingsDrop.toolbarItemApi = api;
+            var deferred = new $.Deferred();
+
+            $.getJSON(
+                tvc.table.toolbar.getServiceURL('tableSettings/getLayoutSettings', [
+                    getTableBeanName()
+                ])
+            )
+                .done(tvc.tableSettingsDrop.renderHtml)
+                .done(tvc.tableSettingsDrop.initEvents)
+                .done(tvc.tableSettingsDrop.changeLayout)
+                .done(tvc.tableSettingsDrop.changeStructureType)
+                .done(function() {
+                    deferred.resolve(tvc.tableSettingsDrop.$content[0]);
+                })
+                .fail(tvc.table.toolbar.fail);
+
+            return deferred.promise();
+        },
+
+        /**
+         * Initializes events
+         */
+        initEvents: function() {
+            tvc.tableSettingsDrop.$content.on('click', '.save', tvc.tableSettingsDrop.save);
+            tvc.tableSettingsDrop.$content.on(
+                'change',
+                '#layout_mode',
+                tvc.tableSettingsDrop.changeLayout
+            );
+            tvc.tableSettingsDrop.$content.on(
+                'change',
+                '#layout_strGUI',
+                tvc.tableSettingsDrop.changeStructureType
+            );
+        },
+
+        /**
+         * Save
+         */
+        save: function() {
+            if (tvc.tableSettingsDrop.saveInProgress) {
+                return;
+            }
+            tvc.tableSettingsDrop.saveInProgress = true;
+            var prefs = tvc.tableSettingsDrop.getSelectedValues();
+            if (parent.tableSettings.saveLayoutSettings(getTableBeanName(), prefs)) {
+                tvcReloadPage();
+            }
+            tvc.tableSettingsDrop.saveInProgress = false;
+            tvc.tableSettingsDrop.toolbarItemApi.close();
+        },
+
+        renderHtml: function(data) {
+            // Create container for drop
+            var $content = $('<div>').addClass('table-settings-drop');
+
+            /*
+             * Pagination
+             */
+            if (!data.disablePaginationSizeSelection) {
+                $('<h4 class="ui dividing header">')
+                    .text(parent.MSG_LAYOUT_PAGINATIONSETTINGS)
+                    .appendTo($content);
+                $('<div class="text">')
+                    .text(parent.MSG_LAYOUT_PAGINATEON)
+                    .append(tvc.tableSettingsDrop.createPaginationSelect(data))
+                    .appendTo($content);
+
+                // Use slider instead?
+                $('<div class="text">')
+                    .text(parent.MSG_LAYOUT_PAGINATERANGE)
+                    .append(tvc.tableSettingsDrop.createPaginationRangeSelect(data))
+                    .appendTo($content);
+            }
+
+            /*
+             * Layout
+             */
+            if (
+                data.layoutChangeable ||
+                data.headerRepeatChangeable ||
+                data.structureTypeChangeable ||
+                data.navigationButtonChangeable
+            ) {
+                $('<h5 class="ui dividing header">')
+                    .text(parent.MSG_LAYOUT_TABLELAYOUTSETTINGS)
+                    .appendTo($content);
+
+                // Table layout
+                if (data.layoutChangeable) {
+                    $('<div class="text">')
+                        .text(parent.MSG_LAYOUT_TABLELAYOUT)
+                        .append(tvc.tableSettingsDrop.createLayoutSelect(data))
+                        .appendTo($content);
+                }
+
+                // Table Header Repeat
+                // Slider ?
+                if (data.headerRepeatChangeable) {
+                    $('<div class="text">')
+                        .text(parent.MSG_LAYOUT_THRI)
+                        .append(tvc.tableSettingsDrop.createHeaderRepeatSelect(data))
+                        .appendTo($content);
+                }
+
+                // Structure Type
+                if (data.structureTypeChangeable) {
+                    $('<div class="text">')
+                        .text(parent.MSG_LAYOUT_STRUCTUREGUI)
+                        .append(tvc.tableSettingsDrop.createStructureTypeSelect(data))
+                        .appendTo($content);
+                }
+
+                // Navigation button position
+                if (data.navigationButtonChangeable) {
+                    $('<div class="text">')
+                        .text(parent.MSG_LAYOUT_NAVBTNPOS)
+                        .append(tvc.tableSettingsDrop.createNavigationPositionSelect(data))
+                        .appendTo($content);
+                }
+            }
+            $('<button class="ui primary button save">')
+                .text('Save')
+                .appendTo($content);
+
+            /*
+             * Keep unchangeable stuff in hidden fields in order to not change them
+             */
+            if (!data.layoutChangeable) {
+                $("<input type='hidden' id='layout_mode'>")
+                    .val(data.layout)
+                    .appendTo($content);
+            }
+            if (!data.headerRepeatChangeable) {
+                $("<input type='hidden' id='layout_thri'>")
+                    .val(data.tableHeaderRepeatInterval)
+                    .appendTo($content);
+            }
+            if (!data.structureTypeChangeable) {
+                $("<input type='hidden' id='layout_strGUI'>")
+                    .val(data.structureGUIType)
+                    .appendTo($content);
+            }
+            if (!data.navigationButtonChangeable) {
+                $("<input type='hidden' id='layout_navBtnPos'>")
+                    .val(data.navigationButtonsOnLeft ? 'left' : 'right')
+                    .appendTo($content);
+            }
+            if (!data.paginationSupported) {
+                $("<input type='hidden' id='layout_pagOn'>")
+                    .val(data.paginateOn)
+                    .appendTo($content);
+                $("<input type='hidden' id='layout_pagRange'>")
+                    .val(data.paginationSize)
+                    .appendTo($content);
+            }
+
+            tvc.tableSettingsDrop.$content = $content;
+        },
+
+        /**
+         * Changing layout
+         */
+        changeLayout: function() {
+            var layout = tvc.tableSettingsDrop.$content.find('#layout_mode').val();
+            var disabled = layout !== 'optimized';
+            tvc.tableSettingsDrop.$content
+                .find('#layout_thri')
+                .toggleClass('disabled', disabled)
+                .attr('disabled', disabled);
+        },
+
+        /**
+         * Change structure GUI
+         */
+        changeStructureType: function() {
+            var structureType = tvc.tableSettingsDrop.$content.find('#layout_strGUI');
+            var disabled = structureType.val() === 'caret';
+            tvc.tableSettingsDrop.$content
+                .find('#layout_navBtnPos')
+                .toggleClass('disabled', disabled)
+                .attr('disabled', disabled);
+        },
+
+        /**
+         * Get the values selected values in the drop
+         */
+        getSelectedValues: function() {
+            var $content = tvc.tableSettingsDrop.$content;
+            var elm1 = $content.find('#layout_mode').val();
+            var elm2 = $content.find('#layout_thri').val();
+            var elm3 = $content.find('#layout_navBtnPos').val();
+            var elm4 = $content.find('#layout_strGUI').val();
+            var elm5 = $content.find('#layout_pagOn').val();
+            var elm6 = $content.find('#layout_pagRange').val();
+            return {
+                layout: elm1 ? elm1 : 0,
+                tableHeaderRepeatInterval: elm2 ? elm2 : null,
+                navigationButtonsOnLeft: elm3 ? elm3 == 'left' : false,
+                structureGUIType: elm4 ? elm4 : null,
+                paginateOn: elm5 ? elm5 : false,
+                paginationSize: elm6 ? elm6 : 10
+            };
+        },
+
+        createPaginationSelect: function(data) {
+            var options = [
+                {
+                    value: true,
+                    label: parent.MSG_YES
+                },
+                {
+                    value: false,
+                    label: parent.MSG_NO
+                }
+            ];
+
+            return tvc.table.drop.select('layout_pagOn', options, data.paginateOn);
+        },
+
+        createPaginationRangeSelect: function(data) {
+            var options = [];
+            for (var x = 10, jump = 10; x <= data.paginationThreshold; ) {
+                if (x > 999) {
+                    jump = 100;
+                } else if (x > 499) {
+                    jump = 50;
+                } else if (x > 99) {
+                    jump = 25;
+                }
+                options.push({
+                    value: x
+                });
+                x += jump;
+            }
+
+            return tvc.table.drop.select('layout_pagRange', options, data.paginationSize);
+        },
+
+        createLayoutSelect: function(data) {
+            var layouts = [];
+            // Is this needed ?
+            if (tvc.agent.isChrome || tvc.agent.isSafari) {
+                layouts = ['standard', 'optimized'];
+            } else if (tvc.agent.isGecko && tvc.agent.version < 1.9) {
+                layouts = ['optimized'];
+            } else {
+                layouts = ['standard', 'optimized'];
+            }
+
+            var options = [];
+            for (var i = 0; i < layouts.length; i++) {
+                options.push({
+                    value: layouts[i],
+                    label: parent.MSG_LAYOUT_LAYOUTS[layouts[i]]
+                });
+            }
+
+            return tvc.table.drop.select('layout_mode', options, data.layout);
+        },
+
+        createHeaderRepeatSelect: function(data) {
+            var options = [
+                {
+                    value: -1,
+                    label: parent.MSG_LAYOUT_NOTHRI
+                }
+            ];
+            for (var x = 10; x < 101; x += 10) {
+                options.push({
+                    value: x
+                });
+            }
+
+            return tvc.table.drop.select('layout_thri', options, data.tableHeaderRepeatInterval);
+        },
+
+        createStructureTypeSelect: function(data) {
+            var options = [];
+            for (var x = 0; x < parent.MSG_LAYOUT_STRUCTUREGUI_TYPES.length; x++) {
+                options.push({
+                    value: data.structureGUITypes[x],
+                    label: parent.MSG_LAYOUT_STRUCTUREGUI_TYPES[x]
+                });
+            }
+
+            return tvc.table.drop.select('layout_strGUI', options, data.structureGUIType);
+        },
+
+        createNavigationPositionSelect: function(data) {
+            var options = [
+                {
+                    value: 'left',
+                    label: parent.MSG_LAYOUT_NAVBTNPOSLEFT
+                },
+                {
+                    value: 'right',
+                    label: parent.MSG_LAYOUT_NAVBTNPOSRIGHT
+                }
+            ];
+
+            return tvc.table.drop.select(
+                'layout_navBtnPos',
+                options,
+                data.navigationButtonsOnLeft ? 'left' : 'right'
+            );
+        }
+    };
+}

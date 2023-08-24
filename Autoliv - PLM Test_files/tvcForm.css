@@ -1,0 +1,34 @@
+td.label,
+td.labelRequired {
+    font-weight: bold;
+}
+
+td.labelRequired {
+    font-style: italic;
+}
+
+td.inputField {
+    font-size: 12px;
+}
+
+td.requiredNotice {
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+td.heading1 {
+    font-size: 10pt;
+    font-weight: bold;
+    height: 24px;
+}
+
+td.heading2 {
+    font-size: 8pt;
+    font-weight: bold;
+    height: 24px;
+}
+
+@media all and (min-width: 801px) {
+    table.form {
+        width: calc(100% - 1px) !important;
+    }
+}

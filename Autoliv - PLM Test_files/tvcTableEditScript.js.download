@@ -1,0 +1,387 @@
+function tvcShowCalendar(id, frame) {
+    throw new Error(
+        "The method tvcShowCalendar(id, frame) in the table's content frame is deprecated. Use dp(id) in the view frame instead. Example: frame.dp(id)"
+    );
+}
+
+function tvcGetNewCellValue(field) {
+    var value = null;
+    var oldValue = null;
+    switch (field.type) {
+        case 'text':
+        case 'textarea':
+            value = field.value;
+            oldValue = field.defaultValue;
+            if (tvcStringEquals(value, oldValue)) {
+                return null;
+            }
+            break;
+        case 'hidden':
+            value = field.value;
+            break;
+        case 'select-one':
+            var option = field.options[field.selectedIndex];
+            if (option.defaultSelected) {
+                return null;
+            }
+            value = option.value;
+            break;
+        case 'checkbox':
+            var data_range_true = field.getAttribute('data_range_true');
+            var data_range_false = field.getAttribute('data_range_false');
+            value = field.checked ? data_range_true : data_range_false;
+            break;
+    }
+    if (value == null) {
+        return null;
+    }
+    var dt = field.getAttribute('dt');
+    var unitID = field.getAttribute('u');
+    var units = null;
+    if (unitID != null) {
+        try {
+            units = eval('MXDIM_' + unitID);
+        } catch (X) {}
+    }
+    if (units != null) {
+        var unit = null,
+            number = null,
+            iNumberEnds = -1;
+        loop: for (var i = 0, j = 0; i < value.length; i++) {
+            switch (value.charAt(i)) {
+                case '+':
+                case '-':
+                    if (i == 0) {
+                        continue;
+                    }
+                    break loop;
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
+                    continue;
+                case '.':
+                case ',':
+                    if (i > 0 && j++ == 0) {
+                        continue;
+                    }
+                    break loop;
+                default:
+                    iNumberEnds = i;
+                    break loop;
+            }
+        }
+        if (iNumberEnds != -1) {
+            unit = value.substring(iNumberEnds).trim();
+            number = value.substring(0, iNumberEnds).trim();
+        }
+        if (units != null && number != null && unit != null) {
+            var iIndex = -1;
+            for (var i = 0; i < units.length; i++) {
+                if (units[i] == unit) {
+                    iIndex = i;
+                    break;
+                }
+            }
+            if (iIndex == -1) {
+                tvcUpdateCellValue(field, oldValue);
+                throw new Error("'" + unit + "' is not a valid unit.");
+            }
+            var newNumber = _validateNumber(field, dt, number, oldValue);
+            return newNumber + ' ' + unit;
+        } else {
+            return _validateNumber(field, dt, value, oldValue);
+        }
+    } else {
+        return _validateNumber(field, dt, value, oldValue);
+    }
+}
+
+function _validateNumber(field, dt, value, oldValue) {
+    var asEntered = value;
+    if (dt == 'int') {
+        value = value.replace(/,/g, '.');
+        if (!tvc.isInteger(value)) {
+            tvcUpdateCellValue(field, oldValue);
+            throw new Error("'" + asEntered + "' is not a valid integer.");
+        }
+    } else if (dt == 'real') {
+        value = value.replace(/,/g, '.');
+        if (!tvc.isNumber(value)) {
+            tvcUpdateCellValue(field, oldValue);
+            throw new Error("'" + asEntered + "' is not a valid number");
+        }
+    }
+    return value;
+}
+
+function tvcUpdateCellValueByName(name, value) {
+    var field = tvcGetFormElements(name);
+    if (field) {
+        tvcUpdateCellValue(field[0], value);
+    }
+}
+
+function tvcUpdateCellValue(field, value) {
+    if (field == null) {
+        return;
+    }
+    if (value == null) {
+        value = '';
+    }
+    switch (field.type) {
+        case 'text':
+        case 'textarea':
+        case 'hidden':
+            if (value != field.value) {
+                field.value = value;
+            }
+            field.defaultValue = value;
+            if ($(field).is(':focus')) {
+                field.select();
+            }
+            break;
+        case 'select-one':
+            for (var i = 0; i < field.options.length; i++) {
+                if (field.options[i].value == value) {
+                    field.selectedIndex = i;
+                    break;
+                }
+            }
+            // have to do this in a separate loop... :/
+            for (var i = 0; i < field.options.length; i++) {
+                field.options[i].defaultSelected = i == field.selectedIndex;
+            }
+            break;
+    }
+}
+
+function tvcRequestFocus(o) {
+    try {
+        if (o && o.focus) {
+            o.focus();
+            if (o.select) {
+                o.select();
+            }
+        }
+    } catch (E) {}
+}
+
+function tvcEditCell(field, newValue, callback) {
+    if (typeof callback !== 'function') {
+        callback = function() {};
+    }
+    if (field.xTVC_CellEditBlock) {
+        // If this is true the cell is already
+        // being edited. In that case, cancel
+        // the edit request so that we don't
+        // accidentally try to edit a cell twice.
+        return;
+    }
+    field.xTVC_CellEditBlock = true;
+    var td = _getTD(field);
+    if (td) {
+        if ($(td).hasClass('hl')) {
+            td.className = 'e hl';
+        } else {
+            td.className = 'e';
+        }
+    }
+
+    table.editCell(
+        getTableBeanName(),
+        field.getAttribute('row'),
+        field.getAttribute('col'),
+        field.getAttribute('val'),
+        newValue,
+        function(r, s) {
+            if (s) {
+                __handleEditResponse(r, field, callback);
+            } else {
+                field.xTVC_CellEditBlock = false;
+                if (!r.interrupted) {
+                    if (td) {
+                        td.className = 'ee';
+                    }
+                    field.defaultValue = newValue;
+                    setTimeout(function() {
+                        tvcRequestFocus(field);
+                    }, 200);
+
+                    alert(r);
+                }
+                callback({ status: 'error', message: 'Unable to save' });
+            }
+        }
+    );
+}
+function __handleEditResponse(resp, inp, callback) {
+    if (typeof callback !== 'function') {
+        callback = function() {};
+    }
+    if (resp == null) {
+        __handleEditComplete(false, inp);
+        alert('Unexpected error');
+        return;
+    }
+    if (resp.values) {
+        for (var i = 0; i < resp.values.length; i++) {
+            var value = resp.values[i].value;
+            if (value != null) {
+                // remove garbage...
+                value = value.substring(1, value.length);
+            }
+            tvcUpdateCellValueByName(resp.values[i].inputID, value);
+        }
+    }
+    if (resp.calculationValues) {
+        var docs = [];
+        var f = tvcGetTableBodyRightFrame();
+        if (f != null) {
+            docs.push(f.document);
+        }
+        if (docs.length > 0) {
+            for (var i = 0; i < resp.calculationValues.length; i++) {
+                var calc = resp.calculationValues[i];
+                var id = 'CALC' + calc.columnName + calc.calculationName;
+                var ids = [id + 'ALL', id + 'PAGE'];
+                var vals = [calc.allValue, calc.pageValue];
+                for (var j = 0; j < 2; j++) {
+                    var element = null;
+                    for (var k = 0; k < docs.length; k++) {
+                        element = docs[k].getElementById(ids[j]);
+                        if (element != null) {
+                            break;
+                        }
+                    }
+                    if (element != null) {
+                        var value = vals[j];
+                        if (value != null) {
+                            value = value.substring(1, value.length);
+                            element.innerHTML = value;
+                        }
+                    }
+                }
+            }
+        }
+        /*
+         * For some reason the tvcRefreshUI() function distorts
+         * the UI un an unfunny way, at least on FF3. Everytime
+         * this method is called a couple of columns grows wider.
+         */
+    }
+    switch (resp.type) {
+        case 'ok':
+            __handleEditComplete(true, inp);
+            if (resp.messages) {
+                for (var i = 0; i < resp.messages.length; i++) {
+                    alert(resp.messages[i]);
+                }
+            }
+            callback({ status: 'success', message: '' });
+            break;
+        case 'error':
+            __handleEditComplete(false, inp);
+            if (resp.messages) {
+                for (var i = 0; i < resp.messages.length; i++) {
+                    alert(resp.messages[i]);
+                }
+            }
+            callback({ status: 'error', message: 'Unable to save' });
+            break;
+        case 'open':
+            __handleEditComplete(true, inp);
+            if (resp.link) {
+                __open(resp.link);
+            }
+            break;
+        case 'confirm':
+            var accept = confirm(resp.confirmMessage);
+            table.confirmCallback(resp.confirmID, accept, function(ret, ok) {
+                if (ok) {
+                    __handleEditResponse(ret, inp);
+                } else {
+                    alert(ret.message);
+                }
+            });
+            break;
+        case 'script':
+            var postEditCallback = function() {
+                if (resp.javascript) {
+                    eval(resp.javascript);
+                }
+                callback({ status: 'script', message: '' });
+            }.bind(this);
+            __handleEditComplete(true, inp, postEditCallback);
+            break;
+    }
+}
+
+function __handleEditComplete(success, inp, postEditCallback) {
+    inp.xTVC_CellEditBlock = false;
+    var td = _getTD(inp);
+    if (td) {
+        var focusElement = null;
+        var doc = inp.ownerDocument;
+        var win = doc.defaultView || doc.parentWindow;
+        if (win.tvc.inCellEdit) {
+            win.tvc.inCellEdit.setProcessing(false);
+        }
+        var highlighted = $(td).hasClass('hl');
+        if (success) {
+            if (win.tvc.inCellEdit) {
+                td.className = 'es ice';
+                win.tvc.inCellEdit.toggleView(td, postEditCallback);
+            } else {
+                td.className = 'es';
+                if (postEditCallback && typeof postEditCallback === 'function') {
+                    postEditCallback();
+                }
+            }
+        } else {
+            focusElement = inp;
+            if (win.tvc.inCellEdit) {
+                td.className = 'ee ice';
+            } else {
+                td.className = 'ee';
+            }
+        }
+        if (highlighted) {
+            $(td).addClass('hl');
+        }
+        if (focusElement) {
+            tvcRequestFocus(focusElement);
+        }
+        _publishData(inp);
+    }
+}
+
+function _publishData(inp) {
+    var columnIndex = inp.getAttribute('col');
+    var tableBodyRightFrame = tvc.findFrame(window, 'tableBodyRight');
+    if (tableBodyRightFrame) {
+        var thElement = tableBodyRightFrame.document.getElementsByClassName('h');
+        for (var i = 0; i < thElement.length; i++) {
+            var colIndex = thElement[i].getAttribute('colindex');
+            if (colIndex === columnIndex) {
+                var publishIds = thElement[i].getAttribute('publishIds');
+                if (publishIds) {
+                    tvc.acknowledgePublisher(publishIds);
+                }
+                break;
+            }
+        }
+    }
+}
+
+function _getTD(inp) {
+    var doc = inp.ownerDocument;
+    var win = doc.defaultView || doc.parentWindow;
+    return win._getTD(inp);
+}

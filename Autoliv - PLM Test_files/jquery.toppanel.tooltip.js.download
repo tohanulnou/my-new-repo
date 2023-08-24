@@ -1,0 +1,128 @@
+
+var topPanel_tipState = 0;
+
+$(document).ready(function() {
+    /*
+     * Locates elements using a selector across all iframes (starting on current
+     * iframe in case no root parameter is specified).
+     */
+    var getElements = function(selector, $root, $result) {
+        if (!$root) {
+            $root = $(document);
+        }
+        if (!$result) {
+            $result = $();
+        }
+        $result = $result.add($root.find(selector));
+        $root.find('iframe').each(function() {
+            $result = getElements(selector, $(this).contents(), $result);
+        });
+        return $result;
+    };    
+    
+    var context = window.parent;
+    var $$ = context.$;
+    var $ctx = $$(context);
+    var $doc = $$(context.document.body);
+    var $frame = $$(window.frameElement);
+    var $self = $(window);
+    var tooltip = $doc.append('<div id="tooltip"><div id="title"></div><div id="content"></div></div>').children("div:last");    
+    $(tooltip).hide(); 
+    $(window).bind('unload', function(){
+        tooltip.remove();
+    });
+    var cssObj = {
+	    'position':'absolute',
+	    'background':'white',
+	    'border-style':'solid',
+	    'border-width':'1px',
+	    'border-color':'#b1b1b1',
+	    'font-size':'8pt',
+	    'font-family':'arial,verdana,sans-serif',
+	    'overflow':'auto',
+	    'box-shadow':'0 1px 1px 0 rgba(0, 0, 0, 0.1)',
+	    '-moz-box-shadow':'0 1px 1px 0 rgba(0, 0, 0, 0.1)',
+	    '-webkit-box-shadow':'0 1px 1px 0 rgba(0, 0, 0, 0.1)'
+    };
+    var title = {
+        'text-align':'left',
+        'font-weight':'bold',
+        'background':'#e3e3e3',
+        'padding':'5px 9px 5px 9px'
+    };
+    var content = {
+        'text-align':'left',
+        'padding':'5px 9px'
+    };
+    $(tooltip).css(cssObj);
+    $(tooltip).mouseenter(function() {
+    	topPanel_tipState = 2;
+    });
+    $(tooltip).mouseleave(function() {
+    	topPanel_tipState = 0;
+    	$(this).hide();
+        getElements("#tvcDropZoneAboveTable", $(window.parent.document)).css({"visibility" : "visible"});
+    });
+    $('div#title',$(tooltip)).css(title);
+    $('div#content',$(tooltip)).css(content);
+    $('div[tip]').each(function() {
+            $(this).hover( 
+                function() {
+                    $('div#title',$(tooltip)).html($(this).attr('tip-title'));
+                    $('div#content',$(tooltip)).html($(this).attr('tip'));
+                    
+                    var position = $(this).offset();
+                    var adjustBy = $frame.offset();
+                    
+                    var left = 
+                    	position.left 
+                    	+ adjustBy.left 
+                    	- $self.scrollLeft();
+                    
+                    var tpHeight = $$("div.TopPanel").outerHeight();
+                    
+                    var top = 
+                    	position.top
+                    	+ $(this).outerHeight() 
+                    	+ adjustBy.top
+                        + 5 
+                        - $self.scrollTop() 
+                        + 5;
+                    
+                    top = Math.min(tpHeight + adjustBy.top + 3, top);
+                                        
+                    var availHeight = Math.max($ctx.height() - top - 5, 25);
+                    var availWidth = Math.max($ctx.width() - left - 5, 25);
+                    if(availHeight<300){
+                        top = top - $(this).outerHeight();
+                    }
+                    var width = 400;
+                    if(availWidth<400) {
+                        width = availWidth;
+                    }                    
+                    $(tooltip).css( {
+                        top : top + "px",
+                        left : left + "px",
+                        'width' : width + "px",
+                        'max-height' : 300 + "px"
+                    });
+                    topPanel_tipState = 1;
+                    $(tooltip).show();
+                    getElements("#tvcDropZoneAboveTable", $(window.parent.document)).css({"visibility" : "hidden"});
+                    if (tvc.agent.isMSIE) {
+                    	$(tooltip).css({"height":Math.min(availHeight,300)+"px"});
+                    }
+                },
+                function() {
+                	if (topPanel_tipState == 1) {
+                		window.setTimeout(function() {
+                			if (topPanel_tipState != 2) {
+                				$(tooltip).hide();
+                			    getElements("#tvcDropZoneAboveTable", $(window.parent.document)).css({"visibility" : "visible"});
+                                topPanel_tipState = 0;				
+                			}
+                		}, 500);
+                	}                	
+                });
+        });
+});

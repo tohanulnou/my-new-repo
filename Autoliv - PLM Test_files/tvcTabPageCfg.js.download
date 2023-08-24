@@ -1,0 +1,322 @@
+var _tabCfgPane = null;
+var _tabs = null;
+var _tabGroup = null;
+
+function tvcTabPage_closeTabCfg() {
+    var selectedHidden = false;
+    $(_tabGroup).find('.tab').each(function(i) {
+        var $this = $(this);
+        if ($this.hasClass('hiddenTab')) {
+            if($this.hasClass('selectedTab')) {
+                selectedHidden = true;
+            }
+            //tvcTabPage_updateCSSClass_tabCfg(_tabs.item(_tabs.length-1), true);
+        }
+    });
+    if(!selectedHidden) {
+        $('.tabCfg').removeClass('selectedTabCfg');
+    }
+    tvcTabPage_tabPageCfgVisible(_tabGroup, false);
+}
+
+function tvcTabPage_showTabCfg(tabsId) {
+    var tabGroup = _getAncestorWithNodeName(this, "UL");
+    var tabs = tabGroup.getElementsByTagName("li");
+    _tabGroup = tabGroup;
+    _tabs = tabs;
+    
+    var content = [];
+    content.push("<div id='tabPageCfgPane' tabs_id='" + tabsId + "'><div id='tabPageCfgPane_inner'>");
+    content.push("<div id='tabPageCfgPane_tabs' unselectable='on'>");
+    var count = tabs.length - 1;
+    for (var j=0; j<count; j++) {
+        var tab = tabs.item(j);
+        var $tab = $(tab);
+        var visible = !$tab.hasClass('hiddenTab');
+        var dropped = $tab.hasClass('droppedTab');
+        var fixed = $tab.hasClass('fixed');
+        var choosen = visible || dropped;
+        var tabId = $tab.attr('tid');
+        var selected = $tab.hasClass('selectedTab');
+        var anchor = tab.getElementsByTagName("A")[0];
+        var itemId = "tabPageCfgPane_tab_item_" + j;
+        content.push("<div class='tabPageCfgPane_tab" + (selected ? " droppedSelected" : "") + "' unselectable='on'>");
+        content.push("<table>");
+        content.push("<tr>");
+        content.push("<td>");
+        content.push("<span class='dragHandle'>&nbsp;</span>");
+        content.push("</td>");
+        content.push("<td class='notDraggable'>");
+        content.push("<input type='checkbox' id='" + itemId + "'" + (choosen ? " checked" : ""));
+        content.push(" order='" + j + "'");
+        if (fixed) {
+            content.push(" disabled");
+        }
+        content.push(" value='"  + tab.getAttribute('tid').replace(/'/g, "&#39;")  + "'>");
+        content.push("<span class='droppedTabLink" + (visible ? " selectedTabLink" : (dropped ? " selectedDroppedTabLink" : "")) + "' data-cfg-tid='"+tabId+"' style='white-space:nowrap' title='" + anchor.title+ "' unselectable='on'>");
+        content.push(anchor.innerHTML);
+        content.push("</span>");
+        content.push("</td>");
+        content.push("</tr>");
+        content.push("</table>");
+        content.push("</div>");
+    }
+    content.push("</div>");
+    content.push("<div id='tabPageCfgPane_buttons'>");
+    content.push("<button class='tb-btn tb-btn-small' id='tabPageCfgPane_okButton'>Ok</button>&nbsp;");
+    content.push("<button class='tb-btn tb-btn-small' id='tabPageCfgPane_cancelButton'>Cancel</button>&nbsp;");
+    content.push("<button class='tb-btn tb-btn-small' id='tabPageCfgPane_resetButton'>Reset</button>");
+    content.push("</div>");
+    content.push("</div></div>");
+
+    if (_tabCfgPane == null) {
+        _tabCfgPane = new TVCPane(window, false);
+        _tabCfgPane._use_popup = false;
+        _tabCfgPane.setPadding("2px");
+        _tabCfgPane.setCloseListener(tvcTabPage_closeTabCfg);
+    }
+    _tabCfgPane.setHTML(content.join(""));
+    var left = tabs.item(count).offsetLeft;
+    var top = tvc.pageTop(this) + this.offsetHeight;
+    /*if (_tabCfgPane._use_popup) {
+        _tabCfgPane.setCloseListener(null);
+        _tabCfgPane.show(left, top, -1, -1);
+        var element = _tabCfgPane._ie_popup.document.getElementById("tabPageCfgPane");
+        var width = element.scrollWidth+10;
+        var height = element.scrollHeight+10;
+        _tabCfgPane.hide();
+        _tabCfgPane.setCloseListener(tvcTabPage_closeTabCfg);
+        _tabCfgPane.show(left, top, width, height);
+    } else {
+        _tabCfgPane.show(left, top, -1, -1);
+    }*/
+    var $window = $(window);
+    var $tabCfg = $('.tabCfg');
+    var left = $tabCfg.offset().left;
+    var right = $window.width() - (left + $tabCfg.outerWidth());
+    var tabsDiv = $(document).find('div.tabs');
+    if (tabsDiv && tabsDiv.height() / 2 < $(this.parentElement).height() + this.offsetHeight) {
+    	top = $window.height() - tvc.pageTop(this);
+	}
+    _tabCfgPane.show(left, top, -1, -1);
+    var $cfgPane = $('#tabPageCfgPane');
+    
+    var width = $cfgPane.width()
+    var toBottom = $window.height() - top;
+    if ($cfgPane.height() > toBottom) {
+        width += tvc.getScrollbarWidth() + 15;
+        $cfgPane.parent().css({height : toBottom, width : width}); 
+    }
+    if (width > (right + 10)) {
+        var newWidth = width + 20;
+        var newLeft = left - newWidth + $tabCfg.width();
+        $cfgPane.parent().css({left : newLeft});
+    }
+    var doc = _tabCfgPane._root.ownerDocument;
+    tvc.dnd.init(doc, _tabCfgPane._root);
+    if (!tvc.agent.isGecko || tvc.agent.isMSIE_11) {
+        var registerFrameEvents = function(win) {
+            for (var i = 0; i < win.frames.length; i++) {
+                var frame = win.frames[i];
+                var fwin = frame.contentWindow ? frame.contentWindow : frame;
+                if (fwin.document) {
+                    tvc.dnd.registerDragEventSource(fwin.document);
+                    registerFrameEvents(fwin);
+                }
+            }
+        };
+        registerFrameEvents(window);
+    }
+    attachEventListener(doc.getElementById("tabPageCfgPane_okButton"), "click", function() {
+        tvcTabPage_updateConfig();
+        _tabCfgPane.hide();
+    });
+    attachEventListener(doc.getElementById("tabPageCfgPane_resetButton"), "click", function() {
+        tvcTabPage_resetConfig();
+        _tabCfgPane.hide();
+    });
+    attachEventListener(doc.getElementById("tabPageCfgPane_cancelButton"), "click", function() {
+        _tabCfgPane.hide();
+    });
+    tvc.dnd.placeHolderClass = "tabPageCfgPane_dndPlaceHolder";
+    tvc.dnd.registerArea(doc.getElementById("tabPageCfgPane_tabs"));
+    tvc.dnd.onBeforeDrag = tvcTabPage_dnd_onBeforeDrag;
+    tvc.dnd.onDragStart = tvcTabPage_dnd_onDragStart;
+    tvc.dnd.onDragEnd = tvcTabPage_dnd_onDragEnd;
+    tvc.dnd.onDrag = tvcTabPage_dnd_onDrag;
+    tvc.dnd.onDrop = tvcTabPage_dnd_onDrop;
+    
+    tvcTabPage_tabPageCfgVisible(_tabGroup, true);
+
+    $cfgPane.find('.droppedTabLink').each(function(i) {
+        var $this = $(this);
+        var tid = $this.attr('data-cfg-tid');
+        var tab = $("ul").find("[tid='" + tid + "']");
+        $this.click(function() {
+            tvcTabPage_tabClicked(tab.get(0), true);
+            _tabCfgPane.hide();
+        });
+    });
+}
+function tvcTabPage_dnd_onBeforeDrag(item, area) {
+    return $(item).hasClass('tabPageCfgPane_tab');
+    //return item.className == "tabPageCfgPane_tab";
+}
+function tvcTabPage_dnd_onDragStart(item, area) {
+    item.setAttribute("TVC_PANE", "true");
+    $(item).addClass('tabPageCfgPane_beingDragged');
+    //item.className = "tabPageCfgPane_beingDragged";
+}
+function tvcTabPage_dnd_onDragEnd(item, area) {
+    $(item).removeClass('tabPageCfgPane_beingDragged');
+    //item.className = "tabPageCfgPane_tab";
+}
+function tvcTabPage_dnd_onDrag(item, area) {
+}
+function tvcTabPage_dnd_onDrop(item, area) {
+    return true;
+}
+function tvcTabPage_updateConfig() {
+    var cfg = [];
+    var doc = _tabCfgPane._root.ownerDocument;
+    var div = doc.getElementById("tabPageCfgPane");
+    var tabsId = div.getAttribute("tabs_id");
+    var tabGroup = document.getElementById(tabsId);
+    var tabContainer = tabGroup.getElementsByTagName("UL")[0];
+    var inputFields = div.getElementsByTagName("INPUT");
+    for (var i=0; i<inputFields.length; i++) {
+        var input = inputFields[i];
+        cfg.push({
+            visible : input.checked,
+            tabId   : input.value
+        });
+    }
+    var count = cfg.length;
+    var changesMade = false;
+    var hasHidden=false;
+    var tabs = tabContainer.getElementsByTagName("LI");
+    for (var i=0; i<count; i++) {
+        var currentIndex = -1;
+        for (var j=0; j<tabs.length; j++) {
+            var tab = tabs.item(j);
+            if (tab.getAttribute("tid") == cfg[i].tabId) {
+                currentIndex = j;
+                break;
+            }
+        }
+        var tab = tabs.item(currentIndex);
+        var $tab = $(tab);
+        if (currentIndex != i) {
+            var before = tabs.item(i);
+            var parent = tab.parentNode;
+            parent.removeChild(tab);
+            parent.insertBefore(tab, before);
+            changesMade = true;
+        }
+        var hidden = $tab.hasClass('hiddenTab');
+        $tab.removeClass('droppedTab');
+        if (cfg[i].visible && hidden) {
+            $tab.removeClass('hiddenTab');
+            changesMade = true;
+        } else if (!cfg[i].visible && !hidden) {
+            $tab.addClass('hiddenTab');
+            changesMade = true;
+        }
+        if ($tab.hasClass('hiddenTab')) {
+            hasHidden=true;
+        }
+    }
+    tvcTabPage_updateCSSClass_tabCfg(tabs.item(tabs.length-1), hasHidden);
+    if (changesMade) {
+        try {
+            $(tabContainer).alignTabs();
+        } catch (error) {
+            console.log(error);
+        }
+        tabTracker.updateTabs(tabContainer.getAttribute("tid"), cfg);
+    }
+}
+function tvcTabPage_tabClosed(tab) {
+    var li = _getAncestorWithNodeName(tab, "LI");
+    var tabId = li.getAttribute("tid");
+    $(li).addClass('hiddenTab');
+
+    var tabContainer = _getAncestorWithNodeName(li, "UL");
+    var tabs = tabContainer.getElementsByTagName("LI");
+    var tabsId = tabContainer.getAttribute("tid");
+
+    tvcTabPage_updateCSSClass_tabCfg(tabs.item(tabs.length-1), true);
+    tabTracker.setVisible(tabsId, tabId, false);
+}
+function tvcTabPage_updateCSSClass_tabCfg(tabCfgLI, hasHidden) {
+    if(hasHidden) {
+        $(tabCfgLI).addClass('hashiddentab');
+    } else {
+        $(tabCfgLI).removeClass('hashiddentab');
+    }
+}
+function tvcTabPage_tabPageCfgVisible(ul, visible) {
+	try {
+		var frameId = ul.parentNode.parentNode.id + "contentFrame";
+		var frame = document.getElementById(frameId).contentWindow;
+		if (frame.tvcTabPageCfgVisible) {
+			frame.tvcTabPageCfgVisible(visible);
+		}
+	} catch(E) { alert(E); }
+}
+
+function tvcTabPage_resetConfig() {    
+    var doc = _tabCfgPane._root.ownerDocument;
+    var div = doc.getElementById("tabPageCfgPane");
+    var tabsId = div.getAttribute("tabs_id");
+    var tabGroup = document.getElementById(tabsId);
+    var tabContainer = tabGroup.getElementsByTagName("UL")[0];
+    var tabs = tabContainer.getElementsByTagName("LI");
+    var indexArray = new Array();
+    var tabMap = new Object();
+    var updatedNeeded = false;
+    var reorderNeeded = false;
+    for (var j=0; j < tabs.length; j++) {
+        var tab = tabs.item(j);
+        var $tab = $(tab);
+        var initialIndex = $tab.attr("initialIndex");
+        if (initialIndex) {
+            indexArray.push(initialIndex);
+            tabMap[initialIndex] = tab;
+            if (!reorderNeeded && initialIndex != j) {
+                reorderNeeded = true;
+                updatedNeeded = true;
+            }
+        }
+        $tab.removeClass('droppedTab');
+        var hidden = $tab.hasClass('hiddenTab');
+        var initiallyHidden = $tab.attr('initiallyHidden');
+        if (initiallyHidden != null && initiallyHidden) {
+            if (!hidden) {
+                $tab.addClass('hiddenTab');
+                updatedNeeded = true;
+            }
+        } else {
+            if (hidden) {
+                $tab.removeClass('hiddenTab');
+                updatedNeeded = true;
+            }
+        }        
+    }
+    indexArray.sort();
+    if (reorderNeeded) {
+        for (var k=0; k < indexArray.length; k++) {
+            var initialIndex = indexArray[k];
+            var tab = tabMap[initialIndex];
+            var before = tabs.item(parseInt(initialIndex));
+            var parent = tab.parentNode;            
+            if (tab.getAttribute("tid") != before.getAttribute("tid")) {
+                parent.removeChild(tab);
+                parent.insertBefore(tab, before);
+            }
+        }
+    }
+    if (updatedNeeded) {
+        tabTracker.resetTabs(tabContainer.getAttribute("tid"));
+    }
+}

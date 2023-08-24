@@ -1,0 +1,327 @@
+// arrow key navigation
+var AKN_IsMoving = true;
+function akn(e) {
+    if (!e) e = window.event;
+    var src = e.target ? e.target : e.srcElement;
+    if (AKN_IsMoving) {
+        var cancelEvent=false;
+        if (e.type=="keydown") {
+            switch (e.keyCode) {
+                case 37: // left
+                    AKN_Left(e,src);
+                    cancelEvent=true;
+                    break;
+                case 38: // up
+                    AKN_Up(e,src);
+                    cancelEvent=true;
+                    break;
+                case 39: // right
+                    AKN_Right(e,src);
+                    cancelEvent=true;
+                    break;
+                case 40: // down
+                    AKN_Down(e,src);
+                    cancelEvent=true;
+                    break;
+                case 13: // enter
+                    cancelEvent=true;
+                    break;
+            }
+        } else if (e.type=="keyup") {
+            switch (e.keyCode) {
+                case 37: // left
+                case 38: // up
+                case 39: // right
+                case 40: // down
+                    cancelEvent=true;
+                    break;
+                case 13: // enter
+                    if (!AKN_Down(e,src)) {
+                        AKN_Activate(e,src);
+                    }
+                    cancelEvent=true;
+                    break;
+                case 113: // f2
+                    AKN_Suspend(e,src);
+                    break;
+            }
+        }
+        if (cancelEvent) {
+            if (parent.tvcSyncRightTopScrolling) {
+                var tbr=parent.tvcGetTableBodyRightFrame();
+                if (tbr!=null && tbr==self) {
+                    parent.tvcSyncRightTopScrolling(src);
+                }
+            }
+            tvc.stopBubbleEvent(e);
+            return false;
+        }
+    } else {
+        switch (e.keyCode) {
+            case 27: // esc
+                AKN_Continue(e,src);
+                tvc.stopBubbleEvent(e);
+                return false;
+            case 13: // enter
+                if (src.nodeName != "TEXTAREA") {
+                    if (e.type=="keyup") {
+                        AKN_Activate(e,src);
+                    }
+                    tvc.stopBubbleEvent(e);
+                    return false;
+                }
+        }
+    }
+    return true;
+}
+
+function AKN_Activate(e,src) {
+    AKN_IsMoving=true;
+    window.e(e,src);
+    AKN_Continue(e);
+}
+
+function AKN_Suspend(e,src) {
+    AKN_IsMoving=false;
+    var name = src.className;
+    if (name == null || name.length == 0) {
+        name = "akn_suspended";
+    } else {
+        name = "akn_suspended " + name;
+    }
+    src.className=name;
+    tvc.handleEvent(src,"blur",AKN_Continue);
+}
+
+function AKN_Continue(e) {
+    if (!e) e = window.event;
+    var src = e.target ? e.target : e.srcElement;
+    tvc.unhandleEvent(src,"blur",AKN_Continue);
+    AKN_IsMoving=true;
+    var name = src.className;
+    if (name == "akn_suspended") {
+        name = "";
+    } else if (name.indexOf("akn_suspended")==0) {
+        name = name.substring(13);
+    }
+    src.className=name;
+}
+
+function AKN_getCol(src) {
+	try {
+		while (src!=null) {
+			if (src.parentNode.parentNode.parentNode.className == "contentTable") {
+				return src;
+			}
+			src = src.parentNode;
+		}
+	} catch(E) {
+	}
+	return null;
+}
+
+function AKN_Left(e,src) {
+    var col=AKN_getCol(src);
+    var left=AKN_LeftCell(col);
+    if (left!=null) {
+        var input=AKN_FindField(left,AKN_LeftCell);
+        if (input!=null) {
+            AKN_SelectField(input);
+            return true;
+        }
+    }
+    return false;
+}
+
+function AKN_Right(e,src) {
+	var col=AKN_getCol(src);
+    var right=AKN_RightCell(col);
+    if (right!=null) {
+        var input=AKN_FindField(right,AKN_RightCell);
+        if (input!=null) {
+            AKN_SelectField(input);
+            return true;
+        }
+    }
+    return false;
+}
+
+function AKN_Up(e,src) {
+	var col=AKN_getCol(src);
+    var up=AKN_UpCell(col);
+    if (up!=null) {
+        var input=AKN_FindField(up,AKN_UpCell);
+        if (input!=null) {
+            AKN_SelectField(input);
+            return true;
+        }
+    }
+    return false;
+}
+
+function AKN_Down(e,src) {
+	var col=AKN_getCol(src);
+    var down=AKN_DownCell(col);
+    if (down!=null) {
+        var input=AKN_FindField(down,AKN_DownCell);
+        if (input!=null) {
+            AKN_SelectField(input);
+            return true;
+        }
+    }
+    return false;
+}
+
+function AKN_LeftCell(col) {
+    var next=tvc.getPreviousSiblingWithNodeName(col,"TD");
+    if (next!=null) {
+        return next;
+    }
+
+    var leftTable = document.getElementById("tbl");
+    if (leftTable == null) {
+    	var tbr = parent.tvcGetTableBodyRightFrame();
+        var doc = col.ownerDocument;
+        var win = doc.defaultView||doc.parentWindow;
+        if (tbr!=null && tbr!=win) {
+            leftTable=tbr.table;
+        }
+    }
+    if (leftTable!=null) {
+        var row=tvc.getAncestorWithNodeName(col,"TR");
+        if (row.rowIndex < leftTable.rows.length) {
+            var leftRow = leftTable.rows[row.rowIndex];
+            if (row != leftRow && leftRow.cells.length > 0) {
+                return leftRow.cells[leftRow.cells.length-1];
+            }
+        }
+    }
+    return null;
+}
+
+function AKN_RightCell(col) {
+    var next=tvc.getNextSiblingWithNodeName(col,"TD");
+    if (next!=null) {
+        return next;
+    }
+    
+    var rightTable = document.getElementById("tbr");
+    if (rightTable == null) {
+	    var rightFrame=parent.tvcGetTableBodyRightFrame();
+	    var doc = col.ownerDocument;
+	    var win = doc.defaultView||doc.parentWindow;
+	    if (rightFrame!=null && rightFrame!=win) {
+	        rightTable=rightFrame.table;
+	    }
+    }
+    if (rightTable!=null) {
+        var row=tvc.getAncestorWithNodeName(col,"TR");
+        if (row.rowIndex < rightTable.rows.length) {
+            var rightRow = rightTable.rows[row.rowIndex];
+            if (row != rightRow && rightRow.cells.length > 0) {
+                return rightRow.cells[0];
+            }
+        }
+    }
+    return null;
+}
+
+function AKN_UpCell(col) {
+    var row=tvc.getAncestorWithNodeName(col,"TR");
+    if (row != null) {
+        var row=tvc.getPreviousSiblingWithNodeName(row,"TR");
+        while (row!=null) {
+            if (col.cellIndex<row.cells.length) {
+                return row.cells[col.cellIndex];
+            }
+            row=tvc.getNextSiblingWithNodeName(row,"TR");
+        }
+    }
+    return null;
+}
+
+function AKN_DownCell(col) {
+    var row=tvc.getAncestorWithNodeName(col,"TR");
+    if (row != null) {
+        var row=tvc.getNextSiblingWithNodeName(row,"TR");
+        while (row!=null) {
+            if (col.cellIndex<row.cells.length) {
+                return row.cells[col.cellIndex];
+            }
+            row=tvc.getNextSiblingWithNodeName(row,"TR");
+        }
+    }
+    return null;
+}
+
+function AKN_FindField(col,nextColFunction) {
+    while (col!=null) {
+        //var inputs=tvc.getAllChildrenWithNodeName(col,"INPUT");
+    	var inputs = col.getElementsByTagName("INPUT");
+        for (var i=0; i<inputs.length; i++) {
+            var x=AKN_ValidateField(inputs[i]);
+            if (x!=null && !x.hasAttribute("autocomplete")) {
+                return x;
+            }
+        }
+        //inputs=tvc.getAllChildrenWithNodeName(col,"TEXTAREA");
+        inputs = col.getElementsByTagName("TEXTAREA");
+        for (var i=0; i<inputs.length; i++) {
+            var x=AKN_ValidateField(inputs[i]);
+            if (x!=null) {
+                return x;
+            }
+        }
+        col=nextColFunction(col);
+    }
+}
+
+function AKN_ValidateField(input) {
+    if (input.disabled) {
+        return null;
+    }
+    if (input.readOnly) {
+        return null;
+    }
+    var type = input.type.toLowerCase();
+    if (type == "text" || type == "textarea") {
+        return input;
+    }
+    return null;
+}
+
+function AKN_SelectField(input) {
+    try {
+        input.focus();
+        input.select();
+        if (!tvc.agent.isMSIE) {
+            var doc = input.ownerDocument;
+            var win = doc.defaultView||doc.parentWindow;
+            win.AKN_ScrollToView(input);
+        }
+    } catch (x) {}
+}
+
+function AKN_ScrollToView(input) {
+    var tbrc = document.getElementById("tbrc");
+    if (tbrc) {
+    } else {
+        var MARGIN=3;
+        var x = document.body.scrollLeft;
+        var width = window.innerWidth;
+        var inpX1 = tvc.pageLeft(input) - MARGIN;
+        var inpX2 = inpX1+input.offsetWidth + (MARGIN*2);
+        if (x+width < inpX2) {
+            x = inpX2 - width;
+        }
+        if (x > inpX1) {
+            x = inpX1;
+        }
+        if (x < 0) {
+            x = 0;
+        }
+        if (document.body.scrollLeft != x) {
+            window.scrollTo(x,document.body.scrollTop);
+        }
+    }
+}

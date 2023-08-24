@@ -1,0 +1,81 @@
+body {
+	background-color: white;
+}
+
+div.MenuBar-Outer,div.MenuBar-Outer_MSIE {
+	margin-top: 0px !important;
+}
+
+div.TopPanel {
+	margin: 5px;
+	box-shadow: #888 2px 2px 2px;
+}
+
+table.TopPanelTable {
+	border: 1px solid #727272;
+}
+
+td.TopPanelControlColumn {
+	background-color: #C0C0C0;
+	background-image: url('../images/toppanel/top_panel_menu.png');
+	background-attachment: scroll;
+	background-position: center top;
+	background-repeat: repeat-x;
+	width: 25px;
+	border-right: 3px solid #FFFFFF;
+}
+
+td.TopPanelInfoColumn {
+	background-color: white;
+}
+
+td.TopPanelHeaderMinimized {
+	color: #161938;
+}
+
+td.TopPanelControl {
+	background-color: #F3F3F3;
+	border-top: 1px solid #DDDDDD;
+	border-right: 1px solid #EEEEEE;
+	border-bottom: 1px solid #BBBBBB;
+	border-left: 1px solid #CCCCCC;
+}
+
+td.TopPanelButtonHover {
+	background-color: #FFFFFF;
+}
+
+td.TopPanelButtonToggled,td.TopPanelButtonPressed {
+	background-color: #FFFFFF;
+	border-top: 1px solid #DDDDDD;
+	border-right: 1px solid #FFFFFF;
+	border-bottom: 1px solid #BBBBBB;
+	border-left: 1px solid #CCCCCC;
+}
+
+td.maxmin {
+	border-left: 1px solid transparent;
+	border-right: 1px solid transparent;
+}
+
+div.TopPanelLoad div {
+	color: #666;
+}
+
+td.TopPanelControlColumn table {
+	border-collapse: collapse;
+	margin-left: 3px;
+}
+
+td.TopPanelControlColumn table tr td {
+	padding: 6px;
+}
+
+td.TopPanelInfoColumn {
+	border-left: 1px solid #EAEAEA;
+}
+
+#TopPanelMinimizedRow .TopPanelInfoColumnTable {
+    margin-left: 2px;
+    margin-top: 2px;
+}

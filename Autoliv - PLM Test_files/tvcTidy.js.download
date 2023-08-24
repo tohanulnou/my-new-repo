@@ -1,0 +1,49 @@
+if (!window.tvc) {
+    window.tvc = {};
+}
+if (!window.tvc.tidy) {
+    window.tvc.tidy = {};
+}
+
+// public
+tvc.tidy.add = function(name) {
+    if (name != null && !this._canceled) {
+        this._names.push(name);
+        this._regEvent();
+    }
+};
+tvc.tidy.clear = function() {
+    this._names = [];
+    this._regEvent();
+};
+tvc.tidy.cancel = function() {
+    this._canceled = true;
+    this.clear();
+};
+
+// private
+tvc.tidy._names = [];
+tvc.tidy._canceled = false;
+tvc.tidy._reg = false;
+tvc.tidy._regEvent = function() {
+    if (this._names.length > 0) {
+        if (!this._reg) {
+            tvc.handleEvent(window, 'unload', this._tidy);
+            this._reg = true;
+        }
+    } else {
+        if (this._reg) {
+            tvc.unhandleEvent(window, 'unload', this._tidy);
+            this._reg = false;
+        }
+    }
+};
+tvc.tidy._tidy = function() {
+    if (tvc.tidy._names.length > 0) {
+        // invoke "tidy" ajax service
+        try {
+            tidy.tidySession(tvc.tidy._names);
+            tvc.tidy.clear();
+        } catch (x) {}
+    }
+};

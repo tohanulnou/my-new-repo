@@ -1,0 +1,85 @@
+
+.tabContainer {
+    background-image: none;
+    background-color: transparent;
+    border-top: none;
+    border-bottom: 1px solid #dadada;
+    padding-top: 5px;
+    padding-left: 8px;
+}
+
+.tabContainer div.tabcontent {
+    background-image: none;
+    margin-top: 0;
+    font-weight: normal;
+    padding: 5px 5px 6px 12px;
+}
+
+.tabContainer .selectedTab div.tabcontent {
+    background-image: none;
+    padding-bottom: 8px;
+}
+
+a.tablink {
+    color:#666 !important;
+}
+
+a.tablink-cfg {
+    padding-right: 8px;
+}
+
+.tabContainer .selectedTab a.tablink {
+    color:#222;
+}
+
+.tabContainerBottomBorder {
+   display:none;
+}
+
+.tabContainer li.hashiddentab div.tabcontent {
+    background-image: none;
+}
+
+.tabContainer li.hashiddentab {
+    background-color: #e5e5e5;
+}
+
+.tabContainer li {
+    border-radius: 2px 2px 0px 0px;
+    height: 26px;
+    border-top: 1px solid #dadada;
+    border-right: 1px solid #dadada;
+    border-left: 1px solid #dadada;
+    margin-left: 2px;
+    background-image: none;
+    background-color: #f6f6f6;
+}
+
+.tabContainer li:hover {
+    background-color: #eeeeee;
+}
+
+
+.tabContainer ul {
+    list-style: none outside none;
+    margin: 0;
+    padding-left: 0px;
+}
+
+.selectedTab {
+    background-color: #ffffff !important;
+    border-top: 1px solid #aaa;
+    border-right: 1px solid #aaa;
+    border-left: 1px solid #aaa;
+    margin-top: -1px;
+    height: 27px;
+    box-shadow: 0 2px 0 #ffffff;
+}
+
+.closetab, .disableCloseTab {
+    visibility: hidden;
+}
+
+.tabContainer li:hover a.closetab {
+    visibility: visible;
+}

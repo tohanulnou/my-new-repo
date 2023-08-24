@@ -1,0 +1,7 @@
+function subscribe(subscribeIds, configId, reloadUrl) {
+    var callback = function() {
+        window.tvc.toppanel.navigate(reloadUrl);
+    };
+    Subscriptions.subscribe(subscribeIds, configId, callback, window.tvc);
+}
+Subscriptions.unsubscribe('TopPanel', window.tvc);

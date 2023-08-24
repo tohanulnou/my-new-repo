@@ -1,0 +1,385 @@
+// Requires: tvcCommonScript.js (core)
+if (!tvc) {
+    alert('WARNING: tvcCommonScript.js NOT LOADED');
+}
+
+function tvcRowAction(e, id, data) {
+    var handler = parent.parent.tvc.rowActionHandler;
+    if (data != null) {
+        handler.show(self, e, id, data);
+    } else {
+        handler.hide();
+    }
+}
+
+// Open the advanced filter dialog
+function tvcOpenAdvFilterDialog() {
+    parent.tvcOpenAdvFilterDialog();
+}
+
+/*
+ * Scrolls to a cell (by specifying a row and column). Uses absolute scroll
+ * position as fallback in case row/column is more provided.
+ */
+function tvcScrollToCell(rowId, colNames, scrollX, scrollY) {
+    var x = 0,
+        y = 0;
+    var isResizableTable = $('#thr').length;
+
+    /*
+     * Row
+     */
+    if (rowId != null) {
+        var tableHeaderHeight = isResizableTable ? $('#thr').height() : 0;
+        var row = $('#l' + rowId);
+        if (!row.length) {
+            row = $('#r' + rowId);
+        }
+        y = $(row).offset().top - tableHeaderHeight + 1;
+        // Unclear why + 1 is needed. If not present
+        // incorrect column is displayed when toggling
+        // Edit mode several times.
+    } else {
+        y = scrollY;
+    }
+
+    /*
+     * Column
+     */
+    if (colNames != null && colNames.length > 0) {
+        var foundColumn = false;
+        $.each(colNames, function(index, value) {
+            if (!foundColumn && value) {
+                var cell = $('th[colname="' + value + '"]');
+                if (cell.length) {
+                    x = cell.position().left + 1;
+                    // Unclear why + 1 is needed. If not present
+                    // incorrect column is displayed when toggling
+                    // Edit mode several times.
+                    foundColumn = true;
+                }
+            }
+        });
+    } else {
+        x = scrollX;
+    }
+
+    /*
+     * Scroll
+     */
+    if (isResizableTable) {
+        var contentDiv = $('#tbrc');
+        contentDiv.scrollLeft(x < 0 ? 0 : x);
+        contentDiv.scrollTop(y < 0 ? 0 : y);
+    } else {
+        window.scrollTo(x < 0 ? 0 : x, y < 0 ? 0 : y);
+    }
+}
+
+/**
+ * Scrolls to a row if not currently visible in the viewport.
+ * @param rowId
+ * @returns
+ */
+function tvcScrollToRow(rowId) {
+    var $row = $('#l' + rowId + ',#r' + rowId).first();
+    if ($row.length) {
+        var $thr = $('#thr');
+        var $view = $thr.length ? $('#tbrc') : $(window);
+
+        var rowTop = $row.offset().top;
+        var rowBottom = rowTop + $row.outerHeight();
+        var viewTop = $view.offset().top;
+        var viewBottom = viewTop + $view.height();
+
+        if (rowTop > viewBottom || rowBottom < viewTop) {
+            var thrHeight = $thr.length ? $thr.height() : 0;
+            var y = rowTop - thrHeight + 1;
+            $view.animate(
+                {
+                    scrollTop: y < 0 ? 0 : y
+                },
+                500
+            );
+        }
+    }
+}
+
+// Scrolls the specified element into view.
+function tvcShowTableElement(oElement, x) {
+    var y = 0;
+    if (tvc.agent.isMinMSIE_5_5) {
+        y = tvcGetOffsetTop(oElement);
+    } else {
+        y = Math.min(tvcGetOffsetTop(oElement), document.body.offsetHeight - window.innerHeight);
+        //x = Math.min(x,document.body.offsetWidth - window.innerWidth);
+    }
+    var elm = document.getElementById('tbrc');
+    if (elm) {
+        elm.scrollLeft = x < 0 ? 0 : x;
+        elm.scrollTop = y < 0 ? 0 : y;
+    } else {
+        window.scrollTo(x < 0 ? 0 : x, y < 0 ? 0 : y);
+        /*window.setTimeout(function() { window.scrollTo(x,y<0?0:y); }, 50);*/
+    }
+}
+
+// Returns the offset top of the specified element
+function tvcGetOffsetTop(oElement) {
+    var iOffsetTop = 0;
+    while (oElement) {
+        if (oElement.offsetTop) {
+            iOffsetTop += oElement.offsetTop;
+        }
+        if (oElement.offsetParent) {
+            oElement = oElement.offsetParent;
+        } else {
+            oElement = null;
+        }
+    }
+    return iOffsetTop;
+}
+
+// Returns the form
+function tvcGetForm() {
+    return document.forms['tvcTableForm'];
+}
+
+var EXP_COLL_IN_PROGRESS = false;
+
+// Expand a node
+function x(e, id, row, mlvl) {
+    tvc.stopBubbleEvent(e);
+    if (EXP_COLL_IN_PROGRESS) {
+        return false;
+    }
+    EXP_COLL_IN_PROGRESS = true;
+    var target = e.target ? e.target : e.srcElement;
+    var lvl = parent.getExpandLevel();
+    try {
+        if (mlvl >= 0) {
+            lvl = e.shiftKey | e.altKey | e.ctrlKey ? mlvl : lvl;
+        }
+    } catch (E) {}
+    var cls = target.className;
+    if (cls == 'XG' || cls == 'XF') {
+        EXP_COLL_IN_PROGRESS = false;
+        c(e, id, row);
+    } else {
+        parent.expandNode(id, lvl, function(ret, success) {
+            var bRet = true;
+            if (!success) {
+                alert(ret.message);
+                bRet = true;
+            } else {
+                if (ret == null || ret.childCount < 1) {
+                    _changeActiveExpander(target);
+                    target.className = 'XG';
+                    bRet = false;
+                } else {
+                    if (ret.reloadPage) {
+                        bRet = true;
+                    } else {
+                        _changeActiveExpander(null);
+                        _removeActiveExpander();
+                        bRet = parent.tvc.sbUpdateMgr.updatePageCallback(id, ret);
+                        $(parent.tvc.sbUpdateMgr.getTables().left)
+                            .find('#l' + id)
+                            .trigger(tvc.tableEvents.EXPAND_ROW);
+                    }
+
+                    publishMessage('tvcExpandSubscribe');
+                }
+            }
+            EXP_COLL_IN_PROGRESS = false;
+            return bRet;
+        });
+    }
+    return false;
+}
+
+function publishMessage(eventName) {
+    if (window.tvc.getTopWindow().IS_CROSS_DOMAIN) {
+        var data = { subscriber: eventName };
+        var topWindow = window.tvc.getTopWindow();
+        var referrer = topWindow.document.referrer;
+        var publisher = topWindow.parent;
+        var functionName = publisher.postMessage;
+        window.tvc.publisher(publisher, functionName, data, referrer);
+    } else if (window.top.tvc && window.top.tvc._3ddashboard) {
+        var broker = tvc.getCurrentTvcBroker();
+        var functionName = broker.publish;
+        window.tvc.publisher(broker, functionName, eventName, data);
+    }
+}
+
+// Collapse a node
+function c(e, id, row, mlvl) {
+    tvc.stopBubbleEvent(e);
+    if (EXP_COLL_IN_PROGRESS) {
+        return false;
+    }
+    EXP_COLL_IN_PROGRESS = true;
+    var target = e.target ? e.target : e.srcElement;
+    if (e.shiftKey | e.altKey | e.ctrlKey) {
+        parent.tvcCollapseAll();
+        EXP_COLL_IN_PROGRESS = false;
+        return false;
+    }
+    var cls = target.className;
+    if (cls == 'XB' || cls == 'XC') {
+        EXP_COLL_IN_PROGRESS = false;
+        x(e, id, row, mlvl);
+    } else {
+        parent.collapseNode(id, function(ret, success) {
+            var bRet = true;
+            if (!success) {
+                alert(ret.message);
+                bRet = true;
+            } else {
+                if (ret == null || ret.childCount < 1) {
+                    _changeActiveExpander(target);
+                    target.className = 'XC';
+                    bRet = false;
+                } else {
+                    if (ret.reloadPage) {
+                        bRet = true;
+                    } else {
+                        _changeActiveExpander(null);
+                        _removeActiveExpander();
+                        bRet = parent.tvc.sbUpdateMgr.updatePageCallback(id, ret);
+                        $(parent.tvc.sbUpdateMgr.getTables().right)
+                            .find('#r' + id)
+                            .trigger(tvc.tableEvents.COLLAPSE_ROW);
+                    }
+
+                    publishMessage('tvcCollapseSubscribe');
+                }
+            }
+            EXP_COLL_IN_PROGRESS = false;
+            return bRet;
+        });
+    }
+    return false;
+}
+
+var m_oActiveExpander = null;
+function _changeActiveExpander(exp) {
+    if (m_oActiveExpander == null) {
+        m_oActiveExpander = document.getElementById('act');
+    }
+    if (m_oActiveExpander != null) {
+        var newCls = null;
+        var cls = m_oActiveExpander.className;
+        if (cls == 'XC') {
+            newCls = 'XB';
+        } else if (cls == 'XE') {
+            newCls = 'XD';
+        } else if (cls == 'XG') {
+            newCls = 'XF';
+        }
+        if (newCls != null) {
+            m_oActiveExpander.className = newCls;
+        }
+    }
+    m_oActiveExpander = exp;
+}
+
+function _removeActiveExpander() {
+    var obj = document.getElementById('act');
+    if (obj) {
+        obj.id = null;
+    }
+    m_oActiveExpander = null;
+}
+
+// Updates a singe row. id=table-data-id
+function ur(id) {
+    parent.updateRow(id);
+}
+
+function _getTD(e) {
+    var x = e;
+    while (
+        x != null &&
+        x.parentNode != null &&
+        x.parentNode.parentNode != null &&
+        x.parentNode.parentNode.parentNode != null &&
+        x.parentNode.parentNode.parentNode.className != 'contentTable' &&
+        !$(x)
+            .parent()
+            .hasClass('node')
+    ) {
+        x = x.parentNode;
+    }
+    return x;
+}
+
+var newRowHandler = {
+    counter: 0,
+    settings: {},
+    message: '${NAME} added (No ${COUNT}) [Click to refresh page]',
+    configure: function(columnName, settings) {
+        this.settings[columnName] = settings;
+    },
+    add: function(field, tableDataId, columnName) {
+        var settings = this.settings[columnName];
+        var sName = field != null ? field.value : null;
+        if (settings == null) {
+            alert('Invalid id : ' + settingsId);
+        } else if (settings.relationship == null) {
+            alert('No relationship specified, aborting!');
+        } else if (field == null || field.value == '') {
+            return;
+        } else if (
+            !settings.allowWildCard &&
+            (sName.indexOf('?') != -1 || sName.indexOf('*') != -1)
+        ) {
+            field.select();
+            field.focus();
+            alert('Wildcards are not allowed!');
+        } else {
+            field.disabled = true;
+            buildStructure.addRow(
+                parent.getTableBeanName(),
+                tableDataId,
+                settings.relationship,
+                sName,
+                settings.from,
+                settings.typePattern,
+                settings.validStates,
+                function(ret, success) {
+                    if (!success) {
+                        alert(ret.message);
+                    } else {
+                        field.value = '';
+                        if (ret) {
+                            newRowHandler.counter++;
+                            parent.showMsgAboveTable([
+                                newRowHandler.message
+                                    .replace('${NAME}', sName)
+                                    .replace('${COUNT}', newRowHandler.counter)
+                            ]);
+                            if (newRowHandler.counter == 1) {
+                                tvc.handleEvent(parent._getMsgContainer(), 'click', function() {
+                                    tvc.unhandleEvent(
+                                        parent._getMsgContainer(),
+                                        'click',
+                                        newRowHandler.clickHandler
+                                    );
+                                    parent.refreshPage(false);
+                                    newRowHandler.counter = 0;
+                                });
+                            } else {
+                                parent.updateRow(tableDataId);
+                            }
+                        }
+                    }
+                    field.disabled = false;
+                    field.select();
+                    field.focus();
+                }
+            );
+        }
+    }
+};

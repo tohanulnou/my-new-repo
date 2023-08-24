@@ -1,0 +1,8 @@
+table.calendar img.select-arrow {
+	float: right;
+	margin-left: 2px;
+}
+
+table.calendar span.select-text {
+	line-height: 17px;
+}

@@ -1,0 +1,9 @@
+body.default {
+	margin-left: 0px;
+	margin-right: 0px;
+}
+
+body.noMargin {
+	margin-left: 0px;
+	margin-right: 0px;
+}

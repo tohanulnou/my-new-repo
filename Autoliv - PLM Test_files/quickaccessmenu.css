@@ -1,0 +1,113 @@
+.actionLink {
+    border-radius: 5px;
+    display: block;
+    padding: 6px 3px;
+    overflow: hidden;
+    text-decoration: none;
+    cursor: pointer;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: #676662;
+    width: 97%;
+    background: #f8f8f8 !important;
+}
+
+.actionLink:hover {
+    background-color: #5290ce !important;
+    color: #FFF;
+}
+
+.closeIcon {
+    cursor: pointer;
+    position: absolute;
+    top: 2px;
+    left: 88%;
+}
+
+.refreshIcon {
+    cursor: pointer;
+    position: absolute;
+    top: 2px;
+    left: 77%;
+}
+
+.titlebar {
+    position: absolute;
+    top: 1px;
+    left: 1%;
+    right: 1%;
+    -moz-user-select: none;
+}
+
+.titleText {
+    position: absolute;
+    top: 1px;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 8pt;
+    font-weight: normal;
+    width: 70%;
+    display: block;
+    color: #005496;
+    height: 16px;
+    font-weight: bold;
+    margin-top: 1%;
+}
+
+.sectionHeader {
+    background-color: #005496 !important;
+    border: 1px solid #FFFFFF;
+    color: #fff;
+    text-align: left;
+    font-family: verdana, sans-serif, arial;
+    font-size: 13px;
+    font-weight: normal;
+    border-radius: 5px;
+    padding: 4px 3px;
+    width: 233px;
+}
+
+.searchResults {
+    background-color: #005496 !important;
+    color: #fff;
+    text-align: left;
+    font-family: verdana, sans-serif, arial;
+    font-size: 13px;
+    font-weight: normal;
+    border-radius: 5px;
+    padding: 4px 3px;
+    cursor: pointer;
+    display: block;
+    text-decoration: none;
+    width: 233px;
+    border: 2px solid #f5f5f5;
+}
+
+.searchResults:hover {
+    background-color: #5290ce !important;
+}
+
+.formBody {
+    position: absolute;
+    top: 23px;
+    left: 1px;
+    right: 1px;
+    width: 99%;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 8pt;
+    font-weight: normal;
+    color: #005496;
+}
+
+.noObjects {
+    border-radius: 5px;
+    display: block;
+    padding: 6px 3px;
+    overflow: hidden;
+    text-decoration: none;
+    font-family: Verdana, Arial, Helvetica, sans-serif;
+    font-size: 11px;
+    color: #676662;
+    width: 225px;
+    white-space: nowrap;
+    background: #f8f8f8 !important;
+}

@@ -1,0 +1,372 @@
+if (!window.tvc) {
+    window.tvc = {};
+}
+if (!window.tvc.invoke) {
+    window.tvc.invoke = {};
+}
+
+tvc.invoke = {
+    getCsrfTokenObject: function(addCsrfToken) {
+        var tokens = typeof getCSRFToken === 'function' && addCsrfToken ? getCSRFToken() : '';
+        return typeof tokens === 'object' ? JSON.parse(tokens) : {};
+    },
+
+    getSecurityContextObject: function() {
+        return tvc.getSecurityContext().then(function(response) {
+            return response;
+        });
+    },
+
+    resolveMacroStatement: function(macroBody, statement, source) {
+        return macroBody.replace(statement, source);
+    },
+
+    getSelectedContextObject: function(inputParams) {
+        var objectId = inputParams.menubar.selectionElement.getAttribute('value');
+        if (objectId.indexOf('|') > -1) {
+            objectId = objectId.split('|')[1];
+        }
+        return [objectId];
+    },
+    service: function(inputParams) {
+        var selectedRowIds = getSelectedObjectIds();
+        if (inputParams.menubar && inputParams.menubar.ctxMenu) {
+            selectedRowIds = tvc.invoke.getSelectedContextObject(inputParams);
+        }
+        if (!selectedRowIds.length) {
+            alert(parent.M_STR_NONE_SELECTED);
+            return;
+        }
+        showProgressMessage(parent.M_CONNECTING);
+        tvc.invoke.inputParams = inputParams;
+        var tokenObject = tvc.invoke.getCsrfTokenObject(Boolean(inputParams.settings.addCsrfToken));
+        var macrosPromises = [];
+        var selectedRowId = '';
+        for (var idNumber = 0; idNumber < selectedRowIds.length; idNumber++) {
+            selectedRowId = selectedRowIds[idNumber];
+            inputParams.selectedRowId = selectedRowId;
+            macrosPromises.push(tvc.invoke.getResolvedMacros(inputParams, selectedRowId));
+        }
+        var copyInputparams = inputParams;
+        tvc.invoke.getSecurityContextObject().then(function(response) {
+            tvc.invoke.securityContext = response;
+            Promise.all(macrosPromises).then(function(response) {
+                if (inputParams.rowSelect && inputParams.rowSelect === 'multiple') {
+                    tvc.invoke.macroAjaxResolve(inputParams, response, tokenObject);
+                } else {
+                    for (var idNumber = 0; idNumber < response.length; idNumber++) {
+                        if (inputParams.menubar && inputParams.menubar.ctxMenu) {
+                            inputParams = copyInputparams;
+                        } else {
+                            inputParams = JSON.parse(JSON.stringify(copyInputparams));
+                        }
+
+                        if (
+                            (typeof response[idNumber] === 'string' &&
+                                response[idNumber].toLowerCase().indexOf('error')) ||
+                            response[idNumber].name === 'Error'
+                        ) {
+                            tvc.invoke.macroAjaxReject(response[idNumber]);
+                        } else {
+                            tvc.invoke.macroAjaxResolve(
+                                inputParams,
+                                response[idNumber],
+                                tokenObject
+                            );
+                        }
+                    }
+                }
+            });
+        });
+    },
+
+    intermediateServiceReject: function(response) {
+        var errorMessage =
+            (response.error || (response.xhr && response.xhr.statusText) || response) +
+            '\r\n' +
+            (response.xhr &&
+                (response.xhr.responseText ||
+                    (response.xhr.responseJSON && response.xhr.responseJSON.message)));
+        console.log(response);
+        alert(parent.M_SERVICE_FAILED + ' : ' + errorMessage);
+        hideProgress();
+    },
+
+    macroAjaxReject: function(error) {
+        alert(parent.M_MACRORESOLVER_SERVICE_FAILED + ' : ' + error.message);
+        hideProgress();
+    },
+
+    intermediateServiceResolve: function(response, inputParams, index) {
+        if (index) {
+            var callbackFn = tvc.stringToFunction(
+                inputParams.resolverPaths[index - 1].responsecallback,
+                window
+            );
+            callbackFn(response);
+        }
+        var payload = inputParams.resolverPaths[index];
+        payload.data = tvc.invoke.getCsrfTokenObject(Boolean(payload.addCsrfToken));
+        if (Boolean(payload.addSecurityContext)) {
+            payload.headers = $.extend({}, payload.headers, tvc.invoke.securityContext);
+        }
+        try {
+            payload.url = eval('response.' + payload.url);
+        } catch (e) {
+            payload.url = parent.location.origin + '/' + payload.url;
+        }
+        if (payload.bodyresolver && payload.bodyresolver.length) {
+            var bodyResolver = payload.bodyresolver.split(',');
+            for (
+                var bodyResolverLength = 0;
+                bodyResolverLength < bodyResolver.length;
+                bodyResolverLength++
+            ) {
+                payload.body = tvc.invoke.resolveMacroStatement(
+                    payload.body,
+                    '{{' + bodyResolver[bodyResolverLength] + '}}',
+                    eval('response.' + bodyResolver[bodyResolverLength])
+                );
+            }
+            payload.data = payload.body;
+        }
+        if (payload.prerequestcallback) {
+            var callbackFn = tvc.stringToFunction(payload.prerequestcallback, window);
+
+            var callbackPromise = new Promise(function(resolve, reject) {
+                callbackFn(payload, response, resolve, reject);
+            });
+            return callbackPromise.then(function(payload) {
+                return tvc.invoke.request(payload, --response.serviceIndex, index, inputParams);
+            });
+        }
+        return tvc.invoke.request(payload, --response.serviceIndex, index, inputParams);
+    },
+
+    macroAjaxResolve: function(inputParams, response, tokenObject) {
+        if (
+            response &&
+            !inputParams.serviceURL &&
+            inputParams.formInput &&
+            Object.keys(inputParams.formInput).length
+        ) {
+            tvc.invoke.response = response;
+            tvc.invoke.formInput = inputParams.formInput;
+            hideProgress();
+            var url = parent.getAbsoluteURL('tvc-action/externalForm');
+            tvc.popup(
+                url +
+                    '?widgetConfigName=' +
+                    inputParams.formInput.widget +
+                    '?objectId=' +
+                    inputParams.selectedRowId,
+                800,
+                600,
+                false
+            );
+            return;
+        }
+        var macroElements = tvc.invoke.inputParams.macroElements.split(',');
+        if (response && typeof response[0] !== 'object') {
+            for (var i = 0; i < macroElements.length; i++) {
+                inputParams.body = tvc.invoke.resolveMacroStatement(
+                    inputParams.body,
+                    '{{' + macroElements[i] + '}}',
+                    response[i]
+                );
+            }
+        } else {
+            var temp = inputParams.body;
+            var regEx = temp.match('\\[{{(.*?)}}]')[1];
+            var arr = [];
+            for (var j = 0; j < response.length; j++) {
+                var resolveMacros = regEx;
+                for (var i = 0; i < macroElements.length; i++) {
+                    resolveMacros = tvc.invoke.resolveMacroStatement(
+                        resolveMacros,
+                        '{{' + macroElements[i] + '}}',
+                        response[j][i]
+                    );
+                }
+
+                arr.push(resolveMacros);
+            }
+            var resolveBodys = tvc.invoke.resolveMacroStatement(
+                temp,
+                '{{' + regEx + '}}',
+                arr.join()
+            );
+
+            inputParams.body = resolveBodys;
+        }
+        var len = inputParams.resolverPaths.length;
+        var params = $.extend({}, JSON.parse(inputParams.body), tokenObject, { json: true });
+        var options = {
+            traditional: true,
+            cache: false,
+            data: JSON.stringify(params),
+            method: inputParams.method,
+            url: parent.getAbsoluteURL(inputParams.serviceURL)
+        };
+        if (inputParams.serviceHeaders) {
+            options.headers = inputParams.serviceHeaders;
+        }
+        if (Boolean(inputParams.settings.addSecurityContext)) {
+            options.headers = $.extend({}, options.headers, tvc.invoke.securityContext);
+        }
+        if (inputParams.preRequestCallback) {
+            var callbackFn = tvc.stringToFunction(inputParams.preRequestCallback, window);
+
+            var callbackPromise = new Promise(function(resolve, reject) {
+                callbackFn(options, response, resolve, reject);
+            });
+            return callbackPromise.then(
+                function(payload) {
+                    options = payload;
+                    var serviceRequest = tvc.invoke.request(options, len, len, inputParams);
+                    var index = len;
+                    var flag = true;
+                    for (; index > 0; index--) {
+                        serviceRequest = serviceRequest.then(function(response) {
+                            if (inputParams.callback && flag) {
+                                flag = false;
+                                var callbackFn = tvc.stringToFunction(inputParams.callback, window);
+                                callbackFn(response);
+                            }
+                            return tvc.invoke.intermediateServiceResolve(
+                                response,
+                                inputParams,
+                                len - response['serviceIndex']
+                            );
+                        }, tvc.invoke.intermediateServiceReject);
+                    }
+                    serviceRequest.then(function(response) {
+                        tvc.invoke.tailingServiceResolve(response, inputParams);
+                    }, tvc.invoke.intermediateServiceReject);
+                },
+                function(response) {
+                    Promise.resolve(response).then(function(response) {
+                        tvc.invoke.tailingServiceResolve(response, inputParams);
+                    });
+                }
+            );
+        }
+        var serviceRequest = tvc.invoke.request(options, len, len, inputParams);
+        for (var i = len; i > 0; i--) {
+            serviceRequest = serviceRequest.then(function(response) {
+                return tvc.invoke.intermediateServiceResolve(
+                    response,
+                    inputParams,
+                    len - response['serviceIndex']
+                );
+            }, tvc.invoke.intermediateServiceReject);
+        }
+        serviceRequest.then(function(response) {
+            tvc.invoke.tailingServiceResolve(response, inputParams);
+        }, tvc.invoke.intermediateServiceReject);
+    },
+
+    tailingServiceResolve: function(response, inputParams) {
+        tvc.invoke.response = response;
+        if (inputParams.resolverPaths.length) {
+            var responseCallback =
+                inputParams.resolverPaths[inputParams.resolverPaths.length - 1].responsecallback;
+            if (responseCallback) {
+                var callbackFn = tvc.stringToFunction(responseCallback, window);
+                callbackFn(response);
+            }
+        }
+        if (inputParams.formInput && Object.keys(inputParams.formInput).length) {
+            tvc.invoke.formInput = inputParams.formInput;
+            var url = parent.getAbsoluteURL('tvc-action/externalForm');
+            hideProgress();
+            tvc.popup(
+                url +
+                    '?widgetConfigName=' +
+                    inputParams.formInput.widget +
+                    '?objectId=' +
+                    inputParams.selectedRowId,
+                800,
+                600,
+                false
+            );
+        } else {
+            if (inputParams.settings && inputParams.settings.refreshBehavior === 'refreshRows') {
+                var selectedRowIds = getSelectedObjectIds();
+                if (inputParams.menubar && inputParams.menubar.ctxMenu) {
+                    selectedRowIds = tvc.invoke.getSelectedContextObject(inputParams);
+                }
+                refreshRows(selectedRowIds);
+            } else if (
+                inputParams.settings &&
+                inputParams.settings.refreshBehavior === 'refreshTable'
+            ) {
+                tvcReloadPage();
+            } else {
+                tvcReloadTableContent();
+            }
+        }
+    },
+
+    request: function(options, serviceIndex, length, inputParams) {
+        return new Promise(function(resolve, reject) {
+            tvc.invoke.ajax(options, resolve, reject, serviceIndex, length, inputParams);
+        });
+    },
+
+    ajax: function(options, resolve, reject, serviceIndex, length, inputParams) {
+        var ajaxOptions = $.extend(
+            {},
+            {
+                contentType: 'application/json',
+                method: 'GET',
+                success: function(response) {
+                    if (typeof response !== 'object') {
+                        var text = response;
+                        response = {};
+                        response['text'] = text;
+                    }
+                    response['serviceIndex'] = serviceIndex;
+                    var responseResults = response.results;
+                    if (responseResults && responseResults.length) {
+                        var resultLength = responseResults.length;
+                        var errorMessage = [];
+                        for (var i = 0; i < resultLength; i++) {
+                            if (responseResults[i].errors) {
+                                errorMessage.push(responseResults[i].errors[0].message + '\r\n');
+                            }
+                        }
+                        if (errorMessage.length) {
+                            alert(parent.M_SERVICE_FAILED + ': ' + errorMessage);
+                        }
+                    }
+                    resolve(response, inputParams);
+                },
+                error: function(xhr, status, error) {
+                    var response = { xhr: xhr, status: status, error: error };
+                    reject(response);
+                }
+            },
+            options
+        );
+        $.ajax(ajaxOptions);
+    },
+
+    getResolvedMacros: function(inputParams, selectedRowId) {
+        if (inputParams['macro']) {
+            return new Promise(function(resolve, reject) {
+                try {
+                    macroResolver.getResolvedValue(
+                        inputParams.macroElements.split(','),
+                        selectedRowId,
+                        resolve
+                    );
+                } catch (err) {
+                    reject(err);
+                }
+            });
+        } else {
+            return Promise.resolve();
+        }
+    }
+};

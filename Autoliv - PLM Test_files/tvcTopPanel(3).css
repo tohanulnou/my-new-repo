@@ -1,0 +1,44 @@
+div.TopPanel {
+    box-shadow: none;
+    margin: 0;
+}
+
+table.TopPanelTable {
+	border: none;
+    border-bottom: 1px solid #dadada;
+}
+
+td.TopPanelControl {
+    border-color: #d8d8d8;
+    background-color: #f8f8f8;
+}
+
+td.TopPanelHeaderMinimized {
+    color: #000000;
+    font-weight: normal;
+}
+
+td.TopPanelControlColumn {
+    background: #f8f8f8 !important;
+    width: 33px;
+}
+
+td.TopPanelInfoColumn {
+    border-left: 1px solid #c1c1c1;
+	background-color: #f8f8f8;
+}
+
+td.TopPanelControl {
+	border: none;
+}
+
+td.TopPanelButtonToggled, td.TopPanelButtonPressed {
+    background-color: #ffffff;
+    border: 1px solid #bbbbbb;
+    border-right: none;
+}
+
+.TopPanelControlColumn .maxmin i {
+	width: 14px;
+	height: 14px;
+}

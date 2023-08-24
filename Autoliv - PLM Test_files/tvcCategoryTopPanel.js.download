@@ -1,0 +1,782 @@
+var leftSlideInPanelObserver = null;
+var SCROLL_BAR_HEIGHT = 17;
+var MutationObserver = window.MutationObserver || window.WebKitMutationObserver;
+var FRAME_NAME = 'detailsDisplay';
+var PADDING_FROM_BOTTOM = 15;
+var COLLAPSED_PERCENTAGE_OFFSET = 0.6;
+var EXPANDED_PERCENTAGE_OFFSET = 0.8;
+$(document).ready(function() {
+    // handle control click
+    $('td.TopPanelControl').click(function() {
+        activateControl(this.id);
+    });
+    setObjectDetailsFrameName();
+    // handle view loading/resizing
+    $('#TopPanelContentFrame').bind('load', function() {
+        var iframe = this;
+        var height = -1;
+        var $leftSlidePanelGrabber = getTopWindow().$('div#mx_divGrabber');
+        $leftSlidePanelGrabber.hide();
+        var resizer = function() {
+            var leftSlideInNode = getTopWindow()
+                .$('div#leftSlideIn')
+                .get(0);
+            if (leftSlideInNode != undefined) {
+                this.leftSlideInPanelObserver = new MutationObserver(tvcCloseSlideInPanel);
+                this.leftSlideInPanelObserver.observe(leftSlideInNode, { attributes: true });
+                $(window).unload(
+                    function() {
+                        this.leftSlideInPanelObserver.disconnect();
+                    }.bind(this)
+                );
+            }
+            try {
+                if (!iframe.offsetParent) {
+                    return;
+                }
+                var iframeHeight = PREFERRED_HEIGHT;
+                if (iframeHeight < 1) {
+                    var contentBody = iframe.contentWindow.document.body;
+                    if (height == -1) {
+                        height = Math.max(
+                            contentBody.scrollHeight,
+                            50 /*document.body.clientHeight-150*/
+                        );
+                    }
+                    iframeHeight = height;
+                    if (contentBody.scrollWidth > contentBody.clientWidth) {
+                        iframeHeight += SCROLL_BAR_HEIGHT;
+                    }
+                }
+                // resize frame
+                iframe.style.height = iframeHeight + 'px';
+                resizeTopPanel();
+                resizeTabContainer();
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        tvc.handleEvent(iframe.contentWindow, 'resize', resizer);
+        tvc.handleEvent(iframe.contentWindow, 'unload', function() {
+            tvc.unhandleEvent(iframe.contentWindow, 'resize', resizer);
+            iframe.style.height = '';
+            resizeTopPanel();
+            resizeTabContainer();
+        });
+        resizer();
+        tvc.handleEvent(window, 'resize', resizer);
+    });
+
+    // handle control button states
+    $('.TopPanelButton')
+        .hover(
+            function() {
+                $(this)
+                    .not('.TopPanelButtonToggled')
+                    .addClass('TopPanelButtonHover');
+            },
+            function() {
+                $(this).removeClass('TopPanelButtonHover');
+            }
+        )
+        .mousedown(function() {
+            $(this)
+                .not('.TopPanelButtonToggled')
+                .addClass('TopPanelButtonPressed');
+        })
+        .mouseup(function() {
+            $(this).removeClass('TopPanelButtonPressed');
+        });
+    expandTopPanel();
+    tvc.handleEvent(window, 'resize', resizeTabContainer);
+    tvc.handleEvent(window, 'unload', function() {
+        var $tabsDiv = $(document).find('.tabs');
+        $tabsDiv.removeAttr('vertical');
+        var href = window.location.href;
+        if (isTreeURL(href)) {
+            resetPageContent();
+        }
+    });
+    resizeTabContainerOnLoad();
+    disableBackAndForwardButtonsInPopup();
+    disableForwardButton();
+    disableBackButton();
+    updateStateMetaData();
+    setTimeout(resizeTabContainerOnResize, 1000);
+});
+
+function updateStateMetaData() {
+    var contentdocument = $('#TopPanelMaximizedRow').context;
+    var currentState = $(contentdocument)
+        .contents()
+        .find('.tvcStatus:not(.tvcStatusNext)')
+        .text();
+    if (currentState && currentState.length > 0) {
+        window.parent.$('.page-content-occupier').attr('data-state', currentState);
+    }
+}
+
+//To evaluate bclist and disable forward button
+function disableForwardButton() {
+    var topPanelBCList = getTopWindow().bclist;
+    if (topPanelBCList && topPanelBCList.length() === topPanelBCList.currentPosition()) {
+        $(document)
+            .find('div#topPanelForward')
+            .addClass('disabled');
+    }
+}
+
+function disableBackButton() {
+    var topPanelBCList = getTopWindow().bclist;
+    if (
+        topPanelBCList &&
+        (topPanelBCList.currentPosition() === 1 || topPanelBCList.length() === 1)
+    ) {
+        $(document)
+            .find('div#topPanelBack')
+            .addClass('disabled');
+    }
+}
+
+function tvcCloseSlideInPanel() {
+    var topWindow = getTopWindow();
+    var $leftSlideInDiv = topWindow.$('div#leftSlideIn');
+    if ($leftSlideInDiv.css('display') != 'none') {
+        return;
+    }
+    var $contentDiv = topWindow.$('div#pageContentDiv');
+    var $contentFrame = topWindow.$('iframe#content');
+    if ($contentFrame.length !== 0) {
+        var frameDocument = $contentFrame[0].contentDocument;
+        var attr = $(frameDocument)
+            .find('div.tabs')
+            .attr('vertical');
+        if (typeof attr != typeof undefined) {
+            topWindow.leftpos = '16px';
+            $contentDiv.css('left', '16px');
+        }
+    }
+}
+function redirectToNavigator(url) {
+    if (getTopWindow() != self) {
+        return;
+    }
+    var href = getTopWindow().document.location.href;
+    if (isTreeURL(href)) {
+        getTopWindow().location.href = url;
+    }
+}
+
+function setObjectDetailsFrameName() {
+    var $objFrame = getObjectDetailsFrame();
+    if (!$objFrame) {
+        return;
+    }
+    var id = $objFrame.attr('id');
+    var frames = getTopWindow().frames;
+    if (frames[id]) {
+        frames[id].name = 'detailsDisplay';
+    }
+}
+
+// called when the user clicks a control button
+function activateControl(controlId) {
+    var ctrl = topPanel.activateControl(TOPPANEL, controlId);
+    if (ctrl.type == 'view') {
+        PREFERRED_HEIGHT = ctrl.height;
+        $('.TopPanelButtonToggled').removeClass('TopPanelButtonToggled');
+        $('#TopPanelContentFrame')[0].src = ctrl.href + '&fromCategoryMenu=true';
+        CONTROL = controlId;
+        $('#' + controlId).addClass('TopPanelButtonToggled');
+    } else if (ctrl.type == 'popup') {
+        tvc.popup(ctrl.href, ctrl.width, ctrl.height, false);
+    } else {
+        tvc.popup(ctrl.href, 400, 400, false);
+    }
+}
+
+function promoteDemoteAction(isPromote) {
+    LOADED = false;
+    var result = topPanel.promoteDemoteAction(TOPPANEL, isPromote);
+    if (!result.current) {
+        alert(result.errorMsg);
+        return;
+    }
+    updateState(result);
+    $('.page-content-occupier').attr('data-state', result.current);
+}
+
+function updateState(result) {
+    var $title = $('#TopPanelHeaderMinimized .tvcExtendedTitle');
+    var $currentButton = $('#TopPanelHeaderMinimized').find('.tvcStatus:not(.tvcStatusNext)');
+    $title.children().remove();
+    var $cloneCurrent = $currentButton.parent().clone();
+    if (result.previous) {
+        var $clonePreviousElement = renderState($currentButton, result.previous, false);
+        $title.append($clonePreviousElement);
+    }
+    $cloneCurrent.children()[0].innerText = result.current;
+    $title.append($cloneCurrent);
+    if (result.next) {
+        var $cloneNextElement = renderState($currentButton, result.next, true);
+        $title.append($cloneNextElement);
+    }
+    $currentButton.remove();
+}
+
+function renderState($element, value, isPromote) {
+    var $cloneElement = $element.parent().clone();
+    var $buttonElement = $cloneElement.children();
+    $buttonElement.text(value);
+    $buttonElement.addClass('tvcStatusNext');
+    $buttonElement.attr('onclick', 'promoteDemoteAction(' + isPromote + ')');
+    return $cloneElement;
+}
+
+function disableBackAndForwardButtonsInPopup() {
+    if (getTopWindow().opener) {
+        var hideButtons = false;
+        if (typeof HIDE_BACK_FORWARD_BUTTONS !== 'undefined') {
+            hideButtons = HIDE_BACK_FORWARD_BUTTONS;
+        } else if (typeof parent.HIDE_BACK_FORWARD_BUTTONS !== 'undefined') {
+            hideButtons = parent.HIDE_BACK_FORWARD_BUTTONS;
+        }
+        if (hideButtons) {
+            $(document)
+                .find('div#topPanelForward')
+                .hide();
+            $(document)
+                .find('div#topPanelBack')
+                .hide();
+        }
+    }
+}
+
+function hideActionsInPopupMode() {
+    if (getTopWindow().opener) {
+        $(document)
+            .find('div#appMenu')
+            .hide();
+        $(document)
+            .find('div#topPanelHome')
+            .hide();
+        $(document)
+            .find('div#topPanelForward')
+            .hide();
+        $(document)
+            .find('div#topPanelBack')
+            .hide();
+
+        var $formFrame = $('#TopPanelContentFrame');
+        if ($formFrame.length > 0) {
+            var frameContents = $formFrame.contents();
+            frameContents.find('div#appMenu').hide();
+            frameContents.find('div#topPanelHome').hide();
+            frameContents.find('div#topPanelForward').hide();
+            frameContents.find('div#topPanelBack').hide();
+        }
+    }
+}
+
+//maximizes the top panel
+function expandTopPanel() {
+    try {
+        // expand panel if initially expanded
+        if (window.EXPANDED) {
+            maximizeTopPanel();
+        }
+    } catch (err) {
+        console.log(err);
+    }
+}
+
+// maximizes the top panel
+function maximizeTopPanel() {
+    $('#TopPanelMinimizedRow').hide();
+    $('#TopPanelMaximizedRow').show();
+    if (!LOADED && CONTROL) {
+        LOADED = true;
+        activateControl(CONTROL);
+    }
+    resizeTopPanel();
+    resizeTabContainer();
+    topPanel.changeExpandedState(TOPPANEL, true);
+}
+
+// minimizes the top panel
+function minimizeTopPanel() {
+    var $topPanelContentFrame = $('#TopPanelContentFrame');
+    if ($topPanelContentFrame) {
+        var topPanelContentFrameDocument = $topPanelContentFrame[0].contentDocument;
+        if (
+            $(topPanelContentFrameDocument).find('.tvcStatus').length &&
+            $('#TopPanelMinimizedRow').find('.tvcStatus').length
+        ) {
+            var result = {};
+            var previousButton = $(topPanelContentFrameDocument).find(
+                '.tvcStatus.tvcStatusNext.previous'
+            )[0];
+            var currentButton = $(topPanelContentFrameDocument).find(
+                '.tvcStatus:not(.tvcStatusNext)'
+            )[0];
+            var nextButton = $(topPanelContentFrameDocument).find(
+                '.tvcStatus.tvcStatusNext.next'
+            )[0];
+
+            result.previous = previousButton ? previousButton.innerText : '';
+            result.current = currentButton.innerText;
+            result.next = nextButton ? nextButton.innerText : '';
+            updateState(result);
+        }
+    }
+    $('#TopPanelMinimizedRow').show();
+    $('#TopPanelMaximizedRow').hide();
+    resizeTopPanel();
+    resizeTabContainer();
+    topPanel.changeExpandedState(TOPPANEL, false);
+}
+
+// called when the top panel's size has changed
+function resizeTopPanel() {
+    try {
+        tvcTabPage_resizeHandler();
+    } catch (error) {
+        console.log(error);
+    }
+    resizeTopPanelForm();
+}
+
+function resizeTopPanelForm() {
+    var $title = $('#TopPanelTitle');
+    if ($title.length === 0) {
+        var $formFrame = $('#TopPanelContentFrame');
+        var $formDiv = $formFrame.contents().find('#CategoryTopPanelForm');
+        var $actionsDiv = $formFrame.contents().find('#CategoryTopPanelActions');
+        var $actions = $actionsDiv.find('.formAction');
+    }
+}
+
+//called when the top panel's size has changed
+function resizeTabContainer() {
+    var $topDoc = $(getTopWindow().document);
+    var $mydeskpanel = $topDoc.find('div#mydeskpanel');
+
+    if ($mydeskpanel.length && !$mydeskpanel.is(':visible')) {
+        var $pageContentDiv = $topDoc.find('div#pageContentDiv');
+        if ($pageContentDiv.length) {
+            //Autoliv: To fix the black shadow before object navigation tree. This was in the TVC product itself in previous release to make it look good pre 15x.
+            // $pageContentDiv.css('left', '16px');
+        }
+    }
+    if (isUip()) {
+        resizeUipContainer();
+    } else {
+        resizeContainer();
+    }
+}
+
+function resizeContainer() {
+    try {
+        var $tabContainer = $(document).find('.tabContainer');
+        var $contentContainer = $(document).find('.contentContainer');
+        var tabContainerWidth = 0;
+        if ($tabContainer.css('display') != 'none') {
+            tabContainerWidth = $tabContainer.width();
+        }
+        var contentWidth = $contentContainer.parent().width() - tabContainerWidth - 5;
+        $contentContainer.width(contentWidth);
+
+        var $contentDiv = findSelectedContentDiv();
+        var height = $contentDiv.height();
+        if (height > 100) {
+            $tabContainer.css('height', height + 'px');
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+function isUip() {
+    return (
+        $(document)
+            .find('.uip-tablist')
+            .get().length > 0
+    );
+}
+
+function isUipVertical() {
+    return (
+        $(document)
+            .find('.uip-tabpanel.vertical.active')
+            .get().length > 0
+    );
+}
+
+function resizeUipContainer() {
+    try {
+        var $tabContainer = $(document).find('.uip-tablist');
+
+        if (isUipVertical()) {
+            var $mainFrame = $('[name="' + FRAME_NAME + '"]');
+            var $contentContainer = $mainFrame.parent();
+            $tabContainer.css('height', $contentContainer.height() + 'px');
+
+            var $contentWindowOfFrame = $($mainFrame[0].contentWindow.document);
+            var $childContainer = $contentWindowOfFrame.find('.uip-tabs.vertical');
+
+            if ($childContainer.get().length) {
+                var height = $tabContainer.height() * EXPANDED_PERCENTAGE_OFFSET;
+                height = height - PADDING_FROM_BOTTOM;
+                $childContainer.css('height', height + 'px');
+            }
+
+            var $childUipMenuContainer = $contentWindowOfFrame.find(
+                '.ui.menu.tabular.vertical.uip-tablist'
+            );
+            var $childTopPanelMinimizedContainer = $contentWindowOfFrame.find(
+                '#TopPanelMinimizedRow'
+            );
+
+            if (
+                $childUipMenuContainer.get().length &&
+                $childTopPanelMinimizedContainer.get().length
+            ) {
+                var factor = COLLAPSED_PERCENTAGE_OFFSET;
+                if ($childTopPanelMinimizedContainer.is(':visible')) {
+                    factor = EXPANDED_PERCENTAGE_OFFSET;
+                }
+
+                var height = $tabContainer.height() * factor;
+                height = height - PADDING_FROM_BOTTOM;
+                $childUipMenuContainer.css('height', height + 'px');
+            }
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+function findSelectedContentDiv() {
+    try {
+        var $tabsDiv = $(document).find('.tabs');
+        var tabId = $tabsDiv.attr('id');
+        var $selectedTab = $tabsDiv.find('.selectedTab');
+        var tabIndex = $selectedTab.attr('tname');
+        var tabRef = tabId + '_' + tabIndex + 'content';
+        var $contentDiv = $tabsDiv.find('#' + tabRef);
+        if ($contentDiv.length === 0) {
+            tabRef = tabId + 'content';
+            $contentDiv = $tabsDiv.find('#' + tabRef);
+        }
+        return $contentDiv;
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+function resizeTabContainerOnLoad() {
+    try {
+        var $contentDiv = findSelectedContentDiv();
+        var $iframe = $($contentDiv).find('iframe');
+        if ($iframe.length != 0) {
+            $($iframe).bind('load', resizeTabContainer);
+        }
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+function resizeTabContainerOnResize() {
+    try {
+        var $contentContainer = $(document).find('div.contentContainer');
+        $contentContainer.find('iframe').each(function() {
+            tvc.handleEvent(this.contentWindow, 'resize', resizeTabContainer);
+        });
+    } catch (error) {
+        console.log(error);
+    }
+}
+
+function setTopPanelTitle(title) {
+    document.title = title;
+}
+
+function hideEnoviaSidePanel() {
+    var topDoc = $(getTopWindow().document);
+    var extPageHeadDiv = topDoc.find('div#ExtpageHeadDiv');
+    var pageHeadDiv = topDoc.find('div#pageHeadDiv');
+    var $pageContentDiv = topDoc.find('div#pageContentDiv');
+    var $leftPanelMenu = topDoc.find('div#leftPanelMenu');
+    var $mydeskpanel = topDoc.find('div#mydeskpanel');
+    var $togglePanel = topDoc.find('div#panelToggle');
+    var pageContentDivElement = $pageContentDiv[0];
+    var mydeskpanelElement = $mydeskpanel[0];
+    var leftPanelMenuElement = $leftPanelMenu[0];
+
+    if (mydeskpanelElement) {
+        $mydeskpanel.attr('previous-left', mydeskpanelElement.style.left);
+    }
+    if (leftPanelMenuElement) {
+        $leftPanelMenu.attr('previous-left', leftPanelMenuElement.style.left);
+    }
+    if (pageContentDivElement) {
+        $pageContentDiv.attr('previous-left', pageContentDivElement.style.left);
+    }
+    var panel_status = $togglePanel.hasClass('closed') ? 'closed' : 'open';
+    $togglePanel.attr('panel-status', panel_status);
+    $leftPanelMenu.css('display', 'none');
+    $mydeskpanel.css('display', 'none');
+    if (pageHeadDiv.length === 0) {
+        getTopWindow().toppos = 0;
+    } else {
+        getTopWindow().toppos = extPageHeadDiv.height();
+    }
+
+    $pageContentDiv.css('top', getTopWindow().toppos);
+    //To fix the black shadow before object navigation tree. This was in the TVC product itself in previous release to make it look good pre 15x.
+    //$pageContentDiv.css('left', '16px');
+    adjustPanelToggle();
+}
+
+function resetPageContent() {
+    var $document = $(getTopWindow().document);
+    var $pageContentDiv = $document.find('div#pageContentDiv');
+    var $mydeskpanel = $document.find('div#mydeskpanel');
+    var $leftPanelMenu = $document.find('div#leftPanelMenu');
+    var $togglePanel = $document.find('div#panelToggle');
+
+    var previous_left = $pageContentDiv.attr('previous-left');
+    $pageContentDiv.css('left', previous_left);
+
+    var mydeskprevious_left = $mydeskpanel.attr('previous-left');
+    $mydeskpanel.css('left', mydeskprevious_left);
+    $mydeskpanel.css('display', 'block');
+
+    var leftpanelprevious_left = $leftPanelMenu.attr('previous-left');
+    $leftPanelMenu.css('left', leftpanelprevious_left);
+
+    var togglepanel_status = $togglePanel.attr('panel-status');
+    var isTogglePanelOpen = $togglePanel.hasClass('open');
+    if (togglepanel_status === 'closed' && isTogglePanelOpen) {
+        getTopWindow().togglePanel();
+    }
+}
+
+function isTreeURL(href) {
+    var index = href.indexOf('emxTree.jsp');
+    return index > 0;
+}
+
+function adjustPanelToggle() {
+    var $doc = $(document);
+    var $topDoc = $(getTopWindow().document);
+    var $pageContentDiv = $topDoc.find('div#pageContentDiv');
+    $topDoc.find('div#panelToggle').click(function() {
+        var attr = $doc.find('.tabs').attr('vertical');
+        if (typeof attr == typeof undefined) {
+            $topDoc.find('#mydeskpanel').hide();
+            var $contentWindow = $($topDoc.find('[name="content"]')[0].contentWindow.document);
+
+            var $sideMenuVertical = $contentWindow
+                .find('.uip-tabs.vertical')
+                .find('.ui.menu.tabular.vertical.uip-tablist');
+            if ($sideMenuVertical.get().length) {
+                if ($topDoc.find('div#panelToggle').hasClass('closed')) {
+                    $sideMenuVertical.css('display', 'none');
+                } else {
+                    $pageContentDiv.css('left', '16px');
+                    $sideMenuVertical.css('display', '');
+                }
+            }
+            var $sideMenuHorizontal = $contentWindow
+                .find('.uip-tabs.horizontal')
+                .find('.ui.menu.tabular.horizontal.uip-tablist');
+            if ($sideMenuHorizontal.get().length) {
+                $sideMenuVertical.css('display', '');
+                $pageContentDiv.css('left', '16px');
+            }
+            resizeTabContainer();
+        } else {
+            var $panelToggle = $topDoc.find('div#panelToggle');
+            if ($doc.find('div.tabContainer').length !== 0) {
+                $pageContentDiv.css('left', '16px');
+                if ($panelToggle.hasClass('closed')) {
+                    $doc.find('div.tabContainer').hide();
+                    $doc.find('div.contentContainer').css('width', '100%');
+                } else {
+                    $doc.find('div.tabContainer').show();
+                    $doc.find('div.contentContainer').css('width', '');
+                }
+                resizeTabContainer();
+            }
+        }
+    });
+}
+
+function refresh() {
+    var contentFrame = $(getTopWindow().document).find('#content');
+    if (contentFrame.length > 0) {
+        contentFrame[0].contentDocument.location.reload(true);
+    } else {
+        getTopWindow().document.location.reload(true);
+    }
+}
+
+function hideAppMenu() {
+    var topDoc = $(getTopWindow().document);
+    if (topDoc.find('#mydeskpanel').hasClass('appMenu')) {
+        topDoc.find('#mydeskpanel').css('position', 'absolute');
+        topDoc.find('#mydeskpanel').hide();
+    }
+}
+
+function showAppMenu(element) {
+    var mydeskpanel = $(getTopWindow().document).find('#mydeskpanel');
+    var position = $('#tvcToppanelAppMenu').offset();
+    var topPanel = window.parent.$('div.TopPanel');
+    var left = $('#appMenu').offset().left;
+    if ($('#TopPanelMaximizedRow').css('display') != 'none') {
+        left += 33;
+    }
+    var posLeft =
+        left -
+        $(getTopWindow().document)
+            .find('#mydeskpanel')
+            .width() +
+        20;
+
+    mydeskpanel.css('top', 80);
+    mydeskpanel.css('left', posLeft);
+    mydeskpanel.addClass('appMenu');
+    if (mydeskpanel.css('display') == 'none') {
+        mydeskpanel.show();
+    } else {
+        mydeskpanel.hide();
+    }
+}
+
+function selectReferenceDocumentTab(command, defaultTab) {
+    var topWindow = getTopWindow();
+    var $contentDiv = topWindow.$('div#pageContentDiv');
+    var $contentFrame = topWindow.$('iframe#content');
+    var uip = false;
+    var frameDocument = null;
+    var refTab = null;
+    var refTabElement = null;
+
+    if ($contentFrame.length !== 0) {
+        frameDocument = $contentFrame[0].contentDocument;
+        uip =
+            $(frameDocument)
+                .find('div.uip-tablist')
+                .get().length > 0;
+    }
+
+    if (uip) {
+        refTab = $(frameDocument).find('a[id*="' + command + '"]');
+        if (refTab.length === 0) {
+            refTab = $(frameDocument).find('a[id*="' + defaultTab + '"]');
+        }
+        refTabElement = refTab.get(0);
+    } else {
+        refTab = $(this.parent.document)
+            .find('.tabs')
+            .find('[tid*="' + command + '"]');
+        if (refTab.length === 0) {
+            refTab = $(this.parent.document)
+                .find('.tabs')
+                .find('[tid*="' + defaultTab + '"]');
+        }
+        refTabElement = refTab.find('.tablink')[0];
+    }
+
+    if (refTabElement) {
+        refTabElement.click();
+    }
+}
+
+function submitForm() {
+    var refTab = $(this.parent.document)
+        .find('.tabs')
+        .find('[tid="ENCSpecAndReferenceDoc"]');
+    var refTabElement = refTab.find('.tablink');
+    if (refTabElement[0]) {
+        refTabElement[0].click();
+    }
+}
+
+function showPendingItems(url, single) {
+    if (single) {
+        this.parent.location.href = url;
+    }
+    var tabsDiv = $(this.parent.document).find('.tabs');
+    var refTab = tabsDiv.find('[tid="objectTabId"]');
+    var tabId = tabsDiv.attr('id');
+    var selectedTab = tabsDiv.find('.selectedTab');
+    var tabIndex = selectedTab.attr('tname');
+    var tabRef = tabId + '_' + tabIndex + 'contentFrame';
+    var frame = tabsDiv.find('#' + tabRef);
+    if (frame.length === 0) {
+        tabRef = tabId + 'contentFrame';
+        frame = tabsDiv.find('#' + tabRef);
+    }
+    frame.attr('src', url);
+    selectedTab.attr('loaded', 'false');
+}
+
+function getObjectDetailsFrame() {
+    var $tabsDiv = $(this.parent.document).find('.tabs');
+    var $refTab = $tabsDiv.find('[tid="objectTabId"]');
+    if ($refTab.length === 0) {
+        return;
+    }
+    var $selectedTab = $tabsDiv.find('.selectedTab');
+    var tabId = $tabsDiv.attr('id');
+    var tabIndex = $refTab.attr('tname');
+    var tabRef = tabId + '_' + tabIndex + 'contentFrame';
+    var $frame = $tabsDiv.find('#' + tabRef);
+    if ($frame.length === 0) {
+        tabRef = tabId + 'contentFrame';
+        $frame = $tabsDiv.find('#' + tabRef);
+    }
+    return $frame;
+}
+
+function updateBreadcrumList(objectId, url) {
+    if (
+        getTopWindow().bclist &&
+        getTopWindow().bclist.getCurrentBC() &&
+        getTopWindow().bclist.getCurrentBC().id === objectId
+    ) {
+        getTopWindow().bclist.getCurrentBC().treeURL = url;
+    } else {
+        getTopWindow().bclist.insert(objectId, '', '', '', '', url, null, null, null, null);
+        getTopWindow().bclist.getCurrentBC().treeURL = url;
+    }
+}
+
+function updateShortcutMap(objectId) {
+    var topWindow = getTopWindow();
+    if (typeof topWindow.updateShortcutMap !== 'function') {
+        return;
+    }
+    try {
+        topWindow.updateShortcutMap('recentlyViewed', objectId);
+        if ($.inArray('facet0', topWindow.shortcut) === -1) {
+            topWindow.shortcut.push('facet0');
+        }
+        if (typeof topWindow.refreshShortcut === 'function') {
+            topWindow.refreshShortcut();
+        }
+    } catch (ex) {
+        console.log(ex);
+    }
+}
+
+function bindEventListener(target, event, func) {
+    if (target.addEventListener) {
+        target.addEventListener(event, func, false);
+    } else if (target.attachEvent) {
+        target.attachEvent('on' + event, func);
+    }
+}

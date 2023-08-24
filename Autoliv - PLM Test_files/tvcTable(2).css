@@ -1,0 +1,139 @@
+body.content {
+	background-color: #FFFFFF;
+	background-image: none;
+}
+
+th.h {
+	border-right: 1px solid #FFFFFF;
+	background-image: none;
+	background-color: #b0e2f2 !important;
+	background: #b0e2f2;
+	color: black;
+    margin-right: 5px;
+    padding-left: 5px;
+}
+
+th.h th {
+	color: #2A4757;
+}
+
+td.calcHeader {
+	background-color: #98BEDE;
+	color: #000000;
+}
+
+div#thlc, div#thrc {
+	background-color: #deefff;
+}
+
+td.calcHeader, div#thlc, div#thrc {
+	background: #b0e2f2;
+	background: -moz-linear-gradient(top, #b6ecf9 0%, #b0e2f2 100%);
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%, #b6ecf9),
+		color-stop(100%, #b0e2f2));
+	background: -webkit-linear-gradient(top, #b6ecf9 0%, #b0e2f2 100%);
+	background: -o-linear-gradient(top, #b6ecf9 0%, #b0e2f2 100%);
+	background: -ms-linear-gradient(top, #b6ecf9 0%, #b0e2f2 100%);
+	background: linear-gradient(to bottom, #b6ecf9 0%, #b0e2f2 100%);
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#b6ecf9',
+		endColorstr='#b0e2f2', GradientType=0);
+}
+
+th a {
+	color: black;
+	padding-left: 5px;
+}
+
+td.c, td.str, td.es {
+	border-right: 1px solid transparent !important;
+}
+
+tr.odd td.c, tr.odd td.str, tr.odd td.es, tr.odd td.ee, tr.odd td.e {
+	border-bottom: 1px solid #e6e6e6;
+	background-color: #F5F5F5;
+}
+
+tr.even td.c, tr.even td.str, tr.even td.es, tr.even td.ee, tr.even td.e
+	{
+	border-bottom: 1px solid #e6e6e6;
+	background-color: #ffffff;
+}
+
+#empty_row td {
+	background-color: #F5F5F5;
+	font-size: 12px;
+	color: #333333;
+}
+
+.ghr {
+	background-color: white;
+}
+
+div.gh {
+	background-color: #72BED7;
+	background-image: none;
+	color: #EEE;
+	min-height: 25px !important;
+	font-size: 10px;
+}
+
+th a {
+	color: #2a4757;
+}
+
+tr.repeated th {
+	color: #fff;
+}
+
+tr.repeated th a {
+	color: #fff;
+}
+
+th a:hover {
+	color: #2a4757;
+}
+
+th i {
+	font-size: 14px;
+	color: #444444;
+	cursor: pointer;
+	padding-left: 5px;
+	padding-right: 5px;
+}
+
+tr.h td.c, tr.h td.str,tr.h td.e,tr.h td.es,tr.h td.ee {
+	background-image: none;
+	background-color: #dbf4fc;
+}
+
+tr.h td.pen {
+	background-image:
+		url('../../../../structurebrowser/images/incelleditpen.gif');
+	background-repeat: no-repeat;
+	background-position: top right;
+}
+
+td.c {
+	padding-left: 7px;
+	padding-right: 7px;
+}
+
+div.errors {
+	background-image: none;
+	background-color: #FCF8E3;
+}
+
+tr.ghr td.ghcl {
+	border-right: 1px solid white;
+}
+
+th.separator, td.separator {
+	background-color: white !important;
+	border-right: none !important;
+	background-image: none !important;
+}
+
+td.separator {
+	border-bottom: 1px solid white !important;
+	border-right: 1px solid white !important;
+}

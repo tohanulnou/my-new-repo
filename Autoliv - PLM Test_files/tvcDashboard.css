@@ -1,0 +1,756 @@
+/* dashboard styles */
+.gwt-technia-Dashboard {
+    background-color: #ffffff;
+}
+
+.gwt-technia-DashboardToolbar {
+    background-color: #ffffff;
+    background-position: bottom;
+    font-size-adjust: none;
+    font-stretch: condensed;
+    font-variant: normal;
+    font-weight: bold;
+    font-style: normal;
+    text-align: right;
+    margin-bottom: 5px;
+}
+
+/* gadget styles */
+.gwt-technia-DashboardGadget {
+    border: 2px solid white;
+    background-color: white;
+    margin: 7px;
+    border: 1px solid #cccccc;
+    box-shadow: 0 1px 1px 0 rgba(0, 0, 0, 0.1);
+}
+
+.gwt-technia-DashboardGadget-Maximized {
+    border-style: none;
+    margin: 0px;
+}
+
+.gwt-technia-DashboardGadgetHeader-Green {
+    border-color: #59d268;
+    background-color: #59d268;
+    color: black;
+}
+
+.gwt-technia-DashboardGadgetHeader-Purple {
+    border-color: #79438a;
+    background-color: #79438a;
+    color: white;
+}
+
+.gwt-technia-DashboardGadgetHeader-Yellow {
+    border-color: #fbc333;
+    background-color: #fbc333;
+    color: black;
+}
+
+.gwt-technia-DashboardGadgetHeader-Red {
+    border-color: #cc3a35;
+    background-color: #cc3a35;
+    color: white;
+}
+
+.gwt-technia-DashboardGadgetHeader-Blue {
+    border-color: #1eabe3;
+    background-color: #1eabe3;
+    color: black;
+}
+
+.gwt-technia-DashboardGadgetHeader-Gray {
+    border-color: #cccccc;
+    background-color: #cccccc;
+    color: black;
+}
+
+.gwt-technia-DashboardGadget-Selected {
+    border: 1px dashed black;
+}
+
+.gwt-technia-DashboardDropShadow {
+    text-align: center;
+    font-weight: normal;
+    font-family: Verdana, Helvetica, Arial, Sans-Serif;
+    font-size: 14pt;
+    padding: 14pt;
+    color: #cccccc;
+    border: 4px dashed #cccccc;
+    background-color: #fcfcfc;
+    margin: 5px;
+}
+
+.gwt-technia-DashboardGadgetHeader {
+    font-weight: normal;
+    font-family: Verdana, Helvetica, Arial, Sans-Serif;
+}
+
+.gwt-technia-DashboardGadgetHeaderText {
+    padding: 5px 2px 2px 5px;
+    font-size: 13px;
+    cursor: move;
+}
+
+.gwt-technia-DashboardGadgetMenuButton {
+    /* background-image: url('../../common/images/menubutton_d.png'); */
+    color: #ffffff;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.gwt-technia-DashboardGadgetMenuButton:hover {
+    color: #4ab6d9;
+}
+
+.gwt-technia-DashboardGadgetMenuButton-OpenDown {
+    /* background-image: url('../../common/images/menubuttonopen_d.png'); */
+    background-position: 0px 0px;
+    background-repeat: no-repeat;
+    z-index: 2147483647;
+}
+
+.gwt-technia-DashboardGadgetMenuButton-OpenUp {
+    /* background-image: url('../../common/images/menubuttonopen_u.png'); */
+    background-position: 0px 0px;
+    background-repeat: no-repeat;
+    z-index: 2147483647;
+}
+
+.gwt-technia-DashboardGadgetContent {
+    background-color: white;
+    color: black;
+}
+
+.gwt-technia-DashboardGadgetRestore {
+    position: absolute;
+    background-image: url('../../common/images/restore.png');
+    background-repeat: no-repeat;
+    cursor: pointer;
+    opacity: 0.7;
+    z-index: 2147483647;
+}
+
+.gwt-technia-DashboardGadgetContentFrame {
+    border-style: none;
+    height: 100%;
+    width: 100%;
+}
+
+/* popup menu styles */
+.gwt-technia-DashboardPopupMenu {
+    background-color: white;
+    border: 1px solid #304245;
+    width: 100%;
+    cursor: default;
+    padding: 2px;
+    z-index: 2147483646;
+}
+
+.gwt-technia-DashboardMenuItem {
+    color: #111;
+    padding: 3px 4px 3px 4px;
+    font-family: Verdana, Helvetica, Arial, Sans-Serif;
+    font-size: 11pt;
+    cursor: pointer;
+    background-color: white;
+}
+
+.gwt-technia-DashboardMenuItem-Focus {
+    color: white;
+    cursor: pointer;
+    background-color: #aaa;
+}
+
+.gwt-technia-DashboardMenuSeparator {
+    border-bottom: 1px solid #eee;
+    margin: 2px 5px 2px 5px;
+}
+
+/* gadget color menu item */
+.gwt-technia-DashboardGadgetColorItem {
+    text-align: center;
+    margin: 4px 2px 0px 2px;
+    border-style: none;
+    padding: 0px;
+}
+
+.gwt-technia-DashboardGadgetColorBox {
+    display: -moz-inline-box;
+    display: inline-block;
+    height: 15px;
+    width: 15px;
+    margin: 2px;
+    border: 1px solid black;
+    cursor: pointer;
+}
+
+.gwt-technia-DashboardGadgetColorBox-CheckedLight {
+    background-image: url('../../common/images/check_light.png');
+}
+
+.gwt-technia-DashboardGadgetColorBox-CheckedDark {
+    background-image: url('../../common/images/check_dark.png');
+}
+
+/* gadget column span menu item */
+.gwt-technia-DashboardGadgetSpanItem {
+    position: relative;
+    text-align: center;
+    margin: 4px 2px 0px 2px;
+    border-style: none;
+    padding: 0px;
+}
+
+.gwt-technia-DashboardGadgetSpanBox {
+    display: -moz-inline-box;
+    display: inline-block;
+    height: 22px;
+    width: 18px;
+    cursor: pointer;
+    background-color: white;
+    background-image: url('../../common/images/empty_frame.png');
+}
+
+.gwt-technia-DashboardGadgetSpanBox-H1 {
+    background-image: url('../../common/images/hollow_frame_1.png');
+}
+
+.gwt-technia-DashboardGadgetSpanBox-H2 {
+    background-image: url('../../common/images/hollow_frame_2.png');
+}
+
+.gwt-technia-DashboardGadgetSpanBox-H3 {
+    background-image: url('../../common/images/hollow_frame_3.png');
+}
+
+.gwt-technia-DashboardGadgetSpanBox-H4 {
+    background-image: url('../../common/images/hollow_frame_4.png');
+}
+
+.gwt-technia-DashboardGadgetSpanShrink {
+    background-image: url('../../common/images/arrow_left_light.png');
+    position: absolute;
+    left: 2px;
+    height: 21px;
+    width: 15px;
+    cursor: pointer;
+}
+
+.gwt-technia-DashboardGadgetSpanGrow {
+    background-image: url('../../common/images/arrow_right_light.png');
+    position: absolute;
+    right: 2px;
+    height: 21px;
+    width: 15px;
+    cursor: pointer;
+}
+
+.gwt-technia-DashboardGadgetSpanShrink-Active {
+    background-image: url('../../common/images/arrow_left_blue.png');
+}
+
+.gwt-technia-DashboardGadgetSpanGrow-Active {
+    background-image: url('../../common/images/arrow_right_blue.png');
+}
+
+/* gadget actions menu item */
+.gwt-technia-DashboardGadgetActionsItem {
+    position: relative;
+    text-align: left;
+    margin: 4px 2px 0px 2px;
+    border-style: none;
+    padding: 0px;
+}
+
+.gwt-technia-DashboardGadgetActions-Button {
+    display: -moz-inline-box;
+    display: inline-block;
+    height: 22px;
+    width: 22px;
+    cursor: pointer;
+    background-color: white;
+    margin: 0px 3px 0px 0px;
+}
+
+.gwt-technia-DashboardGadgetActions-Maximize {
+    background-image: url('../../common/images/maximize_light.png');
+}
+
+.gwt-technia-DashboardGadgetActions-MaximizeOn {
+    background-image: url('../../common/images/maximize_blue.png');
+}
+
+.gwt-technia-DashboardGadgetActions-Reload {
+    background-image: url('../../common/images/reload_light.png');
+}
+
+.gwt-technia-DashboardGadgetActions-ReloadOn {
+    background-image: url('../../common/images/reload_blue.png');
+}
+
+.gwt-technia-DashboardGadgetActions-Delete {
+    background-image: url('../../common/images/delete_light.png');
+    position: absolute;
+    right: 0px;
+    bottom: 3px;
+    height: 22px;
+    width: 22px;
+}
+
+.gwt-technia-DashboardGadgetActions-DeleteOn {
+    background-image: url('../../common/images/delete_dark.png');
+}
+
+.gwt-technia-DashboardGadgetActions-Select {
+    /* background-image: url('../../common/images/check_light.png');
+	background-position: center center;
+	background-repeat: no-repeat;*/
+    color: #ffffff;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.gwt-technia-DashboardGadgetActions-Select:hover {
+    /*background-image: url('../../common/images/check_dark.png');
+	background-position: center center;
+	background-repeat: no-repeat;*/
+    color: #4ab6d9;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.gwt-technia-DashboardGadgetActions-SelectOn {
+    /*background-image: url('../../common/images/check_dark.png');
+	background-position: center center;
+	background-repeat: no-repeat;*/
+    color: #000000;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+/* filter button */
+/*
+.gwt-technia-DashboardFilterButton {
+	height: 18px;
+	width: 18px;
+	background-image: url('../../common/images/filter_gray.png');
+	background-position: center center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+
+.gwt-technia-DashboardFilterButtonActive {
+	background-image: url('../../common/images/filter_red.png') !important;
+}
+
+.gwt-technia-DashboardFilterButton:hover {
+	height: 18px;
+	width: 18px;
+	background-image: url('../../common/images/filter_blue.png');
+	background-position: center center;
+	background-repeat: no-repeat;
+	cursor: pointer;
+}
+*/
+
+.filter {
+    color: #b8b7b8;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.filter:hover {
+    color: #4ab6d9;
+}
+
+.filterActive {
+    color: #ff8672;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+/* add button */
+.openGallery {
+    color: #b8b7b8;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.openGallery:hover {
+    color: #4ab6d9;
+}
+
+.closeGallery {
+    color: #b8b7b8;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.closeGallery:hover {
+    color: #4ab6d9;
+}
+
+.gwt-technia-DashboardRemoveButton {
+    background-image: url('../../common/images/remove_gray.png') !important;
+}
+
+.gwt-technia-DashboardRemoveButton:hover {
+    background-image: url('../../common/images/remove_blue.png') !important;
+}
+
+/* clear button */
+.clear {
+    color: #b8b7b8;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.clear:hover {
+    color: #ff8672;
+}
+
+/* delete button */
+.delete {
+    font-size: 16px;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.delete:hover {
+    color: #ff8672;
+}
+
+.deleteHidden {
+    color: transparent;
+}
+
+/* refresh button */
+.refresh {
+    font-size: 16px;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.refresh:hover {
+    color: #4ab6d9;
+}
+
+.refreshHidden {
+    color: transparent;
+}
+
+/* maximize button */
+.maximize {
+    font-size: 16px;
+    color: #ffffff;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.maximize:hover {
+    color: #4ab6d9;
+}
+
+.maximizeHidden {
+    color: transparent;
+}
+
+/* reset text*/
+.gwt-technia-DashboardResetText {
+    font-family: Verdana, Helvetica, Arial, Sans-Serif;
+    font-size: 14px;
+    font-weight: normal;
+    font-style: normal;
+    text-align: left;
+    padding: 2px 4px 2px 4px;
+    color: #b8b7b8;
+    cursor: pointer;
+}
+
+.gwt-technia-DashboardResetText:hover {
+    color: #4ab6d9;
+    text-decoration: underline;
+}
+
+/* help button */
+.helpButton {
+    color: #b8b7b8;
+    font-size: 18px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.helpButton:hover {
+    color: #4ab6d9;
+}
+
+/* Side By Side*/
+.sideBySide {
+    color: #b8b7b8;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.sideBySideActive {
+    color: #4ab6d9;
+}
+
+.sideBySide:hover {
+    color: #4ab6d9;
+}
+
+/* add panel */
+.gwt-technia-DashboardGallery {
+    background-image: url('../../common/images/gallery_background.png');
+    background-repeat: repeat-x;
+    background-color: black;
+    overflow: hidden;
+}
+
+.gwt-technia-DashboardGalleryPreviews {
+    overflow: hidden;
+}
+
+.gwt-technia-DashboardGalleryPreviousPage {
+    background-image: url('../../common/images/previous_page_white.png');
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+
+.gwt-technia-DashboardGalleryPreviousPage:hover {
+    background-image: url('../../common/images/previous_page_fuzzy_white.png');
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+
+.gwt-technia-DashboardGalleryNextPage {
+    background-image: url('../../common/images/next_page_white.png');
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+
+.gwt-technia-DashboardGalleryNextPage:hover {
+    background-image: url('../../common/images/next_page_fuzzy_white.png');
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+
+.gwt-technia-DashboardPreview {
+    color: #fff;
+    font-family: Verdana, Helvetica, Arial, Sans-Serif;
+    font-size: 12px;
+    font-weight: normal;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.gwt-technia-DashboardPreviewActive,
+.gwt-technia-DashboardPreviewSuspended {
+    color: black;
+    background-color: white;
+    background-image: url('../../common/images/gallery_background_white.png');
+}
+
+.gwt-technia-DashboardPreviewHeader {
+    font-size: 16px;
+    padding: 1px 4px 1px 4px;
+    border-bottom: 1px solid white;
+    /*text-shadow: black 2px 2px 5px;
+	-moz-text-shadow: black 2px 2px 5px;
+	-webkit-text-shadow: black 2px 2px 5px;*/
+}
+
+.gwt-technia-DashboardPreviewDescription {
+    font-style: italic;
+    padding: 1px 1px 1px 1px;
+    /*text-shadow: black 2px 2px 5px;
+	-moz-text-shadow: black 2px 2px 5px;
+	-webkit-text-shadow: black 2px 2px 5px;*/
+}
+
+.gwt-technia-DashboardPreviewActive .gwt-technia-DashboardPreviewHeader,
+.gwt-technia-DashboardPreviewSuspended .gwt-technia-DashboardPreviewHeader {
+    font-size: 16px;
+    padding: 1px 4px 1px 4px;
+    border-bottom: 1px solid black;
+}
+
+.gwt-technia-DashboardPreviewThumbnail {
+    background-image: url('../../common/images/thumbnail.png');
+    background-color: white;
+}
+
+.gwt-technia-DashboardPreviewThumbnail-BarChart {
+    background-image: url('../../common/images/bar_thumbnail.png');
+    background-repeat: no-repeat;
+}
+
+.gwt-technia-DashboardPreviewThumbnail-ColumnChart {
+    background-image: url('../../common/images/column_thumbnail.png');
+    background-repeat: no-repeat;
+}
+
+.gwt-technia-DashboardPreviewThumbnail-LineChart {
+    background-image: url('../../common/images/line_thumbnail.png');
+    background-repeat: no-repeat;
+}
+
+.gwt-technia-DashboardPreviewThumbnail-PieChart {
+    background-image: url('../../common/images/pie_thumbnail.png');
+    background-repeat: no-repeat;
+}
+
+.gwt-technia-DashboardPreviewThumbnail-AreaChart {
+    background-image: url('../../common/images/area_thumbnail.png');
+    background-repeat: no-repeat;
+}
+
+.gwt-technia-DashboardPreviewThumbnail-BubbleChart {
+    background-image: url('../../common/images/bubble_thumbnail.png');
+    background-repeat: no-repeat;
+}
+
+.gwt-technia-DashboardPreviewThumbnail-DonutChart {
+    background-image: url('../../common/images/donut_thumbnail.png');
+    background-repeat: no-repeat;
+}
+
+.gwt-technia-DashboardPreviewThumbnail-StackBarChart {
+    background-image: url('../../common/images/stackbar_thumbnail.png');
+    background-repeat: no-repeat;
+}
+
+.gwt-technia-DashboardPreviewThumbnail-Form {
+    background-image: url('../../common/images/form_thumbnail.png');
+    background-repeat: no-repeat;
+}
+
+.gwt-technia-DashboardPreviewThumbnail-Table {
+    background-image: url('../../common/images/table_thumbnail.png');
+    background-repeat: no-repeat;
+}
+
+.gwt-technia-DashboardPreviewThumbnail-Question {
+    background-image: url('../../common/images/question_thumbnail.png');
+    background-repeat: no-repeat;
+}
+
+/* breadcrumbs */
+.gwt-technia-DashboardBreadcrumbs {
+}
+
+.gwt-technia-DashboardBreadcrumbsSeparator {
+    height: 21px;
+    width: 17px;
+    cursor: default;
+    background-position: center center;
+    background-image: url('../../common/images/arrow_right_light.png');
+    background-repeat: no-repeat;
+}
+
+.gwt-technia-DashboardBreadcrumbsText {
+    font-family: Verdana, Helvetica, Arial, Sans-Serif;
+    font-size: 14px;
+    font-weight: normal;
+    font-style: normal;
+    text-align: left;
+    padding: 2px 4px 2px 4px;
+    color: #b8b7b8;
+    cursor: pointer;
+}
+
+.gwt-technia-DashboardBreadcrumbsText-Current {
+    color: #4ab6d9;
+    cursor: default;
+}
+
+.gwt-technia-DashboardBreadcrumbsText-Active {
+    color: #4ab6d9;
+    text-decoration: underline;
+}
+
+/* help */
+
+.gwt-technia-DashboardHelpText {
+    font-family: Verdana, Helvetica, Arial, Sans-Serif;
+    font-size: 14px;
+    font-weight: normal;
+    font-style: italic;
+    text-align: left;
+    padding: 2px 4px 2px 4px;
+    /*color: #22913a;*/
+    color: #777677;
+    cursor: default;
+}
+
+/* Filter controls */
+.gwt-technia-DashboardFilterControls {
+    background-image: url('../../common/images/gallery_background.png');
+    background-repeat: repeat-x;
+    background-color: black;
+    overflow: hidden;
+}
+
+.gwt-technia-DashboardFilters {
+    overflow: hidden;
+}
+
+.gwt-technia-DashboardFilter {
+    color: #fff;
+    font-family: Verdana, Helvetica, Arial, Sans-Serif;
+    font-size: 12px;
+    font-weight: normal;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.gwt-technia-DashboardFilterControl {
+    font-style: italic;
+    padding: 1px 1px 1px 1px;
+}
+
+.gwt-technia-DashboardFilterHeader {
+    font-size: 16px;
+    padding: 1px 4px 1px 4px;
+    border-bottom: 1px solid white;
+}
+
+.gwt-technia-DashboardFilterUpdate {
+    background-image: url('../../common/images/filter_update_disabled.png');
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+
+.gwt-technia-DashboardFilterUpdate:hover {
+    background-image: url('../../common/images/filter_update.png');
+    background-repeat: no-repeat;
+    cursor: pointer;
+}
+
+.hasScrollbar {
+    display: block !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+}
+
+/* Extra padding for Firefox to prevent overlapping of content with scrollbar */
+@-moz-document url-prefix() {
+    .hasScrollbar {
+        padding-right: 17px !important;
+    }
+}
+
+.gwt-CheckBox {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}

@@ -1,0 +1,234 @@
+div .selectize-input {
+    padding: 5px;
+}
+.icompare-chooser {
+    margin-right: 10px;
+}
+
+.selectize-input {
+    padding: 5px;
+}
+
+#inlinecompare-form ul {
+    display: flex;
+    flex-direction: column;
+}
+
+.icompare-item {
+    border-bottom: 1px solid #f5f5f5;
+}
+
+/*the container must be positioned relative:*/
+#inlinecompare-form .autocomplete {
+    position: relative;
+    display: inline-block;
+    margin: 0 12px 0px 5px;
+}
+
+#inlinecompare-form .autocomplete input {
+    border: 1px solid #ccc;
+    background-color: #fff;
+    padding: 5px;
+    font-size: 16px;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    border-radius: 5px;
+}
+
+#inlinecompare-form .autocomplete input[type='text'] {
+    background-color: #f1f1f1;
+    width: 100%;
+}
+
+#inlinecompare-form .autocomplete-items {
+    position: absolute;
+    border: 1px solid #d4d4d4;
+    border-bottom: none;
+    border-top: none;
+    z-index: 99;
+    /*position the autocomplete items to be the same width as the container:*/
+    top: 100%;
+    left: 0;
+    right: 0;
+}
+
+#inlinecompare-form .autocomplete-items div {
+    padding: 10px;
+    cursor: pointer;
+    background-color: #fff;
+    border-bottom: 1px solid #d4d4d4;
+}
+
+/*when hovering an item:*/
+#inlinecompare-form .autocomplete-items div:hover {
+    background-color: #e9e9e9;
+}
+
+/*when navigating through the items using the arrow keys:*/
+#inlinecompare-form .autocomplete-active {
+    background-color: DodgerBlue !important;
+    color: #ffffff;
+}
+/*
+ * Buttons
+ */
+.icompare-menu .btn {
+    display: inline-block;
+    padding: 6px 12px;
+    margin-bottom: 0;
+    font-size: 14px;
+    font-weight: normal;
+    line-height: 1.428571429;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    white-space: nowrap;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+}
+
+.icompare-menu .btn:focus {
+    outline: thin dotted #333;
+    outline: 5px auto -webkit-focus-ring-color;
+    outline-offset: -2px;
+}
+icompare-menu. .btn:hover {
+    text-decoration: none;
+}
+
+icompare-menu. .btn:active {
+    outline: 0;
+    background-image: none;
+    box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+}
+.icompare-menu .btn-default {
+    color: #333333;
+    background-color: #ffffff;
+    border-color: #cccccc;
+}
+.icompare-menu .btn-default:hover,
+.icompare-menu .btn-default:focus,
+.icompare-menu .btn-default:active,
+.icompare-menu .btn-default.active {
+    background-color: #ebebeb;
+    border-color: #adadad;
+}
+
+/*
+ * Inline Compare Form
+ */
+.icompare-item,
+.icompare-menu {
+    display: flex;
+    align-items: center;
+    margin: 10px 0px 0px 0px;
+}
+
+.icompare-menu .icompare-right {
+    line-height: 40px;
+}
+
+#inlinecompare-form .icompare-left {
+    display: table-cell;
+    padding-right: 2px;
+    width: 150px;
+    margin: 0px 0px 0px 10px;
+}
+.icompare-menu-left {
+    width: 150px;
+}
+
+#inlinecompare-form .icompare-right {
+    vertical-align: middle;
+    display: inherit;
+}
+
+.icompare-menu .btn,
+#icompare-minimized .btn {
+    white-space: nowrap;
+    overflow: hidden;
+    padding: 4px 12px 4px 12px;
+    margin: 0px 5px 5px 0px;
+}
+
+#inlinecompare-form .icompare-boolean-yes .icon {
+    color: green;
+}
+
+#inlinecompare-form .icompare-boolean-no .icon {
+    color: red;
+}
+
+#inlinecompare-form .selected {
+    color: #000;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #b47800 #be7f00 #d28d00;
+    background-color: #ffb725;
+}
+
+#inlinecompare-form .range-holder {
+    height: 25px;
+    overflow: hidden;
+    white-space: normal;
+}
+
+#inlinecompare-form div.expanded {
+    height: auto;
+}
+
+.icompare-menu input {
+    border-radius: 4px;
+    padding: 5px;
+    width: 200px;
+    background-color: #ffffff;
+    border: 1px solid #cccccc;
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+    -webkit-transition: border linear 0.2s, box-shadow linear 0.2s;
+    -moz-transition: border linear 0.2s, box-shadow linear 0.2s;
+    -o-transition: border linear 0.2s, box-shadow linear 0.2s;
+    transition: border linear 0.2s, box-shadow linear 0.2s;
+}
+.icompare-menu {
+    color: #2a6496;
+    margin-left: 10px;
+}
+
+.icompare-menu:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+.icompare-menu.btn-icon i {
+    margin-right: 5px;
+}
+
+.icompare-menu .btn {
+    font-size: 100%;
+}
+
+#inlinecompare-form .ti-c {
+    vertical-align: middle;
+}
+
+#inlinecompare-form {
+    overflow: auto;
+}
+
+#inlinecompare-form .icompare {
+    background-color: #42a2da;
+    border: none;
+    color: #ffffff;
+    font-weight: normal !important;
+}
+
+#inlinecompare-form .iclose {
+    background-color: #42a2da;
+    border: none;
+    color: #ffffff;
+    font-weight: normal !important;
+}

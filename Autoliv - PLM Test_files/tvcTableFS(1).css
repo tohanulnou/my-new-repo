@@ -1,0 +1,32 @@
+.top {
+	height: 80px;
+}
+
+.content {
+	top: 80px;
+	bottom: 25px;
+}
+
+.bottom {
+	height: 25px;
+}
+
+#draggableElement {
+	background-color: #FFFFE1;
+	border-top: 1px solid #E4E8AA;
+	border-left: 1px solid #E4E8AA;
+	border-right: 1px solid #C5C9A5;
+	border-bottom: 1px solid #C5C9A5;
+}
+
+#dragTip {
+	color: #036;
+}
+
+body.search div.bottom {
+	height: 40px;
+}
+
+body.search div.content {
+	bottom: 40px;
+}

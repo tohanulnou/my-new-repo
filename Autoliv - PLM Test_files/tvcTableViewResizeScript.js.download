@@ -1,0 +1,435 @@
+var TVCTableResizeManager = (function(_super, $, tvc) {
+    TVCTableResizeManager.inherits(_super);
+
+    function TVCTableResizeManager(columnWidths, rememberColumnSizes) {
+        _super.apply(this, arguments);
+
+        this.ref = null;
+        this.refresh = false;
+        this.columnWidths = columnWidths || {};
+        this.draggables = [];
+        this.rememberColumnSizes = !!rememberColumnSizes;
+    }
+
+    var behaviours = {
+        init: function(ref, layouter) {
+            this.ref = ref;
+            this.layouter = layouter;
+            this.setColumnsWidth(this.columnWidths);
+            setTimeout(this.activateDraggables.bind(this), 500);
+        },
+
+        isRefresh: function() {
+            return this.refresh;
+        },
+
+        setRefresh: function(refresh) {
+            this.refresh = refresh;
+        },
+
+        setColumnWidth: function($column, width) {
+            if (width > 0) {
+                $column.attr('x-width', width);
+            } else {
+                $column.removeAttr('x-width');
+            }
+            this.setRefresh(true);
+        },
+
+        setCellWidth: function($cell, width) {
+            this.setColumnWidth(this.getColumn($cell), width);
+        },
+
+        getColumnWidth: function(column, header) {
+            var offsetWidth = column.offsetWidth;
+            var width = column.getAttribute('x-width');
+            var $header = $(header);
+            var isNoWrapColumn =
+                $header.find('.truncable').length > 0 &&
+                $header.find('.truncable')[0].hasAttribute('nowrap');
+            if (width && !isNoWrapColumn) {
+                var minWidth = $(column).css('min-width');
+                offsetWidth = Math.max(parseInt(minWidth), width);
+                var $rotatedTR = $header.find('tr.rotated');
+                if ($rotatedTR.length > 0) {
+                    offsetWidth = Math.max(offsetWidth, $rotatedTR.width());
+                }
+                var headerOuterWidth = $header.outerWidth(true);
+                var headerWidth = $header.find('th').width();
+                var spaceWidth = headerOuterWidth - headerWidth;
+                var iconWidth = 0;
+                $header
+                    .find('tr:eq(1)')
+                    .find('th:eq(1)')
+                    .each(function() {
+                        iconWidth = iconWidth + $(this).width();
+                    });
+                offsetWidth = offsetWidth + Math.abs(spaceWidth) + Math.abs(iconWidth);
+            }
+            return offsetWidth;
+        },
+
+        getColumn: function($cell) {
+            return this.ref.findColumn($cell, $cell.index());
+        },
+
+        prepareColumns: function($table, $headers, $columns, widths) {
+            var tableId = $table.attr('id');
+            $headers.each(
+                function(index, header) {
+                    var $header = $(header);
+                    if ($header.attr('resizable') == 'true') {
+                        var name = $header.attr('colname');
+                        var $draggable = this.findDraggable($header);
+                        if ($draggable.length) {
+                            var $column = $columns.eq(index);
+                            $column.attr('editable', $header.attr('columniseditable'));
+                            $column.attr('resizable', $header.attr('resizable'));
+                            $draggable
+                                .data('tableId', tableId)
+                                .data('colIndex', index)
+                                .data('colName', name);
+                            this.draggables.push($draggable);
+                            var width = widths[name];
+                            if (width) {
+                                this.setColumnWidth($column, width);
+                                this.setColumnContentWidth($header, width);
+                            }
+                        }
+                    }
+                }.bind(this)
+            );
+        },
+
+        prepareGroupHeader: function($groupHeaders, $groupColumns, $columnHeaders) {
+            if ($groupHeaders.length > 0) {
+                var groupCells = $groupHeaders[0].cells;
+                for (var index = 0, startColumnIndex = 0; index < groupCells.length; ++index) {
+                    var groupHeader = groupCells[index];
+                    var width = this.findGroupHeaderWidth(
+                        groupHeader,
+                        $groupColumns,
+                        $columnHeaders,
+                        startColumnIndex
+                    );
+                    this.setGroupHeaderWidth(groupHeader, width);
+                    startColumnIndex = startColumnIndex + groupCells[index].colSpan;
+                }
+            }
+        },
+
+        setColumnsWidth: function(widths) {
+            this.prepareColumns(
+                this.ref.$tables.$thl,
+                this.ref.$headers.$thl,
+                this.ref.$columns.$thl,
+                widths
+            );
+            this.prepareColumns(
+                this.ref.$tables.$thr,
+                this.ref.$headers.$thr,
+                this.ref.$columns.$thr,
+                widths
+            );
+        },
+
+        setGroupHeadersWidth: function() {
+            this.prepareGroupHeader(
+                this.ref.$tables.$thl.find('tHead > tr:nth-child(2)'),
+                this.ref.$columns.$thl,
+                this.ref.$headers.$thl
+            );
+            this.prepareGroupHeader(
+                this.ref.$tables.$thr.find('tHead > tr:nth-child(2)'),
+                this.ref.$columns.$thr,
+                this.ref.$headers.$thr
+            );
+        },
+
+        setColumnContentWidth: function($header, width) {
+            var $headerContent = $header.find('.truncable');
+            if (
+                width > 0 &&
+                !$headerContent[0].hasAttribute('nowrap') &&
+                $header.find('tr.rotated').length == 0
+            ) {
+                $headerContent.addClass('truncated');
+                var $minWidth = $headerContent.css('min-width');
+                width = Math.max(parseInt($minWidth), width);
+                $headerContent.css('width', width + 'px');
+            } else {
+                $headerContent.removeClass('truncated');
+            }
+        },
+
+        setGroupHeaderWidth: function(groupHeader, width) {
+            var tgtDiv = $(groupHeader).find('div.gh');
+            if (tgtDiv.length > 0) {
+                tgtDiv.css('width', width + 'px');
+            }
+        },
+
+        resetColumns: function($table, $headers, $columns) {
+            $headers.each(
+                function(index, header) {
+                    var $header = $(header);
+                    if ($header.attr('resizable') == 'true') {
+                        this.setColumnWidth($columns.eq(index), -1);
+                        this.setColumnContentWidth($header, -1);
+                    }
+                }.bind(this)
+            );
+        },
+
+        resetColumnsWidth: function() {
+            this.resetColumns(
+                this.ref.$tables.$thl,
+                this.ref.$headers.$thl,
+                this.ref.$columns.$thl
+            );
+            this.resetColumns(
+                this.ref.$tables.$thr,
+                this.ref.$headers.$thr,
+                this.ref.$columns.$thr
+            );
+            this.refreshLayout();
+            if (this.rememberColumnSizes) {
+                parent.table.resetColumnWidths(parent.getTableBeanName());
+            }
+        },
+
+        resetGroupHeadersWidth: function($groupHeaders, $groupColumns, $columnHeaders, width) {
+            if ($groupHeaders.length) {
+                var groupCells = $groupHeaders[0].cells;
+                for (var index = 0, startColumnIndex = 0; index < groupCells.length; ++index) {
+                    var groupHeader = groupCells[index];
+                    this.resetGroupHeaderWidth(groupHeader, width);
+                    startColumnIndex = startColumnIndex + groupCells[index].colSpan;
+                }
+            }
+        },
+
+        setGroupHeadersMinWidth: function() {
+            this.resetGroupHeaders('10px');
+        },
+
+        setGroupHeadersAutoWidth: function() {
+            this.resetGroupHeaders('auto');
+        },
+
+        resetGroupHeaders: function(width) {
+            this.resetGroupHeadersWidth(
+                this.ref.$tables.$thl.find('tHead > tr:nth-child(2)'),
+                this.ref.$columns.$thl,
+                this.ref.$headers.$thl,
+                width
+            );
+            this.resetGroupHeadersWidth(
+                this.ref.$tables.$thr.find('tHead > tr:nth-child(2)'),
+                this.ref.$columns.$thr,
+                this.ref.$headers.$thr,
+                width
+            );
+        },
+
+        resetGroupHeader: function($draggable, width) {
+            var groupHeaderInfo = this.findGroupHeaderInfo($draggable);
+            if (groupHeaderInfo) {
+                var groupHeader = groupHeaderInfo.groupHeader;
+                this.resetGroupHeaderWidth(groupHeader, width);
+            }
+        },
+
+        resetGroupHeaderWidth: function(groupHeader, width) {
+            var tgtDiv = $(groupHeader).find('div.gh');
+            if (tgtDiv.length > 0) {
+                tgtDiv.css('width', width);
+            }
+        },
+
+        refreshLayout: function() {
+            if (this.isRefresh()) {
+                this.setRefresh(false);
+                this.setGroupHeadersMinWidth();
+                this.layouter.refreshLayout();
+                this.setGroupHeadersAutoWidth();
+            }
+        }
+    };
+
+    var resizer = {
+        findColumn: function($draggable) {
+            var $columns = this.ref.$columns['$' + $draggable.data('tableId')];
+            return $columns.eq($draggable.data('colIndex'));
+        },
+
+        findHeader: function($draggable) {
+            var $headers = this.ref.$headers['$' + $draggable.data('tableId')];
+            return $headers.eq($draggable.data('colIndex'));
+        },
+
+        findGroupHeaderInfo: function($draggable) {
+            var $groupheaders = this.ref.$groupheaders['$' + $draggable.data('tableId')];
+            if ($groupheaders !== undefined && $groupheaders.length > 0) {
+                var groupCells = $groupheaders[0].cells;
+                var colIndex = $draggable.data('colIndex');
+                for (var index = 0, count = 0; index < groupCells.length; ++index) {
+                    var groupHeader = groupCells[index];
+                    count = count + groupHeader.colSpan;
+                    if (count > colIndex) {
+                        count = count - groupHeader.colSpan;
+                        return {
+                            groupHeader: groupHeader,
+                            firstColumnIndex: count
+                        };
+                    }
+                }
+            }
+        },
+
+        findGroupHeaderWidth: function($groupHeader, $columns, $columnHeaders, firstColumnIndex) {
+            var groupHeaderWidth = 0;
+            var end = firstColumnIndex + $groupHeader.colSpan;
+            for (var index = firstColumnIndex; index < end; index++) {
+                var column = $columns.eq(index)[0];
+                var header = $columnHeaders.eq(index)[0];
+                if (column) {
+                    groupHeaderWidth = groupHeaderWidth + this.getColumnWidth(column, header);
+                }
+            }
+            return groupHeaderWidth;
+        },
+
+        findDraggable: function($header) {
+            return $header.find('.col_drag_handle_inner');
+        },
+
+        dragHelper: function(event) {
+            var $tr = this.ref.$rows.$thl;
+            var height = $tr.height() + this.ref.$tables.$tbl.height();
+            var $drag = $(
+                '<div style="' +
+                    'position:absolute;' +
+                    'top:' +
+                    $tr.offset().top +
+                    'px;' +
+                    'width:5px;' +
+                    'height:' +
+                    height +
+                    'px;' +
+                    'border-right:1px solid black;' +
+                    '"></div>'
+            );
+            return $drag.appendTo(document.body);
+        },
+
+        dragStart: function(event, ui) {},
+
+        dragStop: function(event, ui) {
+            var $draggable = $(event.target);
+            var startPosition = $draggable.data('ui-draggable').originalPosition.left;
+            var stopPosition = ui.position.left;
+            this.resizeColumn($draggable, stopPosition - startPosition);
+        },
+
+        resetColumn: function(event) {
+            event.stopPropagation();
+            this.resizeColumn($(event.target), null);
+            return false;
+        },
+
+        resizeGroupHeader: function($draggable) {
+            var groupHeaderInfo = this.findGroupHeaderInfo($draggable);
+            if (groupHeaderInfo) {
+                var groupHeader = groupHeaderInfo.groupHeader;
+                var $columns = this.ref.$columns['$' + $draggable.data('tableId')];
+                var $headers = this.ref.$headers['$' + $draggable.data('tableId')];
+                var groupHeaderWidth = this.findGroupHeaderWidth(
+                    groupHeader,
+                    $columns,
+                    $headers,
+                    groupHeaderInfo.firstColumnIndex
+                );
+                this.setGroupHeaderWidth(groupHeader, groupHeaderWidth);
+            }
+        },
+
+        resizeColumn: function($draggable, distance) {
+            var $column = this.findColumn($draggable);
+            var width = distance == null ? -1 : Math.max(10, $column.outerWidth() + distance);
+            this.setColumnWidth($column, width);
+            var $header = this.findHeader($draggable);
+            this.setColumnContentWidth($header, width);
+            this.refreshLayout();
+            if (this.rememberColumnSizes) {
+                parent.table.setColumnWidth(
+                    parent.getTableBeanName(),
+                    $draggable.data('colName'),
+                    width
+                );
+            }
+        },
+
+        activateDraggables: function() {
+            var dragConfig = {
+                axis: 'x',
+                stop: this.dragStop.bind(this),
+                start: this.dragStart.bind(this),
+                zIndex: 1000,
+                helper: this.dragHelper.bind(this),
+                create: function(event, ui) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                },
+                containment: 'document'
+            };
+
+            var resetColumnBound = this.resetColumn.bind(this);
+
+            var special = $.event.special['dragcreate'];
+
+            $.event.special['dragcreate'] = {
+                trigger: function(event, data) {
+                    return false;
+                }
+            };
+
+            var height = -1;
+
+            while (this.draggables.length) {
+                var $draggable = this.draggables.shift();
+                try {
+                    if (height == -1) {
+                        height = $draggable.parents('th').height();
+                    }
+                    $draggable.height(height);
+                    $draggable.draggable(dragConfig).dblclick(resetColumnBound);
+                } catch (ex) {
+                    $draggable.closest('th[resizable="true"]').removeAttr('resizable');
+                    $draggable.remove();
+                }
+            }
+
+            $.event.special['dragcreate'] = special;
+        }
+    };
+
+    var compatibility = {
+        resizeCol: resizer.resizeColumn,
+
+        setColWidth: behaviours.setColumnWidth,
+
+        resetColumnWidths: behaviours.resetColumnsWidth
+    };
+
+    TVCTableResizeManager.behaves(behaviours, resizer, compatibility);
+
+    return TVCTableResizeManager;
+})(Function.Super, window.$, window.tvc || (window.tvc = {}));
+
+if (!tvc.sbTableResizeMgr) {
+    tvc.sbTableResizeMgr = new TVCTableResizeManager(
+        window.COLUMN_WIDTHS,
+        window.REMEMBER_COLUMN_SIZES
+    );
+}

@@ -1,0 +1,220 @@
+if (!window.tvc) {
+    window.tvc = {};
+}
+if (!window.tvc.printDrop) {
+    window.tvc.printDrop = {
+
+        /*
+         * Print it
+         */
+        print : function() {
+            var url = parent.printerFriendly.getURL(getTableBeanName());
+            tvc.popup(url, 800, 600, false);
+        },
+
+        /*
+         * Entry point for creating the print drop
+         */
+        create : function(itemDef, api) {
+            var deferred = new $.Deferred();
+            tvc.printDrop.toolbarItemApi = api;
+
+            $.getJSON(tvc.table.toolbar.getServiceURL('printerFriendly/getOptions', [ getTableBeanName() ]))
+                .done(tvc.printDrop.renderHtml)
+                .done(tvc.printDrop.initEvents)
+                .done(tvc.printDrop.onChangeFormat)
+                .done(function() {
+                    deferred.resolve(tvc.printDrop.$content[0]);
+                })
+                .fail(function(xhr) {
+                    deferred.reject(xhr.responseJSON.error.message);
+                });
+
+            return deferred.promise();
+        },
+
+        renderHtml : function(data) {
+            var $content = $('<div>').addClass('print-drop');
+            $('<h4 class="ui dividing header">').text(parent.MSG_PF_FORMAT.LABEL).appendTo($content);
+
+            for (var i = 0; i < data.formats.length; i++) {
+                var format = data.formats[i];
+                var selected = (format == data.current.format);
+
+                var id = 'pf_' + format;
+                var $input = $('<input type="radio" name="printformat">').attr({
+                    value : format,
+                    id : id
+                }).appendTo($content);
+                if (selected) {
+                    $input.attr('checked', 'checked');
+                }
+                $('<label>').attr('for', id).text(parent.MSG_PF_FORMAT[format]).appendTo($content);
+            }
+
+            $('<h5 class="ui dividing header">').text(parent.MSG_PF_PDF_PAGE_SETTINGS).appendTo($content);
+            $('<div class="text">').text(parent.MSG_PF_PAGE_SIZE).append(tvc.printDrop.pageSizeSelect(data)).appendTo(
+                    $content);
+            $('<div class="text">').text(parent.MSG_PF_ORIENTATION.LABEL).append(tvc.printDrop.orientationSelect(data))
+                    .appendTo($content);
+            $('<div class="text">').text(parent.MSG_PF_FONT_SIZE).append(tvc.printDrop.fontSizeSelect(data)).appendTo(
+                    $content);
+            $('<div class="text">').text(parent.MSG_PF_INDENTATION.LABEL).append(tvc.printDrop.indentationSelect(data))
+                    .appendTo($content);
+
+            $('<h5 class="ui dividing header">').text(parent.MSG_PF_MARGINS).appendTo($content);
+
+            var html = [];
+            html.push('<table cellpadding="0" cellspacing="0"><tbody>');
+            html.push('<tr><td class="printmarginlabel">');
+            html.push(parent.MSG_PF_TOP);
+            html.push('</td><td class="printmarginlabel">');
+            html.push(parent.MSG_PF_RIGHT);
+            html.push('</td><td class="printmarginlabel">');
+            html.push(parent.MSG_PF_BOTTOM);
+            html.push('</td><td class="printmarginlabel">');
+            html.push(parent.MSG_PF_LEFT);
+            html.push('</td><td class="printmarginlabel"></td></tr>');
+            html.push('<tr><td class="printmarginvalue"><div class="ui input"><input type="text" id="pf_topMargin" value="');
+            html.push(data.current.marginTop);
+            html.push('"/></div></td><td class="printmarginvalue"><div class="ui input"><input type="text" id="pf_rightMargin" value="');
+            html.push(data.current.marginRight);
+            html.push('"/></div></td><td class="printmarginvalue"><div class="ui input"><input type="text" id="pf_bottomMargin" value="');
+            html.push(data.current.marginBottom);
+            html.push('"/></div></td><td class="printmarginvalue"><div class="ui input"><input type="text" id="pf_leftMargin" value="');
+            html.push(data.current.marginLeft);
+            html.push('"/></div></td><td class="printmarginvalue"></td></tr></tbody></table>');
+            $content.append(html.join(''));
+
+            $content.find('td.printmarginvalue').last().append(tvc.printDrop.marginUnitSelect(data));
+
+            $('<button class="ui primary button save">').text(parent.MSG_PF_PRINT).appendTo($content);
+
+            tvc.printDrop.$content = $content;
+        },
+
+        initEvents : function() {
+            tvc.printDrop.$content.find('.save').click(tvc.printDrop.submitDrop);
+            tvc.printDrop.$content.find('input:radio[name=printformat]').change(tvc.printDrop.onChangeFormat);
+        },
+
+        submitDrop : function() {
+            var settings = tvc.printDrop.getSelectedValues();
+            var url = parent.printerFriendly.save(getTableBeanName(), settings.format, settings.pageSize,
+                    settings.orientation, settings.fontSize, settings.marginTop, settings.marginRight,
+                    settings.marginBottom, settings.marginLeft, settings.unit, settings.indent);
+            tvc.popup(url, 800, 600, false);
+            tvc.printDrop.toolbarItemApi.close();
+        },
+
+        getSelectedValues : function() {
+            var format = tvc.printDrop.$content.find('input:radio[name=printformat]:checked').val();
+            var pageSize = tvc.printDrop.$content.find("#pf_pageSize").val();
+            var orientation = tvc.printDrop.$content.find("#pf_orientation").val();
+            var fontSize = tvc.printDrop.$content.find("#pf_fontSize").val();
+            var indent = tvc.printDrop.$content.find("#pf_indent").val();
+
+            var margin = function(selector) {
+                var item = tvc.printDrop.$content.find(selector);
+                var val = item.val();
+                if (val == "") {
+                    val = "0";
+                } else {
+                    val = val.replace(/,/g, ".");
+                    if (isNaN(val) || val.indexOf('x') != -1) {
+                        item.focus().select();
+                        throw new Error(parent.MSG_PF_MARGIN_NOT_NUMERIC);
+                    }
+                }
+                return val;
+            };
+
+            try {
+                var marginTop = margin("#pf_topMargin");
+                var marginRight = margin("#pf_rightMargin");
+                var marginBottom = margin("#pf_bottomMargin");
+                var marginLeft = margin("#pf_leftMargin");
+            } catch (x) {
+                alert(x.message);
+                return true;
+            }
+            var unit = tvc.printDrop.$content.find("#pf_marginUnit").val();
+
+            return {
+                format : format,
+                pageSize : pageSize,
+                orientation : orientation,
+                fontSize : fontSize,
+                marginTop : marginTop,
+                marginRight : marginRight,
+                marginBottom : marginBottom,
+                marginLeft : marginLeft,
+                unit : unit,
+                indent : indent
+            };
+        },
+
+        onChangeFormat : function() {
+            var format = tvc.printDrop.$content.find('input:radio[name=printformat]:checked').val();
+            var disabled = 'PDF' !== format;
+            tvc.printDrop.$content.find("select").each(function() {
+            	$(this).attr('disabled', disabled).toggleClass('disabled', disabled);
+            });
+            tvc.printDrop.$content.find("input[type=text],select").each(function() {
+            	$(this).attr('disabled', disabled).parent().toggleClass('disabled', disabled);
+            });
+        },
+
+        pageSizeSelect : function(data) {
+            var options = tvc.printDrop.arrayAsOptions(data.pageSizes);
+            return tvc.table.drop.select('pf_pageSize', options, data.current.pageSize);
+        },
+
+        orientationSelect : function(data) {
+            var options = tvc.printDrop.arrayAsOptions(data.pageOrientations, function(pageOrientation) {
+                return parent.MSG_PF_ORIENTATION[pageOrientation];
+            });
+            return tvc.table.drop.select('pf_orientation', options, data.current.pageOrientation);
+        },
+
+        fontSizeSelect : function(data) {
+            var options = tvc.printDrop.arrayAsOptions(data.fontSizes);
+            return tvc.table.drop.select('pf_fontSize', options, data.current.fontSize);
+        },
+
+        indentationSelect : function(data) {
+            var options = tvc.printDrop.arrayAsOptions(data.indents, function(indent) {
+                return parent.MSG_PF_INDENTATION[indent];
+            });
+            return tvc.table.drop.select('pf_indent', options, data.current.ident);
+        },
+
+        marginUnitSelect : function(data) {
+            var options = tvc.printDrop.arrayAsOptions(data.marginUnits);
+            return tvc.table.drop.select('pf_marginUnit', options, data.current.marginUnit);
+        },
+
+        margin : function(id, value, size) {
+            return $('<input type="text">').attr({
+                id : id,
+                value : value
+            }).addClass('right').addClass(size);
+        },
+
+        arrayAsOptions : function(arr, labelFn) {
+            var options = [];
+            for (var i = 0; i < arr.length; i++) {
+                var value = arr[i];
+                var option = {
+                    value : value
+                };
+                if (labelFn !== undefined) {
+                    option.label = labelFn(value);
+                }
+                options.push(option);
+            }
+
+            return options;
+        }
+    };
+}

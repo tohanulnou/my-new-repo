@@ -1,0 +1,146 @@
+var m_bLayoutComplete = false;
+
+function tvcIsLayoutComplete() {
+    return m_bLayoutComplete;
+}
+
+function tvcInitPageLayout() {
+    tvcSetDropzoneWidth();
+    tvc.table.toolbar.uiptoolbar.on('toggleOrientation', tvcSetDropzoneWidth);
+    m_bLayoutComplete = true;
+    setMinWidth();
+}
+
+function setMinWidth() {
+    var $rotatedHeaders = $('#tableBodyRight')
+        .contents()
+        .find('.contentTable .rotatedNonLegacy');
+    $rotatedHeaders.each(function() {
+        var $rotatedHeader = $(this);
+        var rotatedHeaderWidth = $rotatedHeader.width();
+        $rotatedHeader.css({ 'min-width': rotatedHeaderWidth + 'px' });
+    });
+}
+
+function getTableBodyRightFrame() {
+    return window.frames['tableBodyRight'];
+}
+
+function tvcResizeContentFrame(event, delta) {
+    delta = delta || 0;
+    var frame = getTableBodyRightFrame();
+    frame = frame && frame.frameElement;
+    if (!frame) {
+        return;
+    }
+    // Ensures content frame doesn't wrap making pageTop incorrect
+    frame.style.width = '100px';
+    var offset = {
+        x: tvc.pageLeft(frame),
+        y: tvc.pageTop(frame)
+    };
+    var isInlineFrame = parent && parent.tvc && parent.tvc.inlineFrame;
+    var inlineFrameWidth = isInlineFrame
+        ? parent.tvc.inlineFrame.getWidth()
+        : 0;
+    var height = window.innerHeight - offset.y - 2;
+    var width = document.body.offsetWidth - offset.x - inlineFrameWidth - 1;
+    if (height > 0) {
+        frame.style.height = height + delta + 'px';
+    }
+    if (width > 0) {
+        frame.style.width = width + delta + 'px';
+    }
+    parent.tvc.inlineFrame.setTopMargin(frame.offsetTop);
+}
+
+function tvcSetDropzoneWidth() {
+    var $dropzoneContainer = $('.tvcJSDropzoneContainer');
+    if ($dropzoneContainer.length === 0) {
+        return;
+    }
+
+    var width;
+    if (tvc.table.toolbar.uiptoolbar.getState().orientation === 'vertical') {
+        var toolbarWidth = $('.uip-toolbar .uip-list').outerWidth(true) + 1;
+        width = 'calc(100% - ' + toolbarWidth + 'px)';
+    } else {
+        width = '100%';
+    }
+    $dropzoneContainer.css({ width: width });
+}
+
+function resizeDropZoneHorizontalToolbar() {
+    tvcSetDropzoneWidth('100%');
+}
+
+function resizeDropAndFrameVerticalToolbar(frame) {
+    var toolbarWidth = $('.uip-toolbar .uip-list').outerWidth(true) + 1;
+    var width = 'calc(100% - ' + toolbarWidth + 'px)';
+    tvcSetDropzoneWidth(width);
+    frame.style.width = width;
+}
+
+function getTableLayoutManager() {
+    return getTableBodyRightFrame().tvc.sbTableLayoutMgr;
+}
+
+function tvcRefreshUI() {
+    getTableLayoutManager().refreshLayout();
+}
+
+function tvcSetAutoWidths() {
+    getTableLayoutManager().setAutoWidths();
+}
+
+function tvcUnsetFixedTableLayout() {
+    getTableLayoutManager().unsetFixedTableLayouts();
+}
+
+function tvcSetFixedTableLayout() {
+    getTableLayoutManager().setFixedTableLayouts();
+}
+
+function tvcSyncRightTopScrolling(src) {
+    getTableLayoutManager().synchRightWithLeft(
+        {
+            keyCode: 40
+        },
+        src
+    );
+}
+
+function tvcAttachImgOnLoadEvent() {
+    getTableLayoutManager().attachEventOnImageLoad();
+}
+
+function tvcIsSplitTable() {
+    return true;
+}
+
+function tvcIsSingleBodyFrameLayout() {
+    return false;
+}
+
+function tvcSyncWithInlineFrame() {
+    tvcResizeContentFrame();
+}
+
+function tvcWrapContent(wrap) {
+    var scrollParamters = tvcGetScrollInfo();
+    tvcScrollToCell(null, null, 0, 0);
+    if (wrap) {
+        getTableLayoutManager().wrapContent();
+    } else {
+        getTableLayoutManager().unwrapContent();
+    }
+    tvcSetAutoWidths();
+    tvcRefreshUI();
+    tvcScrollToCellByParameters(scrollParamters);
+}
+
+(function($, tvc, bootstrap, resizer) {
+    $(window).on('load', bootstrap);
+
+    tvc.handleEvent(window, 'resize', resizer.throttle(100));
+})($, tvc, tvcResizeContentFrame, tvcResizeContentFrame);

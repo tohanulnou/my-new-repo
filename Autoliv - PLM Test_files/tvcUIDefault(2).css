@@ -1,0 +1,18 @@
+.header_nopopup .pageSubTitle,.header_nopopup .pageHeader,.header_nopopup .pageSubheader {
+	color: #000000;
+}
+
+.pageSubTitle {
+    color: #000000;
+}
+
+.pageHeader {
+    color: #000000;
+}
+
+tr.odd {
+    background-color: #F5F5F5;
+}
+tr.even {
+    background-color: #FFFFFF;
+}

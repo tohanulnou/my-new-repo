@@ -1,0 +1,486 @@
+var TVCCellEditor = (function(_super, $, tvc) {
+    TVCCellEditor.inherits(_super);
+
+    function TVCCellEditor(selectAllContent) {
+        _super.apply(this, arguments);
+
+        this.ref = null;
+        this.resizer = null;
+        this.$editCell = null;
+        this.viewWidth = -1;
+        this.$container = null;
+
+        this.isSelectAllContent = selectAllContent;
+        this.cancelEditBound = this.cancelEdit.bind(this);
+        this.onCellEditBound = this.onCellEdit.bind(this);
+        this.addHighlightBound = this.addHighlight.bind(this);
+        this.removeHighlightBound = this.removeHighlight.bind(this);
+    }
+
+    var behaviours = {
+        init: function(ref, resizer) {
+            this.ref = ref;
+            this.$container = (ref && ref.$tableBody) || $(document.body);
+            this.resizer = resizer;
+            this.initialize();
+        },
+
+        setErr: function(err) {
+            this.err = err;
+        },
+
+        setProcessing: function(processing) {
+            this.processing = processing;
+        },
+
+        getEditCell: function() {
+            return this.$editCell;
+        },
+
+        setEditCell: function($editCell) {
+            this.$editCell = $editCell;
+        },
+
+        findCellIndex: function($cell) {
+            return $cell.index() + 1;
+        },
+
+        findDataId: function($cell) {
+            return $cell
+                .parent()
+                .attr('id')
+                .substring(1);
+        },
+
+        findColumnIndex: function($cell, cellIndex) {
+            return (this.ref && this.ref.findColumnIndex($cell, cellIndex - 1)) || cellIndex - 1;
+        },
+
+        isTextSelected: function() {
+            var text = '';
+            if (window.getSelection) {
+                text = window.getSelection().toString();
+            } else if (document.selection && document.selection.type != 'Control') {
+                text = document.selection.createRange().text;
+            }
+            return text.length > 0;
+        },
+
+        isEditable: function($cell) {
+            return $cell.closest('[ice]').length > 0;
+        },
+
+        isCancellable: function() {
+            return this.$editCell != null;
+        },
+
+        isInCellEvent: function(event) {
+            return (
+                event.type === 'click' && (this.isEditable($(event.target)) || this.isCancellable())
+            );
+        }
+    };
+
+    var layouting = {
+        isCellWrappable: function($cell) {
+            return (
+                $cell
+                    .find('*')
+                    .andSelf()
+                    .filter(function() {
+                        return $(this).css('white-space') == 'nowrap';
+                    }).length == 0
+            );
+        },
+
+        isCellTruncated: function($cell) {
+            return $cell.find('span.truncated').length > 0;
+        },
+
+        measureCell: function($cell) {
+            return $cell.measure(function() {
+                return this.outerWidth();
+            });
+        },
+
+        isCellNoWrap: function($cell) {
+            // Not using $cell.is('[nowrap]') as it doesn't work on IE8.
+            // In IE8 it always thinks it is nowrap.
+            return $cell[0].hasAttribute('nowrap');
+        },
+
+        checkCellHeight: function($cell) {
+            var row = $cell.parent();
+            var rowHeight = row[0].style.height;
+            var height = rowHeight.substring(0, rowHeight.length - 2);
+            if ($cell.height() > height) return true;
+            return false;
+        },
+
+        findTableId: function($cell) {
+            return (
+                'th' +
+                $cell
+                    .parent()
+                    .attr('id')
+                    .charAt(0)
+            );
+        },
+
+        syncView: function() {
+            this.resizer && this.resizer.refreshLayout();
+        },
+
+        refreshView: function($cell) {
+            var isMovedToOtherPage = $cell.length === 0;
+            if (this.resizer && !isMovedToOtherPage) {
+                if (this.isCellNoWrap($cell)) {
+                    this.resizer.setRefresh(true);
+                } else if (this.viewWidth > 0) {
+                    var width = this.viewWidth;
+                    if (!this.isCellWrappable($cell) && !this.isCellTruncated($cell)) {
+                        width = Math.max(this.viewWidth, this.measureCell($cell));
+                    }
+                    this.resizer.setCellWidth($cell, width);
+                }
+                this.syncView();
+            }
+        },
+
+        refreshEdit: function($cell) {
+            if (this.resizer) {
+                var width = this.measureCell($cell);
+                if (this.isCellNoWrap($cell) || this.checkCellHeight($cell)) {
+                    this.resizer.setRefresh(true);
+                } else if (width > $cell.width()) {
+                    this.resizer.setCellWidth($cell, width);
+                }
+                this.syncView();
+            }
+        },
+
+        refreshCell: function($cell, edit) {
+            edit ? this.refreshEdit($cell) : this.refreshView($cell);
+        }
+    };
+
+    var events = {
+        addHighlight: function(event) {
+            $(event.currentTarget).addClass('pen');
+        },
+
+        removeHighlight: function(event) {
+            $(event.currentTarget).removeClass('pen');
+        },
+
+        cancelEdit: function(event) {
+            var $editCell = this.getEditCell();
+            if ($editCell && $editCell[0] !== event.currentTarget) {
+                tvc.stopBubbleEvent(event);
+                // Check for race condition
+                if (!this.processing) {
+                    this.toggleView($editCell[0]);
+                } else if (this.err) {
+                    // Error retry
+                    this.setErr(false);
+                    this.setProcessing(false);
+                }
+            }
+        },
+
+        onCellEdit: function(event) {
+            if (event.target.classList.contains('ti-more-blue-c')) {
+                return;
+            }
+            var $target = $(event.target);
+            var onclick = $target.attr('onclick');
+            // Ensure not clicked link or something with onclick event
+            if (!$target.is('a') && !onclick && !this.isTextSelected()) {
+                tvc.stopBubbleEvent(event);
+                this.toggleEdit(event.currentTarget);
+            }
+        },
+
+        toggleEdit: function(cell) {
+            var $cell = $(cell);
+            if ($cell.length) {
+                var columnIndex = this.findColumnIndex($cell, this.findCellIndex($cell));
+                var dataid = this.findDataId($cell);
+                this.doToggleEdit($cell, dataid, columnIndex);
+            }
+        },
+
+        toggleView: function(cell, postEditCallback) {
+            var $cell = $(cell);
+            if ($cell.length) {
+                var columnIndex = this.findColumnIndex($cell, this.findCellIndex($cell));
+                var dataid = this.findDataId($cell);
+                if (dataid && columnIndex != undefined) {
+                    this.doToggleView($cell, dataid, columnIndex, postEditCallback);
+                }
+            }
+        },
+
+        inCellEdit: function($cell, dataid, columnIndex, edit, callback, postEditCallback) {
+            window.showProgressMessage(parent.parent.MSG_INCELLEDIT_LOADING);
+            var table = parent.getTableBeanName();
+            parent.table.inCellEdit(
+                table,
+                dataid,
+                columnIndex,
+                edit,
+                function(r, s) {
+                    if (s) {
+                        var innerHtml = r.innerHtml;
+                        if (innerHtml != null) {
+                            // remove garbage...
+                            innerHtml = innerHtml.substring(1, innerHtml.length);
+                        }
+                        var $updated = callback($cell, innerHtml);
+                        if (!edit) {
+                            if (postEditCallback && typeof postEditCallback === 'function') {
+                                postEditCallback();
+                            }
+                        }
+                        this.refreshCell($updated, edit);
+                    } else {
+                        // TODO - do more here, bind events?
+                        if (!r.interrupted) {
+                            alert(r);
+                            if (console) {
+                                console.error(r);
+                            }
+                        }
+                    }
+                    parent.setTimeout(function() {
+                        hideProgress();
+                    }, 200);
+
+                    if (!edit) {
+                        this.acknowledgePublisher_IncellEdit(
+                            $updated,
+                            columnIndex,
+                            dataid,
+                            innerHtml
+                        );
+                    }
+                }.bind(this)
+            );
+        },
+
+        doToggleEdit: function($cell, dataid, columnIndex) {
+            this.inCellEdit(
+                $cell,
+                dataid,
+                columnIndex,
+                true,
+                function($cell, html) {
+                    /* Store original width */
+                    this.viewWidth = $cell.outerWidth();
+                    /* Update cell content */
+                    $cell.html(html);
+                    var $editable = $('input,textarea,select', $cell);
+                    if (this.isSelectAllContent) {
+                        // workaround for IE issue in Date Field
+                        if (tvc.agent && (tvc.agent.isMSIE || tvc.agent.isMSIE_11)) {
+                            $editable.focus();
+                        }
+                        $editable.focus().select();
+                    } else {
+                        $editable.focus();
+                        $editable.each(function(index, data) {
+                            if ($(data).is('input:text,textarea')) {
+                                var length = data.value.length;
+                                data.setSelectionRange(length, length);
+                            }
+                        });
+                    }
+                    /* Init autocomplete if not a multivalue selectize field */
+                    if (!$(':first-child', $cell).attr('MultiValue')) {
+                        $cell.find('.selectize-control').click();
+                    }
+                    /* Turn off click event */
+                    $cell.addClass('ice');
+                    $cell.removeClass('CELL_DIFFERENCE');
+                    this.setEditCell($cell);
+                    this.bindCancel($cell);
+                    this.removeHighlight({
+                        currentTarget: $cell[0]
+                    });
+                    this.unBindEvents();
+                    return $cell;
+                }.bind(this)
+            );
+        },
+
+        doToggleView: function($cell, dataid, columnIndex, postEditCallback) {
+            this.inCellEdit(
+                $cell,
+                dataid,
+                columnIndex,
+                false,
+                function($cell, html) {
+                    /* Update cell content */
+                    var attributes = $cell.prop('attributes');
+                    var $newCell = $(html).replaceAll($cell);
+                    $.each(attributes, function() {
+                        if (TVCCellEditor.isValidAttribute(this.name)) {
+                            $newCell.attr(this.name, this.value);
+                        }
+                    });
+                    /* Turn off click event */
+                    $newCell.removeClass('es ee ice').addClass('c');
+                    this.addInlineCompareClass($newCell, html);
+                    this.setEditCell(null);
+                    this.unBindCancel();
+                    this.bindEvents();
+                    return $newCell;
+                }.bind(this),
+                postEditCallback
+            );
+        },
+
+        addInlineCompareClass: function($newCell, html) {
+            var htmlClass = $(html).attr('class');
+            if (
+                htmlClass === 'CELL_DIFFERENCE' ||
+                htmlClass === 'ADDED' ||
+                htmlClass === 'DELETED'
+            ) {
+                $newCell.addClass(htmlClass);
+            }
+        },
+
+        acknowledgePublisher_IncellEdit: function($newCell, columnIndex, dataid, innerHtml) {
+            var publishAttribute = $newCell.attr('publishids');
+            if (publishAttribute) {
+                var publishIDs = publishAttribute.split(',');
+                var tvcBrokers = tvc.getTVCBrokers();
+                publishIDs.forEach(function(publishID) {
+                    tvcBrokers.forEach(function(tvcBroker, index) {
+                        var th = document.querySelector('th[colindex="' + columnIndex + '"]');
+                        var updatingColumnName = th.getAttribute('colname');
+                        var parameter = {
+                            columnName: updatingColumnName,
+                            columnIndex: columnIndex,
+                            dataId: dataid,
+                            innerHTML: innerHtml
+                        };
+                        tvcBroker.publish(publishID, parameter);
+                    });
+                });
+
+                if (window.tvc.getTopWindow().IS_CROSS_DOMAIN) {
+                    var th = document.querySelector('th[colindex="' + columnIndex + '"]');
+                    var updatingColumnName = th.getAttribute('colname');
+                    var parameter = {
+                        columnIndex: columnIndex,
+                        dataId: dataid,
+                        innerHTML: innerHtml,
+                        subscriber: 'tvcTableEditSubscribe',
+                        columnName: updatingColumnName
+                    };
+
+                    var topWindow = window.tvc.getTopWindow();
+                    var referrer = topWindow.document.referrer;
+                    var publisher = topWindow.parent;
+                    var functionName = publisher.postMessage;
+                    window.tvc.publisher(publisher, functionName, parameter, referrer);
+                }
+            }
+        }
+    };
+
+    TVCCellEditor.ATTRIBUTES = ['class', 'ice', 'id', 'align', 'style', 'data-'];
+
+    TVCCellEditor.isValidAttribute = function(attribute) {
+        var attributes = TVCCellEditor.ATTRIBUTES;
+        for (var i = 0; i < attributes.length; i++) {
+            if (attribute.indexOf(attributes[i]) !== -1) {
+                return true;
+            }
+        }
+        return false;
+    };
+
+    var binding = {
+        initialize: function() {
+            this.processing = false;
+            this.eventsBound = false;
+            this.cancelBound = false;
+            this.bindEvents();
+        },
+
+        reInitialize: function() {
+            this.unBindEvents();
+            this.unBindCancel();
+            this.bindEvents();
+        },
+
+        bindEvents: function() {
+            if (!this.eventsBound) {
+                this.eventsBound = true;
+                this.$container.on('click', '[ice]', this.onCellEditBound);
+                this.$container.on('mouseenter', '[ice]', this.addHighlightBound);
+                this.$container.on('mouseleave', '[ice]', this.removeHighlightBound);
+            }
+        },
+
+        unBindEvents: function() {
+            if (this.eventsBound) {
+                this.eventsBound = false;
+                this.$container.off('click', '[ice]', this.onCellEditBound);
+                this.$container.off('mouseenter', '[ice]', this.addHighlightBound);
+                this.$container.off('mouseleave', '[ice]', this.removeHighlightBound);
+            }
+        },
+
+        bindCancel: function() {
+            if (!this.cancelBound) {
+                this.cancelBound = true;
+                this.$container.off('click', '.c,.str', this.cancelEditBound);
+                this.$container.on('click', '.c,.str', this.cancelEditBound);
+            }
+        },
+
+        unBindCancel: function() {
+            if (this.cancelBound) {
+                this.cancelBound = false;
+                this.$container.off('click', '.c,.str', this.cancelEditBound);
+            }
+        }
+    };
+
+    var compatibility = {
+        findCells: function() {
+            return $('.c');
+        },
+
+        findEditableCells: function() {
+            return $('[ice]');
+        },
+
+        findEditCell: function() {
+            return $('.ice');
+        },
+
+        findRows: function($cell) {
+            var id = this.findDataId($cell);
+            return $('#l' + id + ',#r' + id);
+        }
+    };
+
+    TVCCellEditor.behaves(behaviours, layouting, events, binding, compatibility);
+
+    return TVCCellEditor;
+})(Function.Super, window.$, window.tvc || (window.tvc = {}));
+
+if (!tvc.inCellEdit) {
+    tvc.inCellEdit = new TVCCellEditor(window.EDIT_SELECT_ALL_CONTENT);
+}
+
+function bootstrapCellEditor() {
+    tvc.inCellEdit.init(tvc.sbTableRef, tvc.sbTableResizeMgr);
+}
+
+tvc.onDocumentRendered(bootstrapCellEditor, 500);

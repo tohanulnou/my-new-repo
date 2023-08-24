@@ -1,0 +1,10 @@
+/**
+ * Contains event names triggered by jQuery.
+ * $($el).trigger(tvc.tableEvents.EVENT_NAME);
+ */
+if (!window.tvc.tableEvents) {
+    window.tvc.tableEvents = {
+        EXPAND_ROW : 'tvc:expandrow',
+        COLLAPSE_ROW : 'tvc:collapserow'
+    }
+}

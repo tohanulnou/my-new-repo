@@ -1,0 +1,449 @@
+/**
+ * Updates a row
+ *
+ * @param nodeID
+ *            The ID of the row to be updated.
+ */
+function updateRow(nodeID) {
+    parent.setLoadStatus();
+    var callback = function(ret, success) {
+        if (success && ret) {
+            tvc.sbUpdateMgr.updateRowCallback(nodeID, ret);
+        } else {
+            return true;
+        }
+    };
+    table.updateRow(getTableBeanName(), nodeID, !tvcIsSplitTable(), handleAjaxResponse(callback));
+}
+
+/**
+ * Refreshes the page using ajax
+ *
+ * @param bForceReload
+ *            True if to force a reload of the table content
+ */
+function refreshPage(bForceReload, bSelection) {
+    parent.setLoadStatus();
+    table.refresh(
+        getTableBeanName(),
+        bForceReload,
+        !tvcIsSplitTable(),
+        PARTIAL_UPDATE_SUPPORTED,
+        handleAjaxResponse(tvc.sbUpdateMgr.refreshCallback, bSelection)
+    );
+}
+
+/**
+ * Refreshes the rows representing the given object id.
+ *
+ * @param sObjectId
+ *            The object id for the row(s) to refresh
+ */
+function refreshRow(sObjectId) {
+    refreshRows([sObjectId]);
+}
+
+/**
+ * Refreshes a single row using Ajax
+ *
+ * @param aObjectIds
+ *            An array containing object id's for the row(s) to refresh
+ */
+function refreshRows(aObjectIds) {
+    if (aObjectIds == null || !aObjectIds[0]) {
+        return;
+    }
+    parent.setLoadStatus();
+    table.refreshRows(
+        getTableBeanName(),
+        aObjectIds,
+        !tvcIsSplitTable(),
+        PARTIAL_UPDATE_SUPPORTED,
+        handleAjaxResponse(tvc.sbUpdateMgr.refreshCallback)
+    );
+}
+
+// Private API below
+
+if (!window.tvc) {
+    window.tvc = {};
+}
+if (!window.tvc.sbUpdateMgr) {
+    window.tvc.sbUpdateMgr = {};
+}
+
+tvc.sbUpdateMgr.refreshCallback = function(ret, success, bSelection) {
+    if (success && ret) {
+        if (ret.reloadPage) {
+            return true;
+        } else {
+            try {
+                tvc.sbUpdateMgr.updatePageCallback(null, ret, bSelection);
+                return false;
+            } catch (E) {
+                alert(E);
+                return true;
+            }
+        }
+    } else {
+        return true;
+    }
+};
+
+/**
+ * Retrieve active element of document and preserve iframe priority MULTILEVEL!
+ *
+ * http://stackoverflow.com/questions/25420219/find-focused-element-in-document-with-many-iframes
+ */
+tvc.sbUpdateMgr.getActiveElement = function(document) {
+    document = document || window.document;
+
+    // Check if the active element is in the main web or iFrame
+    if (document.body === document.activeElement || document.activeElement.tagName == 'IFRAME') {
+        var iframes = document.getElementsByTagName('iframe');
+        for (var i = 0; i < iframes.length; i++) {
+            // Recall
+            var focused = tvc.sbUpdateMgr.getActiveElement(iframes[i].contentWindow.document);
+            if (focused !== false) {
+                return focused;
+            }
+        }
+    } else {
+        return document.activeElement;
+    }
+};
+
+/**
+ * Get id of active element. Special check if it is a Selectize field
+ */
+tvc.sbUpdateMgr.getActiveElementId = function() {
+    var element = tvc.sbUpdateMgr.getActiveElement(document);
+    if (
+        element &&
+        (element.nodeName == 'INPUT' ||
+            element.nodeName == 'TEXTAREA' ||
+            element.nodeName == 'SELECT')
+    ) {
+        if (element.id) {
+            return element.id;
+        } else {
+            // Selectize input field has no id - find it
+            var $selectizeControl = $(element).closest('.selectize-control');
+            if ($selectizeControl.length) {
+                return $selectizeControl.siblings('select').attr('id');
+            } else {
+                return null;
+            }
+        }
+    } else {
+        return null;
+    }
+};
+
+/**
+ * Regain focus for element after row refresh
+ */
+tvc.sbUpdateMgr.focusElement = function(elementId) {
+    if (!elementId) {
+        return;
+    }
+    var realTables = tvc.sbUpdateMgr.getTables();
+    var $right = $(realTables.right);
+    var $left = $(realTables.left);
+    var $context = $right.add($left);
+    var $element = $('#' + elementId, $context);
+
+    if ($element.data('autocompletefield')) {
+        $element.siblings('.selectize-control').click();
+    } else {
+        $element.focus();
+        $element.select();
+    }
+};
+
+// callback, for page updates like expand/collapse/refresh
+tvc.sbUpdateMgr.updatePageCallback = function(id, ret, bSelection) {
+    // Save id of element that has focus/active before refresh
+    var activeElementId = tvc.sbUpdateMgr.getActiveElementId();
+
+    /*
+     * Retain selections
+     */
+    var selections = tvcGetSelectedSelections();
+    var selectedDataIds = {};
+    $(selections).each(function() {
+        selectedDataIds[$(this).attr('dataid')] = true;
+    });
+
+    var tbrc = null;
+    try {
+        tbrc = frames['tableBodyRight'].document.getElementById('tbrc');
+    } catch (e) {}
+    var top = tbrc ? tbrc.scrollTop : -1,
+        left = tbrc ? tbrc.scrollLeft : -1;
+    if (tvcIsSplitTable()) {
+        var realTables = tvc.sbUpdateMgr.getTables();
+
+        var leftDiv = realTables.left.ownerDocument.createElement('DIV');
+        var rightDiv = realTables.right.ownerDocument.createElement('DIV');
+        leftDiv.innerHTML = '<table>' + ret.leftHTML + '</table>';
+        rightDiv.innerHTML = '<table>' + ret.rightHTML + '</table>';
+
+        var leftTable = leftDiv.firstChild;
+        var rightTable = rightDiv.firstChild;
+
+        var count = leftTable.rows.length;
+        var currentCount = realTables.left.rows.length;
+        var beyond = false;
+
+        var currentLeftRow = null,
+            currentRightRow = null;
+        if (id != null) {
+            currentLeftRow = realTables.left.ownerDocument.getElementById('l' + id);
+            currentRightRow = realTables.right.ownerDocument.getElementById('r' + id);
+        } else {
+            beyond = true;
+        }
+
+        /*
+         * Delete all rows from the left and right table that will disappear
+         * after the update
+         */
+        for (var i = currentCount; i > count; i--) {
+            realTables.left.deleteRow(i - 1);
+            realTables.right.deleteRow(i - 1);
+            currentCount--;
+        }
+
+        /*
+         * Go through the returned HTML, and do following: - Update the first
+         * row, as it defines the width of the structure column - Update the row
+         * that were expanded - Add the new rows that were inserted - Update the
+         * remaining rows, as they probably have changed (possibly improvement:
+         * only modify the class of the TR)
+         */
+        for (var i = 0, j = 0; count > 0; i++) {
+            var leftRow = leftTable.rows[j];
+            var rightRow = rightTable.rows[j];
+
+            if (!beyond) {
+                if (leftRow.id == currentLeftRow.id) {
+                    beyond = true;
+                    currentLeftRow.parentNode.replaceChild(leftRow, currentLeftRow);
+                    currentRightRow.parentNode.replaceChild(rightRow, currentRightRow);
+                } else {
+                    if (i == 0) {
+                        realTables.left.rows[i].parentNode.replaceChild(
+                            leftRow,
+                            realTables.left.rows[i]
+                        );
+                        realTables.right.rows[i].parentNode.replaceChild(
+                            rightRow,
+                            realTables.right.rows[i]
+                        );
+                    } else {
+                        j++;
+                    }
+                    continue;
+                }
+            } else {
+                if (i < currentCount) {
+                    realTables.left.rows[i].parentNode.replaceChild(
+                        leftRow,
+                        realTables.left.rows[i]
+                    );
+                    realTables.right.rows[i].parentNode.replaceChild(
+                        rightRow,
+                        realTables.right.rows[i]
+                    );
+                } else {
+                    realTables.left.tBodies[0].appendChild(leftRow);
+                    realTables.right.tBodies[0].appendChild(rightRow);
+                }
+            }
+            count = leftTable.rows.length - j;
+        }
+
+        delete leftDiv;
+        delete rightDiv;
+        tvcAttachImgOnLoadEvent();
+    } else {
+        var realTable = tvc.sbUpdateMgr.getTables().right;
+
+        var div = realTable.ownerDocument.createElement('DIV');
+        div.innerHTML = '<table>' + ret.leftHTML + '</table>';
+        var table = div.firstChild;
+        var count = table.rows.length;
+        var currentCount = realTable.rows.length;
+        var beyond = false;
+        var currentRow = null;
+        if (id != null) {
+            currentRow = realTable.ownerDocument.getElementById('r' + id);
+        } else {
+            beyond = true;
+        }
+
+        var iHeaderRowCount = 1;
+        if (realTable.rows[0].className == 'ghx') {
+            iHeaderRowCount += 2;
+        }
+
+        var iDeleteCount = currentCount - count - iHeaderRowCount;
+        for (var i = 0; i < iDeleteCount; i++) {
+            currentCount--;
+            realTable.deleteRow(realTable.rows.length - 1);
+        }
+
+        for (var i = iHeaderRowCount, j = 0; count > 0; i++) {
+            var row = table.rows[j];
+            if (!beyond) {
+                if (row.id == currentRow.id) {
+                    beyond = true;
+                    currentRow.parentNode.replaceChild(row, currentRow);
+                } else {
+                    if (i == iHeaderRowCount) {
+                        realTable.rows[iHeaderRowCount].parentNode.replaceChild(
+                            row,
+                            realTable.rows[iHeaderRowCount]
+                        );
+                    } else {
+                        j++;
+                    }
+                    continue;
+                }
+            } else {
+                if (i < currentCount) {
+                    realTable.rows[i].parentNode.replaceChild(row, realTable.rows[i]);
+                } else {
+                    realTable.tBodies[0].appendChild(row);
+                }
+            }
+            count = table.rows.length - j;
+        }
+        delete div;
+    }
+
+    var dataTable = tvc.sbUpdateMgr.getTables().right;
+    var rowCount = dataTable.rows.length;
+    var selectElt = [];
+    var selectCount = 0;
+    var funcName = 'tvc.tablemultivalue.init';
+
+    for (var ctr = 0; ctr < rowCount; ctr++) {
+        var columnCount = dataTable.rows[ctr].children.length;
+        for (var index = 0; index < columnCount; index++) {
+            var nodes = dataTable.rows[ctr].children[index].childNodes;
+            var multiValue = false;
+            for (var num = 0; num < nodes.length; num++) {
+                var elt = nodes[num].tagName;
+                if ((elt && elt.toLowerCase()) === 'select') {
+                    selectElt[selectCount] = nodes[num].id;
+                    var multiValueAttrib = nodes[num].attributes['multivalue'];
+                    if (multiValueAttrib) {
+                        multiValue = multiValueAttrib.value.toLowerCase() == 'true' ? true : false;
+                    }
+                }
+                if (
+                    multiValue &&
+                    (elt && elt.toLowerCase()) === 'script' &&
+                    nodes[num].text !== ''
+                ) {
+                    var func = nodes[num].text.trim().replace(/^"(.*)"$/, '$1');
+
+                    if (func.indexOf(funcName) != -1) {
+                        tvc.tablemultivalue.initByReference(
+                            $(
+                                tvc.sbUpdateMgr
+                                    .getTables()
+                                    .right.ownerDocument.getElementById(selectElt[selectCount])
+                            )
+                        );
+                        selectCount++;
+                        multiValue = false;
+                    }
+                }
+            }
+        }
+    }
+
+    setRowCount(ret.rowCount);
+    setPaginationInfo(ret.paginationInfo);
+    updatePageControl();
+    tvcRefreshUI();
+    // tvcInitPageLayout();
+    if (tbrc) {
+        tbrc.scrollTop = top;
+        tbrc.scrollLeft = left;
+    }
+
+    /*
+     * Retain selections
+     */
+    var fakeSelection = tvcGetTableBodyRightFrame().fakeSelection;
+    var forceChecked = bSelection === void 0 ? true : bSelection;
+    var nonSelected = tvcGetNonSelectedSelections();
+    for (var i = 0; i < nonSelected.length; i++) {
+        var nonSelectedElement = nonSelected[i];
+        if (selectedDataIds[$(nonSelectedElement).attr('dataid')]) {
+            nonSelectedElement.checked = forceChecked;
+            fakeSelection(nonSelectedElement);
+        }
+    }
+
+    tvcUpdateSelectAll();
+
+    // Retain focus after refresh
+    tvc.sbUpdateMgr.focusElement(activeElementId);
+
+    return false;
+};
+
+tvc.sbUpdateMgr.updateRowCallback = function(id, ret) {
+    if (tvcIsSplitTable()) {
+        var realTables = tvc.sbUpdateMgr.getTables();
+
+        var leftDiv = realTables.left.ownerDocument.createElement('DIV');
+        var rightDiv = realTables.right.ownerDocument.createElement('DIV');
+        leftDiv.innerHTML = '<table>' + ret[0] + '</table>';
+        rightDiv.innerHTML = '<table>' + ret[1] + '</table>';
+
+        var leftRow = leftDiv.firstChild.rows[0];
+        var rightRow = rightDiv.firstChild.rows[0];
+        var currentLeftRow = realTables.left.ownerDocument.getElementById('l' + id);
+        var currentRightRow = realTables.right.ownerDocument.getElementById('r' + id);
+
+        currentLeftRow.parentNode.replaceChild(leftRow, currentLeftRow);
+        currentRightRow.parentNode.replaceChild(rightRow, currentRightRow);
+
+        delete leftDiv;
+        delete rightDiv;
+
+        tvcUpdateSelectAll();
+        updateSelections();
+
+        tvcRefreshUI();
+    } else {
+        var realTable = tvc.sbUpdateMgr.getTables().right;
+        var div = realTable.ownerDocument.createElement('DIV');
+        div.innerHTML = '<table>' + ret[0] + '</table>';
+        var row = div.firstChild.rows[0];
+        var currentRow = realTable.ownerDocument.getElementById('r' + id);
+        currentRow.parentNode.replaceChild(row, currentRow);
+        delete div;
+    }
+};
+
+tvc.sbUpdateMgr.getTables = function() {
+    var tables = {
+        left: null,
+        right: null
+    };
+    if (tvcIsSplitTable()) {
+        var doc = tvcGetTableBodyRightFrame().document;
+        tables.left = doc.getElementById('tbl');
+        tables.right = doc.getElementById('tbr');
+    } else {
+        tables.right = tvcGetTableBodyRightFrame().document.getElementById('contentTable');
+    }
+    return tables;
+};

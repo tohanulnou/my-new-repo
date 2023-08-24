@@ -1,0 +1,83 @@
+(function(window) {
+    
+    if (!window.tvc) {window.tvc={};}
+    if (!window.tvc.fileManager) {window.tvc.fileManager={};}
+    
+    var helper = {
+        
+        $form : null,
+        
+        _getForm : function() {
+            if (this.$form == null) {
+                var $form = $("<form>", { "name": "mxIntegrationForm", 
+                    "method": "post",
+                    "style": "margin:0px",
+                    "action": ""
+                }).appendTo(document.body);
+                this.$form = $form;
+                var fields = [ "objectId", "id", "action", "fileAction", "format", 
+                     "fileName", "file", "appName", "filename",
+                     "appDir", "closeWindow", "refresh" ];
+                for (var i=0; i<fields.length; i++) {
+                    $form.append($("<input>", {
+                        "type":"hidden",
+                        "name":fields[i],
+                        "value":""
+                    }));
+                }
+            }
+            return this.$form;
+        },
+        
+        submitForm : function(url, values) {
+            var $form = this._getForm();
+            $form.attr("action", url||"../components/emxCommonDocumentPreCheckout.jsp")
+                .find("input")
+                .prop("disabled", true);
+            if (values) {
+                for (var name in values) {
+                    $form.find("input[name="+name+"]")
+                        .prop('disabled', false)
+                        .val(values[name]||"");
+                }
+            }
+
+            var w=730,h=450,l=(screen.width-w)/2,t=(screen.height-h)/2;
+            var features = "width=" + w + ",height=" + h;
+            features += ",left=" + l + ",top=" + t;
+            features += ",screenX=" + l + ",screenY=" + t;
+            features += ",resizable=yes";
+            features += ",dependent=yes,resizable=yes,toolbar=yes,scrollbars=yes";
+            
+            var winName="CheckoutWin"+new Date().getTime();
+            var win = window.open('', winName, features);
+            $form.attr("target", winName);
+            window.setTimeout(function() { $form.submit(); }, 250);
+        }
+    };
+    
+    // Public API
+    window.tvc.fileManager.enovia = {
+        checkoutFile : function(e, objectId, action, format, fileName) {
+            helper.submitForm(null, {
+                    "objectId": objectId,
+                    "action": action,
+                    "format": format,
+                    "fileName": fileName
+            });
+        },
+        openViewer : function(e, viewerURL, objectId, format, fileName) {
+            helper.submitForm(viewerURL, {
+                    "objectId": objectId,
+                    "id": objectId,
+                    "format": format,
+                    "fileName": fileName,
+                    "filename": fileName,
+                    "file": fileName,
+                    "action": "view",
+                    "fileAction": "view"
+            });
+        }   
+    };
+
+})(window);

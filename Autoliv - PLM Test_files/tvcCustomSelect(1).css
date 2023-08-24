@@ -1,0 +1,52 @@
+div.tvcselect_base,
+div.tvcselect_base_hover,
+div.tvcselect_base_flash {
+	background-color: white;
+	border-top: 1px solid #ccc;
+	border-left: 1px solid #ccc;
+	border-bottom: 1px solid #ddd;
+	border-right: 1px solid #ddd;
+	color: #000;
+}
+div.tvcselect_base_hover {
+	border-top: 1px solid rgb(150,166,194) !important;
+	border-left: 1px solid rgb(150,166,194) !important;
+	border-bottom: 1px solid rgb(187,198,217) !important;
+	border-right: 1px solid rgb(187,198,217) !important;
+	color: rgb(23,30,40);
+}
+div.tvcselect_base_flash {
+	border-top: 1px solid rgb(150,166,194) !important;
+	border-left: 1px solid rgb(150,166,194) !important;
+	border-bottom: 1px solid rgb(187,198,217) !important;
+	border-right: 1px solid rgb(187,198,217) !important;
+	/*background-color: rgb(255,255,229) !important;*/
+	background-color: #c4e5f9 !important;
+	color: rgb(23,30,40);
+}
+div.tvcselect_base_img {
+	background-image: url('../../../../core/images/calendar/select-arrow.gif');
+}
+div.tvcselect_base_hover div.tvcselect_base_img,
+div.tvcselect_base_flash div.tvcselect_base_img {
+	background-image: url('../../../../core/images/calendar/select-arrow-hover.gif');
+}
+div.tvcselect_list_container {
+	border-top: 1px solid rgb(150,166,194) !important;
+	border-left: 1px solid rgb(150,166,194) !important;
+	border-bottom: 1px solid rgb(187,198,217) !important;
+	border-right: 1px solid rgb(187,198,217) !important;
+	color: rgb(23,30,40);
+}
+div.tvcselect_option_selected {
+	background-color: #c4e5f9;
+}
+div.tvcselect_option_border { 
+	border-bottom: 1px solid #eee !important;
+}
+div.tvcselect_option_border_selected { 
+	border-bottom: 1px solid rgb(166,217,247) !important;
+}
+div.tvcselect_option {
+    background-color: white;
+}

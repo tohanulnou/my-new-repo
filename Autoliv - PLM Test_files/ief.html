@@ -1,0 +1,1305 @@
+
+<!-- saved from url=(0061)https://plmtest.autoliv.int:12090/enovia/integrations/ief.jsp -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><link rel="stylesheet" href="./emxUIDefault.css" type="text/css">
+<link rel="stylesheet" href="./emxUIList.css" type="text/css">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script language="JavaScript">
+
+function callJSMethodFromApplet()
+{
+	var retVal = "";
+	try
+	{
+		var integFrame = getIntegrationFrame(this);
+		var jsMethodName = integFrame.document.applets["MxMCADApplet"].getJSMethodName();
+		if(jsMethodName != "")
+		{
+			retVal = eval( jsMethodName + "();" );
+			try
+			{
+				if(retVal == "")
+					retVal = "true";
+				integFrame.document.applets["MxMCADApplet"].setJSMethodRetVal(retVal);
+			}
+			catch(errorObject)
+			{
+				alert("Error from callJSMethodFromApplet - can not set retVal ::" + errorObject.description);
+			}
+		}
+	}
+	catch(error)
+	{
+		alert("Error from callJSMethodFromApplet ::" + error.description);
+	}
+
+	window.setTimeout("callJSMethodFromApplet()", 200);
+}
+
+</script>
+
+</head>
+
+<body marginwidth="0" marginheight="0">
+
+
+
+<script language="JavaScript" src="./IEFUIConstants.js.download" type="text/javascript"></script>
+<script language="JavaScript" src="./IEFUIModal.js.download" type="text/javascript"></script>
+<script language="JavaScript" src="./MCADUtilMethods.js.download" type="text/javascript"></script>
+<script language="JavaScript">
+var sForwardURL = "";
+
+var windowWidth  = 850;
+var windowHeight = 600;
+var isCustomLiveConnect = false;
+
+var activeDirectoryChooserControl;
+var directoryChooserStatus = "closed";
+var activeBrowserCommandOpener;
+var progressWindowObject;
+var activeRefreshFrame;
+var footerOptions = new Array();
+
+//file overwrite Confirmation dialog content page for checkout operation
+var fileOverwriteConfirmWindowContent;
+
+var confirmMessage;
+
+function showObjectTree(busId, suiteDirectoryName, treeMenuName)
+{
+	var url = "../common/emxTree.jsp?emxSuiteDirectory="+suiteDirectoryName+"&treeMenu="+treeMenuName+"&relId=&parentOID=&jsTreeID=root&suiteKey=Framework&objectId=" + busId;
+	emxTableColumnLinkClick(url, windowWidth, windowHeight, 'false', 'popup', 'Show Content');
+}
+
+function launchActionURL(url, _windowHeight, _windowWidth)
+{
+	showIEFModalDialog(url, _windowWidth, _windowHeight, 'true', 'popup', '');
+}
+
+function emxTableColumnLinkClick(href, width, height, modal, target)
+{
+	var url = href;
+	var windowObject;
+	var targetFrame;
+
+	if (target == "popup")
+	{
+		if (modal == "true")
+			windowObject = showIEFModalDialog(url, width, height,false);
+		else
+		{
+			windowObject = showIEFNonModalDialog(url, width, height);
+		}
+	}
+	else
+	{
+		targetFrame = findFrame(top, target);
+
+		//if there is a target, assign the form's target to it
+		if (targetFrame)
+		{
+			 targetFrame.location = href;
+		}
+		else
+		{
+			windowObject = showIEFNonModalDialog(url, '750', '600');
+		}
+	}
+}
+
+function getAppletObject()
+{
+	var integFrame = getIntegrationFrame(this);
+	var appletObject = integFrame.document.applets["MxMCADApplet"];
+	return appletObject;
+}
+
+function releaseCADTool()
+{
+	var integFrame		= getIntegrationFrame(this);
+	var isAppletInited	= integFrame.document.MxMCADApplet && integFrame.document.MxMCADApplet.getIsAppletInited();
+
+	if(isAppletInited == true)
+	{
+		document.applets["MxMCADApplet"].callCommandHandler('', 'releaseCADTool', true);
+	}
+	else
+	{
+		showIEFModalDialog("/enovia/integrations/emxAppletTimeOutErrorFS.jsp", 400, 300);
+	}
+
+}
+
+function getConfirmMessage()
+{
+	return confirmMessage;
+}
+
+function writeCheckinFrame(queryString)
+{
+	writeOperationFrame("/enovia/integrations/MCADCheckinFS.jsp", queryString)
+}
+
+function writeCheckoutFrame(queryString)
+{
+	var parametersArray = queryString.split("&");
+
+	for(var i in parametersArray)
+	{
+		var param	= parametersArray[i].split("=");
+		if(param[0] == "confirmMessage")
+			confirmMessage = param[1];
+	}
+
+	if(queryString.indexOf("confirmMessage") > -1)
+	{
+		queryString = queryString.substring(0, queryString.lastIndexOf("confirmMessage="));
+		queryString = queryString + "confirmMessage=true";
+	}
+
+	writeOperationFrame("/enovia/integrations/MCADCheckoutFS.jsp", queryString)
+}
+
+function writeLockUnlockFrame(queryString)
+{
+	writeOperationFrame("/enovia/integrations/MCADLockUnlockFS.jsp", queryString)
+}
+
+function writeFinalizationFrame(queryString)
+{
+	writeOperationFrame("/enovia/integrations/MCADFinalizationFS.jsp", queryString)
+}
+
+function writeSaveAsFrame(queryString)
+{
+	writeOperationFrame("/enovia/integrations/MCADSaveAsFS.jsp", queryString)
+}
+
+function writeEBOMSynchFrame(queryString)
+{
+	writeOperationFrame("/enovia/integrations/MCADEBOMSynchFS.jsp", queryString)
+}
+
+function writeRefreshFrame(queryString)
+{
+	writeOperationFrame("/enovia/integrations/IEFRefreshFS.jsp", queryString)
+}
+
+function writeRecognizeVersionFrame(queryString)
+{
+	writeOperationFrame("/enovia/integrations/IEFRecognizeVersionFS.jsp", queryString)
+}
+
+function writeOperationFrame(jspPath, queryString)
+{
+	if(isCustomLiveConnect)
+	{
+		queryString = getAppletObject().getJSArgs(0);
+	}
+
+	if(top.modalDialog && top.modalDialog.contentWindow && !top.modalDialog.contentWindow.closed && top.modalDialog.contentWindow != progressWindowObject)
+	{
+		top.modalDialog.contentWindow.cancelOperation = false;
+		top.modalDialog.contentWindow.location.href = jspPath + "?" + queryString;
+	}
+	else
+	{
+		showIEFModalDialog(jspPath + "?" + queryString, windowWidth, windowHeight);
+	}
+}
+
+function writePreferencesFrame(queryString)
+{
+	var integFrame = getIntegrationFrame(this);
+	//check whether Applet is loaded.
+
+	var isAppletInited = integFrame.document.MxMCADApplet && integFrame.document.MxMCADApplet.getIsAppletInited();
+
+	if(isAppletInited == true)
+	{
+		if(isCustomLiveConnect)
+		{
+			queryString = getAppletObject().getJSArgs(0);
+		}
+
+		showIEFModalDialog("/enovia/integrations/IEFPreferencesFS.jsp?" + queryString, windowWidth, windowHeight);
+	}
+	else
+	{
+		showIEFModalDialog("/enovia/integrations/emxAppletTimeOutErrorFS.jsp?featureName=Preferences", 400, 300);
+	}
+}
+function isDSCCommandActive()
+{
+	var isCommandActive = false;
+
+	var integrationFrame 	= getIntegrationFrame(this);
+	var appletObject 		= integrationFrame.document.applets["MxMCADApplet"];
+	if(appletObject)
+	{
+		isCommandActive = appletObject.callCommandHandlerSynchronously("", "isCommandActive", "");
+	}
+
+	return isCommandActive;
+}
+
+function openOperationFrame(queryString)
+{
+	if(isCustomLiveConnect)
+	{
+		queryString = getAppletObject().getJSArgs(0);
+	}
+
+	var	windowDetails	= getWindowDetails(queryString);
+
+	showIEFModalDialog("/enovia/integrations/IEFOperationFS.jsp?" + windowDetails[0], windowDetails[1], windowDetails[2]);
+}
+
+function showCheckinObjectDetailsPopup(busID, busName, defaultApplication)
+{
+	if(isCustomLiveConnect)
+	{
+		busID = getAppletObject().getJSArgs(0);
+		busName = getAppletObject().getJSArgs(1);
+		defaultApplication = getAppletObject().getJSArgs(2);
+	}
+
+	var strURL = "";
+
+	var queryString = "AppendParameters=true&mode=insert&objectId=" + busID + "&objectName=" + busName;
+	if(defaultApplication != null && defaultApplication.indexOf("infocentral") > -1)
+		strURL = "/enovia/infocentral/emxInfoManagedMenuEmxTree.jsp?" + queryString;
+	else if(defaultApplication != null && defaultApplication.indexOf("iefdesigncenter") > -1)
+		strURL = "/enovia/iefdesigncenter/emxInfoManagedMenuEmxTree.jsp?" + queryString;
+	else
+		strURL = "/enovia/common/emxTree.jsp?" + queryString;
+
+	top.showDetailsPopup(strURL);
+}
+
+function setURL(url)
+{
+	if(isCustomLiveConnect)
+	{
+		url = getAppletObject().getJSArgs(0);
+	}
+
+	if(url.indexOf("SearchDialog") > -1 || (url.indexOf("SearchConsolidated") > -1) || (url.indexOf("FullSearch") > -1))
+	{
+		url		  = "/enovia/" + url;
+		showIEFNonModalDialog(url, 850, 630);
+	}
+	else if((url.indexOf("RecentlyAccessedParts") > -1))
+	{
+		url = "/enovia/integrations/" + url;
+		showIEFNonModalDialog(url, windowWidth, windowHeight);
+	}
+	else
+	{
+		url = "/enovia/integrations/" + url;
+		showIEFModalDialog(url, windowWidth, windowHeight);
+	}
+}
+
+function setURLSized(url, width, height)
+{
+	if(isCustomLiveConnect)
+	{
+		url = getAppletObject().getJSArgs(0);
+		width = getAppletObject().getJSArgs(1);
+		height = getAppletObject().getJSArgs(2);
+	}
+
+	if(url.indexOf("SearchDialog") > -1)
+	{
+		url = "/enovia/" + url;
+		top.showSearch(url);
+	}
+	else
+	{
+		url = "/enovia/integrations/" + url;
+		showIEFModalDialog(url, width, height);
+	}
+}
+
+function gotoNextPage(root, messageHeader, message)
+{
+	if(isCustomLiveConnect)
+	{
+		root = getAppletObject().getJSArgs(0);
+		messageHeader = getAppletObject().getJSArgs(1);
+		message = getAppletObject().getJSArgs(2);
+	}
+
+	//Encode messageHeader and message as they go on the URL.
+	messageHeader = escape(messageHeader);
+	message = escape(message);
+
+	message			= MCADUrlUtil.hexEncode(message);
+	messageHeader	= MCADUrlUtil.hexEncode(messageHeader);
+
+	var url= "/enovia/integrations/MCADMessageFS.jsp?messageHeader=" + messageHeader + "&message=" + message;
+	showIEFModalDialog(url, windowWidth, windowHeight);
+}
+
+function bringForward(arg)
+{
+	window.focus();
+
+	if(top.modalDialog && top.modalDialog.contentWindow && !top.modalDialog.contentWindow.closed)
+	{
+		top.modalDialog.contentWindow.focus();
+	}
+}
+var derivedOutputWindow;
+
+function showAlert(message, closeWindow)
+{
+	if(isCustomLiveConnect)
+	{
+		message = getAppletObject().getJSArgs(0);
+		closeWindow = getAppletObject().getJSArgs(1);
+	}
+
+    if(top.modalDialog && top.modalDialog.contentWindow && !top.modalDialog.contentWindow.closed)
+	{
+		if(progressWindowObject && progressWindowObject == top.modalDialog.contentWindow)
+		{
+			if(closeWindow == "true")
+				closeProgressBar();
+
+			alert(message);
+		}
+		else
+		{
+		if(eval("typeof " + top.modalDialog.contentWindow.showAlert + " == 'function'")) {
+				
+			top.modalDialog.contentWindow.showAlert(message, closeWindow);
+			}else
+			{
+				top.modalDialog.contentWindow.alert(message);
+			}
+
+
+		}
+	}
+	else
+	{
+		alert(message);
+		if(derivedOutputWindow!=null)
+		{
+    		derivedOutputWindow.close();
+		}
+	}
+}
+
+function closeModalDialog(arg)
+{
+	if(top.modalDialog && top.modalDialog.contentWindow && !top.modalDialog.contentWindow.closed)
+	{
+		if(progressWindowObject && progressWindowObject == top.modalDialog.contentWindow)
+		{
+			closeProgressBar();
+		}
+		else if(top.modalDialog && top.modalDialog.contentWindow && typeof top.modalDialog.contentWindow.closeModalDialog != "undefined")
+		{
+			top.modalDialog.contentWindow.closeModalDialog();
+		}
+	}
+}
+
+function redirectToNewURL(arg)
+{
+	if(isCustomLiveConnect)
+	{
+		arg = getAppletObject().getJSArgs(0);
+	}
+
+	sForwardURL = arg;
+	setTimeout('top.window.location = sForwardURL;',2500);
+}
+
+function startCheckoutProgressBar(arg)
+{
+	top.modalDialog.contentWindow.startProgressBar();
+}
+
+function isPoppedUpWindowOpened()
+{
+	if (top.modalDialog && top.modalDialog.contentWindow && !(top.modalDialog.contentWindow.closed))
+		return "true";
+	else
+		return "false";
+}
+
+function getMessageByTokens(messageKey, tokensArray)
+{
+	var tokensString = "@";
+
+	for(var tokenName in tokensArray)
+	{
+		var tokenValue   = tokensArray[tokenName];
+
+		tokensString = tokensString + tokenName + "=" + tokenValue + "@";
+	}
+
+	var message = document.MxMCADApplet.getStringResourceByTokens(messageKey, tokensString);
+
+	return message;
+}
+
+//This is to show file overwrite confirmation dialog while checkout.
+function showCheckoutConfirmDialog(integrationName, content)
+{
+	if(isCustomLiveConnect)
+	{
+		integrationName = getAppletObject().getJSArgs(0);
+		content         = getAppletObject().getJSArgs(1);
+	}
+
+	if(top.modalDialog && top.modalDialog.contentWindow && !top.modalDialog.contentWindow.closed && top.modalDialog.contentWindow.showCheckoutConfirmDialog)
+	{
+		top.modalDialog.contentWindow.showCheckoutConfirmDialog(integrationName, content);
+	}
+	else
+	{
+		fileOverwriteConfirmWindowContent = content;
+		showIEFModalDialog('MCADOverWriteConfirmFS.jsp?integrationName=' + integrationName, 400, 400);
+	}
+}
+
+function showCheckoutMessageForRevConf(message)
+{
+	if(top.modalDialog && top.modalDialog.contentWindow && !top.modalDialog.contentWindow.closed)
+	{
+		top.modalDialog.contentWindow.showCheckoutMessageForRevConf(message);
+	}
+	else
+	{
+		alert(message);
+	}
+}
+
+function getFamilyConflictWindowContent()
+{
+	return familyConflictWindowContent;
+}
+
+function getConfirmWindowContent()
+{
+	return fileOverwriteConfirmWindowContent;
+}
+
+function showRefreshLockItemsConfirmDialog(integrationName, pageContent)
+{
+	if(isCustomLiveConnect)
+	{
+		integrationName = getAppletObject().getJSArgs(0);
+		content         = getAppletObject().getJSArgs(1);
+	}
+
+	if(top.modalDialog && top.modalDialog.contentWindow && !top.modalDialog.contentWindow.closed)
+	{
+		top.modalDialog.contentWindow.lockeditemsPageContent = pageContent;
+		top.modalDialog.contentWindow.showLockItemsConfirmDialog(integrationName);
+	}
+}
+
+function showFamilyConflictConfirmDialog(integrationName, content)
+{
+
+	if(isCustomLiveConnect)
+	{
+		integrationName = getAppletObject().getJSArgs(0);
+		content         = getAppletObject().getJSArgs(1);
+	}
+
+	if(top.modalDialog && top.modalDialog.contentWindow && !top.modalDialog.contentWindow.closed)
+	{
+		top.modalDialog.contentWindow.showFamilyConflictConfirmDialog(integrationName, content);
+	}
+	else
+	{
+		familyConflictWindowContent = content;
+		showIEFModalDialog('MCADFamilyConflictConfirmFS.jsp?integrationName=' + integrationName, 400, 400);
+	}
+}
+
+function showLocalFilesDeleteConfirmationDialog(integrationName, content)
+{
+	if(isCustomLiveConnect)
+	{
+		integrationName = getAppletObject().getJSArgs(0);
+		content         = getAppletObject().getJSArgs(1);
+	}
+
+	if(top.modalDialog && top.modalDialog.contentWindow && !top.modalDialog.contentWindow.closed)
+	{
+		top.modalDialog.contentWindow.showLocalFilesDeleteConfirmationDialog(integrationName, content);
+	}
+	else
+	{
+		confirmDeleteWindowContent = content;
+		showIEFModalDialog('MCADLocalFilesDeleteConfirmFS.jsp?integrationName=' + integrationName, 400, 400);
+	}
+}
+
+function getConfirmDeleteWindowContent()
+{
+	return confirmDeleteWindowContent;
+}
+
+function setBrowserCommandOpener(openerFrame)
+{
+	activeBrowserCommandOpener = openerFrame;
+}
+
+function getBrowserCommandOpener()
+{
+	var winOpener = activeBrowserCommandOpener;
+	activeBrowserCommandOpener = null;
+	return winOpener;
+}
+
+function setFooterOptions(option)
+{
+	footerOptions = option;
+}
+
+function getFooterOptions()
+{
+	return footerOptions;
+}
+
+function removeFooterOptions()
+{
+	footerOptions = "" ;
+}
+
+function setActiveRefreshFrame(refreshFrame)
+{
+	activeRefreshFrame = refreshFrame;
+}
+
+function getActiveRefreshFrame()
+{
+	return activeRefreshFrame;
+}
+
+function showDirectoryChooser(integrationName, directoryChooserControl, eventHandlerArguments)
+{
+	activeDirectoryChooserControl = directoryChooserControl;
+
+	document.MxMCADApplet.callCommandHandler(integrationName, "showDirectoryChooser", activeDirectoryChooserControl.value + "|" + eventHandlerArguments);
+
+	setDirectoryChooserStatus("opened");
+}
+
+function setSelectedDirectory(selectedDirectory)
+{
+	if(isCustomLiveConnect)
+	{
+		selectedDirectory = getAppletObject().getJSArgs(0);
+	}
+
+	if (activeDirectoryChooserControl)
+	{
+		activeDirectoryChooserControl.value = selectedDirectory;
+		activeDirectoryChooserControl = null;
+		setDirectoryChooserStatus("closed");
+	}
+
+	var isRefreshRequired = document.MxMCADApplet.callTreeTableUIObject("isRefreshRequiredAfterDirectoryChooser", "");
+	if("true" == isRefreshRequired && top.modalDialog && top.modalDialog.contentWindow && !top.modalDialog.contentWindow.closed)
+	{
+		top.modalDialog.contentWindow.refresh();
+	}
+}
+
+function setDirectoryChooserStatus(status)
+{
+	directoryChooserStatus = status;
+}
+
+function startRefreshProcess()
+{
+	var integFrame = getIntegrationFrame(this);
+	var isAppletInited = integFrame.document.MxMCADApplet && integFrame.document.MxMCADApplet.getIsAppletInited();
+	if(isAppletInited == true)
+	{
+		var result = integFrame.document.MxMCADApplet.callCommandHandlerSynchronously('', 'isNonIntegrationUser', 'true') + "";
+
+		if(result == "false")
+		{
+		var singleIntegrationName = integFrame.document.MxMCADApplet.callCommandHandlerSynchronously("", "getIntegrationNameIfSingle", "");
+
+		if(singleIntegrationName == "")
+		{
+			var preferredIntegration	= integFrame.document.MxMCADApplet.callCommandHandlerSynchronously("", "getPreferredIntegrationName", "");
+			if(preferredIntegration == null || preferredIntegration == "")
+			{
+				showIEFModalDialog("/enovia/integrations/IEFIntegrationChooserFS.jsp?keepOpen=true&eventHandler=createRefreshSelectionPage", "300", "325");
+			}
+			else
+			{
+				integFrame.document.MxMCADApplet.callCommandHandler(preferredIntegration, "createRefreshSelectionPage", "");
+			}
+		}
+		else
+		{
+			integFrame.document.MxMCADApplet.callCommandHandler(singleIntegrationName, "createRefreshSelectionPage", "");
+		}
+	}
+	else
+			showIEFModalDialog("/enovia/integrations/emxAppletTimeOutErrorFS.jsp?featureName=DesignChangeReport", 400, 300);
+	}
+	else
+	{
+		showIEFModalDialog("/enovia/integrations/emxAppletTimeOutErrorFS.jsp?featureName=DesignChangeReport", 400, 300);
+	}
+}
+
+function createRefreshSelectionPage(selectedIntegrationName)
+{
+	var integFrame = getIntegrationFrame(this);
+	integFrame.document.MxMCADApplet.callCommandHandler(selectedIntegrationName, "createRefreshSelectionPage", "");
+}
+
+function createGlobalPreferencesPage()
+{
+	var integFrame = getIntegrationFrame(this);
+	//check whether applet is loaded
+	var isAppletInited = integFrame.document.MxMCADApplet && integFrame.document.MxMCADApplet.getIsAppletInited();
+
+	if(isAppletInited == true)
+	{
+		var chooserURL  = "/enovia/integrations/IEFGCOChooserFS.jsp?integrationName=&gcoDefault=&closeWindow=FALSE";
+		showIEFModalDialog(chooserURL, '300', '350');
+	}
+	else
+	{
+		showIEFModalDialog("/enovia/integrations/emxAppletTimeOutErrorFS.jsp?featureName=Preferences", 400, 300);
+	}
+}
+
+function abortOperation()
+{
+	var integrationName = document.MxMCADApplet.callTreeTableUIObject("getIntegrationName", "");
+	document.MxMCADApplet.callCommandHandlerSynchronously(integrationName, 'abortOperation', true);
+}
+
+function setSelectedGCOName(fieldName, gcoName)
+{
+	if(gcoName != null && gcoName != "")
+	{
+		var integFrame = getIntegrationFrame(this);
+		integFrame.document.MxMCADApplet.callCommandHandler("", "createGlobalPreferencesPage", gcoName);
+	}
+}
+
+function writeGlobalPreferencesFrame(queryString)
+{
+	if(isCustomLiveConnect)
+	{
+		queryString = getAppletObject().getJSArgs(0);
+	}
+
+	var startDesignURL = "/enovia/integrations/IEFGlobalPreferencesFS.jsp?" + queryString;
+
+	showIEFModalDialog(startDesignURL, windowWidth, windowHeight);
+}
+
+function showUserChooser()
+{
+	var integFrame = getIntegrationFrame(this);
+	var isAppletInited = integFrame.document.MxMCADApplet && integFrame.document.MxMCADApplet.getIsAppletInited();
+
+	if(isAppletInited == true)
+		showIEFModalDialog("/enovia/integrations/IEFUserChooserFS.jsp", 400, 450);
+	else
+		showIEFModalDialog("/enovia/integrations/emxAppletTimeOutErrorFS.jsp", 400, 300);
+}
+
+function setSelectedUserName(selectedUserName, selectedUserType)
+{
+	var unitSeparator	= "";
+	var recordSeparator = "";
+
+	var parametersArray = new Array;
+	parametersArray["Command"]						= "updateAssignments";
+	parametersArray["selectedUser"]					= selectedUserName;
+	parametersArray["selectedUserType"]				= selectedUserType;
+
+	var queryString = getQueryString(parametersArray, unitSeparator, recordSeparator);
+
+	var integrationFrame = getIntegrationFrame(this);
+		//cannot go ahead if unable to locate integration frame.
+	if( integrationFrame != null )
+	{
+		var response = integrationFrame.document.MxMCADApplet.callCommandHandlerSynchronously("", "sendRequestToServerForIntegrationAssignment", queryString);
+		response = response +"";
+		if(response.indexOf("true") < 0)
+		{
+			if(response.indexOf("false|") > -1)
+			{
+				showAlert(response.substring(6), "false");
+			}
+			else
+			{
+				showAlert(response, "false");
+			}
+		}
+	}
+}
+
+function showIntegChooserForStartDesign()
+{
+	var integFrame = getIntegrationFrame(this);
+	//check whether applet is loaded
+	var isAppletInited = integFrame.document.MxMCADApplet && integFrame.document.MxMCADApplet.getIsAppletInited();
+
+	if(isAppletInited == true)
+	{
+		var result = integFrame.document.MxMCADApplet.callCommandHandlerSynchronously('', 'isNonIntegrationUser', 'true') + "";
+
+		if(result == "false")
+		{
+		var singleIntegrationName = integFrame.document.MxMCADApplet.callCommandHandlerSynchronously("", "getIntegrationNameIfSingle", "");
+
+		if(singleIntegrationName == "")
+		{
+				var allowedIntegrations = integFrame.document.MxMCADApplet.callCommandHandlerSynchronously("", "getAllowedIntegrationsForStartDesign", "");
+
+			var preferredIntegration	= integFrame.document.MxMCADApplet.callCommandHandlerSynchronously("", "getPreferredIntegrationName", "");
+
+				if(allowedIntegrations.indexOf("|") < 0)
+					preferredIntegration = allowedIntegrations;
+
+			if(preferredIntegration == null || preferredIntegration == "" || preferredIntegration == "SolidWorks")
+			{
+					showIEFModalDialog("/enovia/integrations/IEFIntegrationChooserFS.jsp?keepOpen=true&eventHandler=createStartDesignPage&allowedIntegrations=" + allowedIntegrations, "300", "325");
+			}
+			else
+			{
+				integFrame.document.MxMCADApplet.callCommandHandler(preferredIntegration, "createStartDesignPage", "");
+			}
+		}
+		else
+		{
+			integFrame.document.MxMCADApplet.callCommandHandler(singleIntegrationName, "createStartDesignPage", "");
+		}
+	}
+	else
+			showIEFModalDialog("/enovia/integrations/emxAppletTimeOutErrorFS.jsp?featureName=StartDesign", 400, 300);
+	}
+	else
+	{
+		showIEFModalDialog("/enovia/integrations/emxAppletTimeOutErrorFS.jsp?featureName=StartDesign", 400, 300);
+	}
+
+}
+
+function launchCADTool(integrationName)
+{
+	var integFrame = getIntegrationFrame(this);
+	//check whether applet is loaded
+	var isAppletInited = integFrame.document.MxMCADApplet && integFrame.document.MxMCADApplet.getIsAppletInited();
+
+	if(isAppletInited == true)
+	{
+		var CSELaunchBinaryDetails = integFrame.document.MxMCADApplet.callCommandHandler(integrationName,"launchCADTool","-action:connect");
+	}
+}
+
+function createStartDesignPage(selectedIntegrationName)
+{
+	var integFrame	= getIntegrationFrame(this);
+	integFrame.document.MxMCADApplet.callCommandHandler(selectedIntegrationName, "createStartDesignPage", "");
+}
+
+function showIntegChooserForMyLockedObjects()
+{
+	var integFrame = getIntegrationFrame(this);
+	var singleIntegrationName = integFrame.document.MxMCADApplet.callCommandHandler("", "getIntegrationNameIfSingle", "");
+
+	if(singleIntegrationName == "")
+	{
+		showIEFModalDialog("/enovia/integrations/IEFIntegrationChooserFS.jsp?keepOpen=false&eventHandler=showMyLockedObjectsPage", "300", "325");
+	}
+	else
+	{
+		showMyLockedObjectsPage(singleIntegrationName);
+	}
+}
+
+function showMyLockedObjectsPage(selectedIntegrationName)
+{
+	top.content.location = "/enovia/integrations/IEFObjectsLockedBy.jsp?HelpMarker=emxhelplockedobjects&integrationName="+selectedIntegrationName;
+}
+
+function writeStartDesignFrame(queryString)
+{
+	if(isCustomLiveConnect)
+	{
+		queryString = getAppletObject().getJSArgs(0);
+	}
+
+	var startDesignURL = "/enovia/integrations/IEFStartDesignFS.jsp?" + queryString;
+
+	showIEFModalDialog(startDesignURL, windowWidth, windowHeight);
+}
+
+function showStartDesignCreateObjectPage(startDesignForm, queryString)
+{
+	if(isCustomLiveConnect)
+	{
+		startDesignForm = getAppletObject().getJSArgs(0);
+		queryString = getAppletObject().getJSArgs(1);
+	}
+
+	var startDesignCreateObjectURL = "/enovia/integrations/" + startDesignForm + "?" + queryString;
+
+	showIEFModalDialog(startDesignCreateObjectURL, 700, 600);
+}
+
+function isBrowserIE()
+{
+	if(isIE)
+		return "true";
+	else
+		return "false";
+}
+
+function getWindowTitle()
+{
+	return top.window.document.title;
+}
+
+function executeFromTreeTableWindow(arguments)
+{
+	if(isCustomLiveConnect)
+	{
+		arguments = getAppletObject().getJSArgs(0);
+	}
+
+	if(top.modalDialog && top.modalDialog.contentWindow && !top.modalDialog.contentWindow.closed)
+	{
+		arguments = arguments + "";
+		var functionDetails	= arguments.split('|');
+		var functionName = functionDetails[0];
+		var functionArgs = functionDetails[1];
+
+		var functionRetValue = top.modalDialog.contentWindow.eval(functionName + "('" + functionArgs + "');" );
+		return functionRetValue;
+	}
+
+	return "false";
+}
+
+function updateTreeTableWindow(arguments)
+{
+	if(isCustomLiveConnect)
+	{
+		arguments = getAppletObject().getJSArgs(0);
+	}
+
+	if(top.modalDialog && top.modalDialog.contentWindow && !top.modalDialog.contentWindow.closed)
+	{
+		top.modalDialog.contentWindow.updateTreeTableWindow(arguments);
+	}
+}
+
+function showProgressBar(queryString)
+{
+	try
+	{
+	if(isCustomLiveConnect)
+	{
+		queryString = getAppletObject().getJSArgs(0);
+	}
+
+	if(top.modalDialog && top.modalDialog.contentWindow && !top.modalDialog.contentWindow.closed && progressWindowObject != top.modalDialog.contentWindow)
+	{
+		if(isCustomLiveConnect)
+		{
+			top.modalDialog.contentWindow.startTimerIcon();
+		}
+		else
+		{
+			progressWindowObject = top.modalDialog.contentWindow.showProgressBar(queryString);
+		}
+	}
+	else
+	{
+		if(!isCustomLiveConnect)
+		{
+			showIEFModalDialog("IEFProgressBar.jsp?" + queryString, 410, 120);
+			progressWindowObject = top.modalDialog.contentWindow;
+		}
+	}
+}
+	catch (error)
+	{
+	}
+}
+
+function updateProgressBar(metaCurrentCount, fileCurrentCount)
+{
+	try
+	{
+	if(isCustomLiveConnect)
+	{
+		metaCurrentCount	= getAppletObject().getJSArgs(0);
+		fileCurrentCount	= getAppletObject().getJSArgs(1);
+	}
+
+	if(progressWindowObject && !progressWindowObject.closed)
+	{
+			
+			if(!isCustomLiveConnect)
+			{
+				progressWindowObject.updateProgressBar(parseInt(metaCurrentCount), parseInt(fileCurrentCount));
+			}
+			
+		}
+		}
+		catch(error)
+		{
+	}
+}
+
+function closeProgressBar()
+{
+	try
+	{
+	if(top.modalDialog && top.modalDialog.contentWindow && !top.modalDialog.contentWindow.closed)
+	{
+		if(isCustomLiveConnect)
+			top.modalDialog.contentWindow.stopTimerIcon();
+		else
+		{
+			if(progressWindowObject && progressWindowObject == top.modalDialog.contentWindow)
+			{
+				progressWindowObject.close();
+					progressWindowObject = null;
+			}
+            else
+			{
+					progressWindowObject = null;
+				top.modalDialog.contentWindow.closeProgressBar();
+			}
+		}
+	}
+}
+	catch (error)
+	{
+	}
+}
+
+function openCheckoutPage(integrationName, checkoutDetails)
+{
+	if(isCustomLiveConnect)
+	{
+		integrationName	= getAppletObject().getJSArgs(0);
+		checkoutDetails	= getAppletObject().getJSArgs(1);
+	}
+
+	checkout(integrationName, true, checkoutDetails, "", 'interactive','false');
+}
+
+function applyRegularExpression(oldName, regularExpression, replaceString)
+{
+	oldName = oldName + "";
+
+	var newName	= oldName.replace(new RegExp(regularExpression), replaceString);
+	return newName;
+}
+
+function writeWSMPage(integrationName)
+{
+	if(isCustomLiveConnect)
+	{
+		integrationName	= getAppletObject().getJSArgs(0);
+	}
+
+	var contentParam 	= "/iefdesigncenter/emxDSCWorkspaceMgmtFS.jsp?";
+	var wsmURL 		= "/enovia/common/emxNavigatorDialog.jsp?param1=/enovia&param2=" +contentParam+ integrationName + "&isCSECommand=true";
+
+	showIEFModalDialog(wsmURL, windowWidth, windowHeight);
+}
+
+
+function showWSMOperationfailureMsg(message,closeWindow)
+{
+
+	if(isCustomLiveConnect)
+	{
+		message		= getAppletObject().getJSArgs(0);
+		closeWindow = getAppletObject().getJSArgs(1);
+	}
+
+	alert(message);
+}
+
+function showConfirm(message, closeWindow)
+{
+	if(isCustomLiveConnect)
+	{
+		message		= getAppletObject().getJSArgs(0);
+		closeWindow = getAppletObject().getJSArgs(1);
+	}
+
+	if (top.modalDialog && top.modalDialog.contentWindow && !top.modalDialog.contentWindow.closed)
+	{
+		if (top.modalDialog.contentWindow.confirm(message))
+		{
+		   return "ok"
+		}
+		else
+		{
+		   return "cancel"
+		}
+	}
+	else
+	{
+		if (confirm(message))
+		{
+		   return "ok"
+		}
+		else
+		{
+		   return "cancel"
+		}
+	}
+}
+
+function findListDisplayFrame(objWindow)
+{
+	var objFrame = null;
+	for (var i = 0; i < objWindow.frames.length && !objFrame; i++)
+	{
+		if (objWindow.frames[i].name == "listDisplay")
+		{
+			objFrame = objWindow.frames[i];
+		}
+	}
+	if (!objFrame) {
+		for (var i=0; i < objWindow.frames.length && !objFrame; i++)
+		{
+			objFrame = findListDisplayFrame(objWindow.frames[i]);
+		}
+	}
+	return objFrame;
+}
+
+// Reloads the WSM details frame.  This is a bit tricky because the frame may
+// be displayed in the IEF modal window, a power view channel, or both (e.g.
+// in the browser the user has WSM displayed in a channel then uses that same
+// session from a CSE and does Manage Workspace from the CSE).
+function refreshWSMDetailsFrame(result, channelMode, intialDirectory)
+{
+        if(isCustomLiveConnect)
+	     {
+                result = getAppletObject().getJSArgs(0);
+	 	          channelMode = getAppletObject().getJSArgs(1);
+ 	     }
+
+        var tabFrame = null;
+         // First try the modal dialog if it is up and open
+        if (top.modalDialog && top.modalDialog.contentWindow && !top.modalDialog.contentWindow.closed)
+                tabFrame = findListDisplayFrame(top.modalDialog.contentWindow);
+        // Try to locate in a channel page if it was not found in a modal dialog
+        if (tabFrame == null)
+                tabFrame = findListDisplayFrame(top)
+
+        if(tabFrame != 'undefined' && tabFrame != null)
+        {
+			if(intialDirectory != 'undefined' && intialDirectory != 'null' &&  intialDirectory != '')
+			{
+				//Refresh completly
+				tabFrame.parent.parent.document.location.href = "../iefdesigncenter/emxDSCWorkspaceMgmtFS.jsp?initialDirectory=" + intialDirectory;
+			}
+			else
+			{
+				//Refresh only the table
+                var newHref = tabFrame.parent.document.location.href.replace('common/emxTable', 'iefdesigncenter/emxDSCWorkspaceMgmtDetails');
+                tabFrame.parent.document.location.href = newHref;
+             }
+        }
+}
+
+function createPreferencesPage()
+{
+	var integFrame = getIntegrationFrame(this);
+	var isAppletInited = integFrame.document.MxMCADApplet && integFrame.document.MxMCADApplet.getIsAppletInited();
+	var showErrorPage = false;
+
+	if(isAppletInited == true)
+	{
+		var result = integFrame.document.MxMCADApplet.callCommandHandlerSynchronously('', 'isNonIntegrationUser', 'true') + "";
+		if(result == "false")
+		integFrame.document.MxMCADApplet.callCommandHandler('', 'createPreferencesPage', 'Global');
+	else
+			showErrorPage = true;
+	}
+	else
+		showErrorPage = true;
+
+	if(showErrorPage == true)
+		showIEFModalDialog("/enovia/integrations/emxAppletTimeOutErrorFS.jsp?featureName=Preferences", 400, 300);
+
+}
+
+function createAssignmentsPage()
+{
+	var integFrame = getIntegrationFrame(this);
+	var isAppletInited = integFrame.document.MxMCADApplet && integFrame.document.MxMCADApplet.getIsAppletInited();
+
+	if(isAppletInited == true)
+		showIEFModalDialog("/enovia/integrations/IEFIntegrationAssignmentFS.jsp", 560, 530);
+	else
+		showIEFModalDialog("/enovia/integrations/emxAppletTimeOutErrorFS.jsp", 400, 300);
+
+}
+
+function showDependentDocs(queryString)
+{
+	if(isCustomLiveConnect)
+	{
+		queryString = getAppletObject().getJSArgs(1);
+	}
+
+	var derivedOutputPage = "MCADDependentDocsFS.jsp?" + queryString;
+
+	showIEFModalDialog(derivedOutputPage, 350, 350);
+}
+
+function getDependentDocsContent()
+{
+	var dependentDocsContent = document.MxMCADApplet.callTreeTableUIObject("getDependentDocsContent", "");
+	return dependentDocsContent;
+}
+
+function changeNodeDependentDocSelection(selectionDetails)
+{
+	var response = document.MxMCADApplet.callTreeTableUIObject("changeNodeDependentDocSelection", selectionDetails);
+
+	if(response != "true")
+		alert(response);
+
+	return response;
+}
+
+function getWindowDetails(queryString)
+{
+	var detailsArray	= new Array();
+
+	detailsArray[0]		= queryString;
+	detailsArray[1]		= windowWidth;
+	detailsArray[2]		= windowHeight;
+
+	if(queryString.indexOf("pageTitle") != -1)
+	{
+		var pageTitle	= queryString.substring(queryString.indexOf("pageTitle"), queryString.indexOf("&"));
+
+		/* To generate a window with customized size, if pageTitle  contains window width and height
+			else generate default window */
+
+		if(pageTitle != null && pageTitle.indexOf("|") != -1)
+		{
+			var fIndex			= pageTitle.indexOf("|");
+			var widthAndHeight	= pageTitle.slice(fIndex);
+
+			if(widthAndHeight != null)
+			{
+				var startQueryString	= queryString.substring(0 ,queryString.indexOf("|"));
+				var endQueryString		= queryString.slice(queryString.lastIndexOf("&"));
+				queryString				= startQueryString.concat(endQueryString);
+
+				detailsArray[0]		=  queryString;
+				detailsArray[1]		=  widthAndHeight.substring(widthAndHeight.indexOf("|")+1, widthAndHeight.lastIndexOf("|"));
+				detailsArray[2]		=  widthAndHeight.substring(widthAndHeight.lastIndexOf("|")+1, widthAndHeight.length);
+			}
+		}
+	}
+
+	return detailsArray;
+}
+
+/*
+function updateTreeTableWindow(args)
+{
+	if(top.modalDialog && !top.modalDialog.contentWindow.closed)
+	{
+		progressWindowObject = top.modalDialog.contentWindow.treeControlObject.refresh();
+	}
+}*/
+
+</script>
+
+
+		<applet name="MxMCADApplet" archive="../WebClient/iefApplet.jar, ../WebClient/FcsClient.jar" align="middle" code="com.matrixone.MCADIntegration.client.applet.DSCApplet.class" codebase="./" width="1" height="1" mayscript="">
+			<param name="VIRTUALPATH" value="https://plmtest.autoliv.int:12090/enovia">
+			<param name="ROOT" value="https://plmtest.autoliv.int:12090/">
+			<param name="DEBUG" value="FALSE">
+			<param name="DEBUGFILEPATH" value="">
+			<param name="PORT" value="7779">
+			<param name="MULTIPORTRANGEENABLED" value="true">
+			<param name="MULTIPORTRANGEMAX" value="5000">
+			<param name="MULTIPORTRANGEMIN" value="2000">
+			<param name="MCADCHARSET" value="UTF8">
+			<param name="ACCEPTLANGUAGE" value="en">
+			<param name="USERLOGGEDIN" value="TRUE">
+			<param name="CUSTOMLIVECONNECT" value="false">
+			<param name="cache_option" value="Plugin">
+			<param name="cache_archive" value="../WebClient/iefApplet.jar, ../WebClient/FcsClient.jar">
+			<param name="cache_version" value="A.0.0.21414, B.0.0.21414">
+			<param name="ssoticket" value="null">
+			<param name="ssocookie" value="JSESSIONID=21A32C15564C5E1E5022476D6658BAF5.plmtest06-1; ajs_user_id=671c0d42b9d81e3119fd43818555526ccf16a8a4; ajs_anonymous_id=52108177-f450-4b1a-8549-cdb4ecc210bc; PreviouslyLoggedInUser=super+Alexandru+Ilie">
+			<param name="ssoserverurl" value="">
+			<param name="ssohttpsurl" value="">
+			<param name="externalAuthentication" value="true">
+			<param name="sessionId" value="JSESSIONID=21A32C15564C5E1E5022476D6658BAF5.plmtest06-1; ajs_user_id=671c0d42b9d81e3119fd43818555526ccf16a8a4; ajs_anonymous_id=52108177-f450-4b1a-8549-cdb4ecc210bc; PreviouslyLoggedInUser=super+Alexandru+Ilie">
+		</applet>
+
+
+
+
+<script language="JavaScript">
+    var DisplayErrorMsg = "";
+
+</script>
+
+
+
+
+</body></html>

@@ -1,0 +1,315 @@
+var tvcTabPage_lastSelectedTab = null;
+
+function attachEventListener(target, event, func) {
+    if (target.addEventListener) {
+        target.addEventListener(event, func, false);
+    } else if (target.attachEvent) {
+        target.attachEvent('on' + event, func);
+    }
+}
+
+function tvcTabPage_menuBarActionHandler(item) {
+    window.location.href = item.href;
+}
+
+function tvcTabPage_selectLastTab() {
+    if (tvcTabPage_lastSelectedTab != null) {
+        var ul = tvcTabPage_lastSelectedTab.parentNode;
+        var allTabs = ul.childNodes;
+        for (var i = 0; i < allTabs.length; i++) {
+            var child = allTabs.item(i);
+            if (child.nodeType == 1 && child.nodeName == 'LI' && $(child).hasClass('selectedTab')) {
+                $(child).removeClass('selectedTab');
+            }
+        }
+        if (!$(tvcTabPage_lastSelectedTab).hasClass('hiddenTab')) {
+            $(tvcTabPage_lastSelectedTab).addClass('selectedTab');
+        }
+    }
+}
+
+function tvcTabPage_init() {
+    window.setTimeout(tvcTabPage_resizeHandler, 100);
+
+    for (var i = 0; ; i++) {
+        var t = document.getElementById('tvcTabs' + i);
+        if (t == null) {
+            break;
+        }
+        var children = t.getElementsByTagName('li');
+        var selected = null;
+        for (var j = 0; j < children.length; j++) {
+            var child = children.item(j);
+            if (j == 0) {
+                selected = child;
+            }
+            if ($(child).hasClass('selectedTab')) {
+                selected = child;
+                break;
+            }
+        }
+        if (selected != null) {
+            if (selected.getAttribute('LAZY') == null) {
+                tvcTabPage_tabClicked(selected.getElementsByTagName('a')[0], false);
+            }
+        }
+        if ($.fn.tabdrop) {
+            $(t).tabdrop();
+        }
+    }
+    attachEventListener(window, 'resize', tvcTabPage_resizeHandler.throttle(200));
+}
+
+function tvcTabPage_resizeHandler() {
+    for (var i = 0; ; i++) {
+        var t = document.getElementById('tvcTabs' + i);
+        if (t == null) {
+            break;
+        }
+        if (t.getAttribute('_NORESIZE') == null) {
+            tvcTabPage_resizeTabGroup(t);
+        }
+    }
+}
+
+function tvcTabPage_resizeTabGroup(tabGroup) {
+    var h = document.documentElement.clientHeight || document.documentElement.offsetHeight;
+    h = h || document.body.clientHeight || window.innerHeight;
+    var marginTop = null;
+    var btmBorder = document.getElementById(tabGroup.id + 'bottomBorder');
+    if (btmBorder && btmBorder.offsetHeight > 10) {
+        marginTop = '-9px';
+    }
+    $(tabGroup)
+        .find('.content, .uip-tabpanel.active')
+        .each(function(i, content) {
+            var $content = $(content);
+            if (marginTop != null) {
+                content.style.marginTop = marginTop;
+            }
+
+            var height = h - content.offsetTop;
+            if (height < 100) {
+                height = 100;
+            }
+            $content.height(height);
+        });
+}
+
+function tvcTabPage_tabClicked(tab, bRemember) {
+    var li = _getAncestorWithNodeName(tab, 'LI');
+    var ul = _getAncestorWithNodeName(li, 'UL');
+    var id = _getAncestorWithClassName(ul, 'tabs').id;
+
+    var allTabs = ul.childNodes;
+    var selectedChild;
+    for (var i = 0; i < allTabs.length; i++) {
+        var child = allTabs.item(i);
+        if (child.nodeType == 1 && child.nodeName == 'LI' && $(child).hasClass('selectedTab')) {
+            if (!$(li).hasClass('tabCfg')) {
+                selectedChild = child;
+            }
+        }
+    }
+
+    if (selectedChild) {
+        try {
+            var $iframe = tvcTabPage_getContentFrame(selectedChild, id);
+            if ($iframe && $iframe.length !== 0) {
+                var innerDoc = $iframe[0].contentDocument || $iframe[0].contentWindow.document;
+                if (typeof $iframe[0].contentWindow.warnOnUnsavedData === 'function') {
+                    var unsavedForm = $iframe[0].contentWindow.warnOnUnsavedData();
+                    if (unsavedForm) {
+                        return;
+                    }
+                }
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    var isSelected = false;
+    if ($(li).hasClass('selectedTab')) {
+        isSelected = true;
+    }
+    if (bRemember && !isSelected) {
+        var tabsId = ul.getAttribute('tid');
+        if (tabsId != null) {
+            var tabId = li.getAttribute('tid');
+            if (tabId != null) {
+                tabTracker.setSelected(tabsId, tabId);
+            }
+        }
+    }
+    if (selectedChild) {
+        $(selectedChild).removeClass('selectedTab');
+        tvcTabPage_lastSelectedTab = selectedChild;
+    }
+    tab.blur();
+
+    var src = li.getAttribute('HREF');
+    if (src != null) {
+        var $li = $(li);
+        if (!$li.hasClass('tabCfg')) {
+            $li.addClass('selectedTab');
+        } else {
+            $li.addClass('selectedTabCfg');
+        }
+        if (src.indexOf('javascript:') == 0) {
+            tvcTabPage_loadTab(li);
+        } else {
+            $('.content').css({
+                position: 'absolute',
+                width: '1px',
+                bottom: '-1px',
+                right: '-1px',
+                visibility: 'hidden'
+            });
+
+            var $div = tvcTabPage_getContent(li, id);
+            if (li.getAttribute('preload')) {
+                if (li.getAttribute('loaded') != 'true' || isSelected) {
+                    tvc.tab.loader.start($div);
+                    tvcTabPage_loadTab(li);
+                }
+            } else {
+                tvc.tab.loader.start($div);
+                tvcTabPage_loadTab(li);
+            }
+
+            $div.css({
+                position: 'relative',
+                width: '100%',
+                top: '',
+                bottom: '',
+                visibility: 'visible'
+            });
+        }
+        tvcTabPage_resizeTabGroup(_getAncestorWithClassName(ul, 'tabs'));
+    }
+}
+
+function tvcTabPage_getContent(li, id) {
+    if (li.getAttribute('preload')) {
+        return $('#' + id + '_' + li.getAttribute('tname') + 'content');
+    } else {
+        return $('#' + id + 'content');
+    }
+}
+
+function tvcTabPage_getContentFrame(li, id) {
+    if (li.getAttribute('preload')) {
+        return $('#' + id + '_' + li.getAttribute('tname') + 'contentFrame');
+    } else {
+        return $('#' + id + 'contentFrame');
+    }
+}
+
+function tvcTabPage_loadTab(li) {
+    if (li.getAttribute('x-loading') != null) {
+        return;
+    }
+    li.setAttribute('x-loading', 'true');
+
+    var src = li.getAttribute('HREF');
+    if (src != null) {
+        var ul = _getAncestorWithNodeName(li, 'UL');
+        var id = _getAncestorWithClassName(ul, 'tabs').id;
+        if (li.getAttribute('preload')) {
+            id = id + '_' + li.getAttribute('tname');
+        }
+        if (src.indexOf('javascript:') == 0) {
+            var js = eval(src.substring(11));
+            if (typeof js == 'function') {
+                js.call(li, id, li.getAttribute('tname'));
+            }
+            li.removeAttribute('x-loading');
+        } else {
+            var f = document.getElementById(id + 'contentFrame');
+            if (f.contentWindow) {
+                f.contentWindow.location.href = src;
+            } else {
+                f.src = src;
+            }
+            attachEventListener(f, 'load', function() {
+                li.removeAttribute('x-loading');
+                li.setAttribute('loaded', 'true');
+                var $li = $("li[preload='true']:not([loaded])");
+                if ($li.length > 0) {
+                    tvcTabPage_loadTab($li.get(0));
+                }
+            });
+        }
+    } else {
+        li.removeAttribute('x-loading');
+    }
+}
+
+function tvcTabPage_pageLoaded(tabId) {
+    tvc.tab.loader.stop(document.getElementById(tabId + 'content'));
+}
+
+function _getAncestorWithNodeName(node, name) {
+    var ancestor = node;
+    while (ancestor != null && ancestor.nodeName.toUpperCase() != name) {
+        ancestor = ancestor.parentNode;
+    }
+    return ancestor;
+}
+
+function _getAncestorWithClassName(node, className) {
+    var ancestor = node;
+    while (ancestor != null && ancestor.className != className) {
+        ancestor = ancestor.parentNode;
+    }
+    return ancestor;
+}
+
+attachEventListener(window, 'load', tvcTabPage_init);
+
+/**
+ * Loader related functions for tabs
+ */
+if (!UIP || !UIP.Loader) {
+    alert('WARNING: Required library UIP Loader is NOT LOADED');
+}
+tvc = tvc || {};
+tvc.tab = tvc.tab || {};
+tvc.tab.loader = {
+    /**
+     * Starts the loader. Provide the content div element where loader is
+     * located (or any child element of it).
+     */
+    start: function(element) {
+        return tvc.tab.loader
+            ._getLoaderByElement(element)
+            .stop(true)
+            .start(TAB_MSG_LOADING + '...');
+    },
+
+    /**
+     * Stops the loader. Provide the content div element where loader is located
+     * (or any child element of it).
+     */
+    stop: function(element) {
+        return tvc.tab.loader._getLoaderByElement(element).stop();
+    },
+
+    /**
+     * Gets the loader from an element. The loader is lazily initialized and the
+     * same loader instance is always returned for an element.
+     */
+    _getLoaderByElement: function(element) {
+        var $loaderElement = $(element).closest('.content');
+        if ($loaderElement.data('uip-loader') === undefined) {
+            var loader = new UIP.Loader({
+                container: $loaderElement,
+                delay: 1
+            });
+            $loaderElement.data('uip-loader', loader);
+        }
+
+        return $loaderElement.data('uip-loader');
+    }
+};

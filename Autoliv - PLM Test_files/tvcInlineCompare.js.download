@@ -1,0 +1,164 @@
+if (!window.tvc) {
+    window.tvc = {};
+}
+if (!window.tvc.inlinecompare) {
+    /*
+     * InlineCompare related logic for the content frame.
+     */
+    tvc.inlinecompare = {
+        $view: null,
+        /*
+         * Show/Hide compare form
+         */
+        toggleForm: function() {
+            this.$view.slideToggle(400, function() {
+                tvcResizeContentFrame();
+            });
+        },
+
+        clearCompare: function() {},
+
+        compare: function() {
+            var $liItems = this.$view.find('li');
+            var $radioBtn = $liItems.find("input[name='inlineCompareChooser']:checked");
+            var actionCallFn = this.showValidationMessage;
+            var fnParameters = ['#targetMissing'];
+
+            if (this.isRadioBtnChecked($radioBtn)) {
+                var $radioBtnId = $radioBtn[0].id;
+                fnParameters = this.getParameters($radioBtnId, $liItems);
+                if (fnParameters && fnParameters.length > 1) {
+                    if (this.isIdenticalObjectId(fnParameters[0], fnParameters[1])) {
+                        fnParameters = ['#noDiffernce'];
+                    } else {
+                        var dataId = this.getRowDataId();
+                        $('#dataId').val(dataId);
+                        actionCallFn = this.actionCall;
+                    }
+                } else {
+                    fnParameters = ['#targetMissing'];
+                }
+            }
+            actionCallFn(fnParameters);
+        },
+
+        isIdenticalObjectId: function(sourceId, targetId) {
+            return sourceId === targetId;
+        },
+
+        isRadioBtnChecked: function($radioBtn) {
+            return $radioBtn.length > 0 && $radioBtn.val() !== 'None';
+        },
+
+        getParameters: function($radioBtnId, $liItems) {
+            var params = [];
+            var targetObjectId = this.getTargetObjectId($radioBtnId, $liItems);
+            var sourceObjectId = this.getSourceObjectId();
+            if (sourceObjectId && targetObjectId) {
+                params.push(sourceObjectId);
+                params.push(targetObjectId);
+            }
+            return params;
+        },
+
+        getSourceObjectId: function() {
+            var rows = this.getDefaultRow();
+            var dataRow;
+            if (rows && rows.length) {
+                dataRow = rows[0];
+            } else if (rows) {
+                dataRow = rows;
+            }
+            var Oids = toOidArray([dataRow]);
+            return Oids[0];
+        },
+
+        getTargetObjectId: function($radioBtnId, $liItems) {
+            var divId = 'ica_container_' + $radioBtnId;
+            var selectdiv = $liItems.find('div.' + divId);
+            return selectdiv[0].firstElementChild.selectize.getValue();
+        },
+
+        getRowDataId: function() {
+            var rows = this.getDefaultRow();
+            var dataId;
+            if (rows && rows.length) {
+                dataId = rows[0].getAttribute('dataid');
+            } else if (rows) {
+                dataId = rows.getAttribute('dataid');
+            }
+            return dataId;
+        },
+
+        getDefaultRow: function() {
+            var $tableBodyRightFrame = tvcGetTableBodyRightFrame();
+            return $tableBodyRightFrame.tvcGetForm().elements['emxTableRowId'];
+        },
+
+        showValidationMessage: function(fnParam) {
+            alert($(fnParam[0]).val());
+        },
+
+        actionCall: function(ObjectIds) {
+            $('#sourceObjectId').val(ObjectIds[0]);
+            $('#targetObjectId').val(ObjectIds[1]);
+            setTimeout(function() {
+                document.forms['tvcInlineCompare'].submit();
+            }, 200);
+        },
+
+        init: function() {
+            if (!this.$view) {
+                throw new Error("Unable to init Inline compare. Can't find the view element.");
+            }
+        }
+    };
+}
+
+function bootstrapInlineCompare() {
+    var $inlineCompare = (tvc.inlinecompare.$view = $('#inlinecompare-form'));
+    tvc.inlinecompare.init();
+    $inlineCompare
+        .on('click', '.iclose', function() {
+            tvc.inlinecompare.toggleForm();
+        })
+        .on('click', '.icompare', function() {
+            tvc.inlinecompare.compare();
+        });
+}
+
+tvc.onDocumentRendered(bootstrapInlineCompare, 500);
+
+function showAutoCompleteList(input) {
+    var mockEmptyDiv =
+        "<div class='selectize-input items full has-options has-items mockitems'><div class='item'></div></div>";
+    var dataSet = input.getAttribute('dataset');
+    var $chooserElement = $('.icompare-chooser');
+    $chooserElement.each(function() {
+        var inputRadioElement = this.firstElementChild;
+        if (!$(inputRadioElement).is(':checked')) {
+            var $autocompleteContainer = $('.ica_container_' + inputRadioElement.id);
+            var $selectizeControl = $autocompleteContainer.find('.selectize-control');
+            var $selectInput = $selectizeControl.find('.selectize-input');
+            if ($selectInput.length > 0) {
+                $selectInput.addClass('ac-hidden');
+                $selectizeControl.append($(mockEmptyDiv));
+            }
+        }
+    });
+    var $divID = $('.ica_container_' + input.id);
+    var selectedInput = $divID.find('.selectize-control');
+    $divID[0].firstElementChild.disabled = false;
+    var result = $divID[0].firstElementChild.hasAttribute('data-row');
+    if (!result) {
+        selectedInput[0].setAttribute('onfocus', 'tvc.tableautocomplete.initMock(this)');
+        selectedInput[0].setAttribute('onclick', 'tvc.tableautocomplete.initMock(this)');
+        selectedInput[0].setAttribute('data-row', tvc.inlinecompare.getRowDataId());
+        selectedInput.click();
+    } else {
+        var $mockItem = $divID.find('.mockitems');
+        $mockItem.remove();
+        var $selectInput = $divID.find('.selectize-input');
+        $selectInput.removeClass('ac-hidden');
+    }
+}

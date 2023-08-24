@@ -1,0 +1,48 @@
+/**
+ * Autocomplete: Selectize
+ */
+.selectize-control.plugin-remove_button [data-value] {
+	padding-right: 20px !important;
+}
+
+div.selectize-dropdown, div.selectize-input {
+	min-width: 150px;
+}
+
+div.selectize-input {
+	min-height: 0;
+	line-height: 16px;
+	padding: 0px 30px 1px 4px;
+	font-family: verdana, helvetica, arial, sans-serif !important;
+	white-space: nowrap;
+}
+
+div.selectize-control {
+	padding-top: 3px;
+}
+
+.ac-hidden {
+	display : none;
+}
+
+/* Loading */
+div.selectize-control::before {
+	-moz-transition: opacity 0.2s;
+	-webkit-transition: opacity 0.2s;
+	transition: opacity 0.2s;
+	content: ' ';
+	z-index: 2;
+	position: absolute;
+	display: block;
+	top: 50%;
+	right: 34px;
+	width: 14px;
+	height: 14px;
+	margin: -7px 0 0 0;
+	background: url(../../../../core/images/load2.gif);
+	background-size: 14px 14px;
+	opacity: 0;
+}
+div.selectize-control.loading::before {
+	opacity: 0.4;
+}

@@ -1,0 +1,127 @@
+// submit button
+function resetSubmitButton() {
+    frames['tableBottomFrame'].resetSubmitButton();
+}
+
+// load status
+var setStatusInterval = null;
+function setLoadStatus() {
+    try {
+        if (showProgressMessage(M_LOADINGDATA_WAIT)) {
+            setStatusInterval = null;
+            return;
+        }
+    } catch (x) {}
+    setStatusInterval = window.setTimeout(setLoadStatus, 50);
+}
+function unsetLoadStatus() {
+    if (setStatusInterval != null) {
+        window.clearTimeout(setStatusInterval);
+        setStatusInterval = null;
+    }
+    try {
+        hideProgress();
+    } catch (x) {}
+}
+
+// mx-links
+function mxLink(type, name, revision, vault) {
+    tvc.popup(
+        getActionURL('mxLink') +
+            '?type=' +
+            encodeURIComponent(type) +
+            '&name=' +
+            encodeURIComponent(name) +
+            '&revision=' +
+            encodeURIComponent(revision) +
+            '&vault=' +
+            encodeURIComponent(vault),
+        800,
+        600,
+        true
+    );
+}
+
+// table state
+var TABLE_STATE = null;
+function tvcTableStateChanged(view, table, filters, edit) {
+    var old = TABLE_STATE;
+    TABLE_STATE = {
+        view: view,
+        table: table,
+        filters: filters,
+        edit: edit
+    };
+    if (old != null) {
+        if (view != old.view) {
+            tvcFireTableStateChanged('view', old.view, view);
+        }
+        if (table != old.table) {
+            tvcFireTableStateChanged('table', old.table, table);
+        }
+        if (filters != old.filters) {
+            // compare array...
+        }
+        if (edit != old.edit) {
+            tvcFireTableStateChanged('edit', old.edit, edit);
+        }
+    }
+}
+function tvcFireTableStateChanged(kind, oldValue, newValue) {
+    tvc.inlineFrame.fireTableStateChanged(kind, oldValue, newValue);
+}
+
+// frame measurements
+function setTopFrameHeight(height) {
+    var $content = $('div.content');
+    if ($content.offset().top != height) {
+        $('div.top').css('height', height + 'px');
+        $content.css('top', height + 'px');
+    }
+}
+function getTopFrameHeight() {
+    return $('div.content').offset().top;
+}
+function getBottomFrameHeight() {
+    return $('div.bottom').height();
+}
+function getTableBeanName() {
+    return frames['tableContentFrame'].getTableBeanName();
+}
+function tvcReloadPage() {
+    return frames['tableContentFrame'].tvcReloadPage();
+}
+function tvcTabPageCfgVisible(visible) {
+    var f = frames['tableContentFrame'];
+    if (f != null) {
+        try {
+            f.$('.hideMenuFix').css({
+                visibility: visible ? 'hidden' : 'visible'
+            });
+        } catch (err) {
+            // Don't need to do anything with this error.
+            // Fixed for the case when jquery is not loaded.
+        }
+    }
+}
+
+var __expandConfig = {
+    level: 2,
+    onexpand: false
+};
+
+function setExpandLevelConfig(level) {
+    __expandConfig.level = level;
+}
+
+function getExpandLevelConfig() {
+    return __expandConfig.level;
+}
+
+function setUseOnExpandConfig(useOnExpand) {
+    __expandConfig.onexpand = useOnExpand;
+}
+
+function getUseOnExpandConfig() {
+    return __expandConfig.onexpand;
+}

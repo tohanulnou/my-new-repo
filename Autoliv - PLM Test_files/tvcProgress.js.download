@@ -1,0 +1,42 @@
+if (!window.tvc) {
+    window.tvc = {};
+}
+if (!window.tvc.progress) {
+    window.tvc.progress = {};
+}
+
+if (!UIP || !UIP.Loader) {
+    alert("WARNING: Required library UIP Loader is NOT LOADED");
+}
+
+// public
+function showProgress() {
+    return tvc.progress._show(null);
+}
+function showProgressMessage(message) {
+    return tvc.progress._show(message);
+}
+function hideProgress() {
+    tvc.progress._hide();
+}
+
+// private
+tvc.progress = {
+    _hide : function() {
+        tvc.progress._getLoader().stop();
+    },
+
+    _show : function(message) {
+        tvc.progress._getLoader().start(message);
+        return true;
+    },
+
+    _getLoader : function() {
+        if (!tvc.progress._loader) {
+            tvc.progress._loader = new UIP.Loader({
+                delay : 100
+            });
+        }
+        return tvc.progress._loader;
+    }
+};

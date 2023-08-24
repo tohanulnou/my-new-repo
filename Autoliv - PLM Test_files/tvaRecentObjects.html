@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<!-- saved from url=(0091)https://plmtest.autoliv.int:12090/enovia/common/emxTree.jsp?objectId=4706.39075.61703.52347 -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<script type="text/javascript" src="./emxUIConstants.js.download"></script>
+<script type="text/javascript" src="./emxUICore.js.download"></script>
+<script type="text/javascript" src="./emxUICoreMenu.js(1).download"></script>
+<script language="javascript" src="./emxUICoreTree.js.download"></script>
+<script language="javascript" src="./emxUIHistoryTree.js.download"></script>
+<script language="javascript" src="./emxUIDetailsTree.js.download"></script>
+<script language="javascript" src="./emxUIStructureTree.js.download"></script>
+<script language="javascript" src="./emxUITreeUtil.js.download"></script>
+
+
+    <script language="Javascript">
+        var refreshParent = false;
+        function setRefreshParent(refreshParentParm) {
+           refreshParent = refreshParentParm;
+        }
+        window.onbeforeunload = function() {
+            if (refreshParent) {
+                var treeDisplayFrame = findFrame(top.opener.top, "listDisplay");
+                if (treeDisplayFrame != null) {
+                    treeDisplayFrame.parent.document.location.href = treeDisplayFrame.parent.document.location.href;
+                }
+            }
+        }
+    </script>
+
+<script language="javascript">
+
+if(isIE && top.opener && top == self){
+    window.location = "emxNavigatorDialog.jsp?contentURL=" + escape(location.href) ;
+}else if(top == self) {
+    window.location = "emxNavigatorDialog.jsp?contentURL=" + escape(location.href);
+}
+
+/********Shortcut********/
+ 
+ 
+
+if(top != self)
+{
+
+var objStructureTree;
+    try
+    {
+        objStructureTree = top.objStructureTree? top.objStructureTree : top.initStructureTree();
+    }
+    catch(Exp)
+    {
+
+    }
+
+
+   if(objStructureTree != null){
+        objStructureTree.clear();
+        //objStructureTree.clear();
+        objStructureTree.structureMode="";
+        objStructureTree.menuName="";
+        objStructureTree.selectedStructure="";
+        objStructureTree.root=null;
+    }
+
+
+	emxUICore.addToPageHistory("671645", "../tvc-action/loadCategoryTopPanel?panel=tvc%3Atoppanel%2F%2Ftvc%2Fui%2Ftypemenu%2FEcrTopPanel.xml&disableCategoryMenu=true&objectId=4706.39075.61703.52347&emxSuiteDirectory=&categoryTreeName=type_ECR", "null", "", "null", "null", "tree");
+
+	if(top.bclist != null && top.bclist.getCurrentBC() != null && top.bclist.getCurrentBC().id != "MyDesk") {
+       top.bclist.clear();
+    }
+
+    top.loadBreadCrumbPage("4706.39075.61703.52347", "671645", ":", "Home", null, "../tvc-action/loadCategoryTopPanel?panel=tvc%3Atoppanel%2F%2Ftvc%2Fui%2Ftypemenu%2FEcrTopPanel.xml&disableCategoryMenu=true&objectId=4706.39075.61703.52347&emxSuiteDirectory=&categoryTreeName=type_ECR", null, "671645");
+
+
+}else{
+var contentParam = escape(location.href);
+var contentDir = location.pathname;
+contentParam = contentParam.substring(contentParam.lastIndexOf(contentDir)+contentDir.length, contentParam.length);
+top.location.href = "emxNavigatorDialog.jsp?"+"objectId%3D4706.39075.61703.52347"+"&param1="+contentDir+"&param2="+contentParam;
+
+}
+</script><script>top.objStructureTree = null;top.objDetailsTree = null;</script></head><frameset id="emxStructureNavigatorFrame" cols="0,*,0" frameborder="no" framespacing="0"><frame name="emxUITreeFrame" src="./emxBlank.html" marginwidth="0" marginheight="0" frameborder="no"><frame name="detailsDisplay" src="./loadCategoryTopPanel.html" scrolling="auto"><frame name="hiddenTreeContentFrame" noresize="" src="./emxBlank(1).html" scrolling="no" marginheight="0" marginwidth="0" frameborder="0"></frameset>
+    
+
+
+</html>
