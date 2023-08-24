@@ -1,0 +1,243 @@
+(function(root, factory) {
+    'use strict';
+    if (typeof define === 'function' && define.amd) {
+        // Register as an anonymous AMD module:
+        define([ 'root', 'pikaday', 'jquery', 'moment', 'tvc.constants' ], factory);
+    } else {
+        // Browser globals:
+        root.TVCCalendar = factory(root, root.Pikaday, root.jQuery, root.moment, root);
+    }
+})(this, function factory(w, Pikaday, $, moment, $constants) {
+    'use strict';
+
+    /**
+     * Constructor for Calendar. The calendar wraps itself around the pikaday
+     * object and adds a number of features. For instance it sets moment.js
+     * locale, uses user's locale to determine first day of week and has utility
+     * functions for lazily initiating calendars.
+     *
+     * The global variable CALENDAR_SETTINGS is used to specify global settings.
+     *
+     * When the calendar is initiated a reference to it is stored on the input
+     * field.
+     *
+     * @param {Object}
+     *            options Options for the calendar. The field option is
+     *            mandatory.
+     */
+    function Calendar(options) {
+        if (typeof options.field !== 'object') {
+            throw new Error('Failed to setup TVCCalendar as no field is specified.'
+                    + " Use property name 'field' to specify it.");
+        }
+        if (typeof $constants.CALENDAR_SETTINGS === 'undefined') {
+            throw new Error('Missing calendar settings stored in global variable with name CALENDAR_SETTINGS');
+        }
+        this.field = options.field;
+        util.setLocale();
+        this.options = util.getOptions(options);
+        this.pikaday = util.initPicker(this.options);
+        this.field[DOM_PROP_NAME] = this;
+    }
+
+    var DOM_PROP_NAME = 'tvccalendar';
+    var ZINDEX = 99;
+
+    var util = {
+        /**
+         * Initialize pikaday.
+         */
+        initPicker : function(options) {
+            return new Pikaday(options);
+        },
+
+        /**
+         * Gets options for date picker.
+         *
+         * @param {Object}
+         *            options Options for the specific use case
+         */
+        getOptions : function(options) {
+            var defaults = {
+                onOpen : this.position,
+                keyboardInput : false
+            };
+            var o = $.extend(true, {}, $constants.CALENDAR_SETTINGS, defaults, options);
+            this.firstDay(o);
+            return o;
+        },
+
+        /**
+         * Sets locale of moment.js
+         */
+        setLocale : function() {
+            if (typeof $constants.LOCALE !== 'undefined' && moment) {
+                moment.locale($constants.LOCALE);
+            }
+        },
+
+        /**
+         * Uses user's locale to determine which day to use as first one of the
+         * week.
+         *
+         * @param {Object}
+         *            options The date picker options
+         */
+        firstDay : function(options) {
+            if (moment && options && options.firstDay === -1) {
+                options.firstDay = moment.localeData().firstDayOfWeek();
+            }
+        },
+
+        /**
+         * Position the date picker within the viewport and try to not block the
+         * input field.
+         */
+        position : function() {
+            if (!util.isInViewport(this.el)) {
+                 util.popoutCalendar(this.el);
+            }
+            else if (parseInt(this.el.style.top, 10) < 0) {
+                var $w = $(w);
+                var winInfo = {
+                    width : $w.width(),
+                    height : $w.height()
+                };
+                var calendarInfo = this.el.getClientRects()[0];
+                var inputInfo = this.config().field.getClientRects()[0];
+                var space = {
+                    right : winInfo.width - inputInfo.right,
+                    left : inputInfo.left
+                };
+
+                if (space.right >= calendarInfo.width) {
+                    this.el.style.left = inputInfo.right + 'px';
+                } else if (space.left >= calendarInfo.width) {
+                    this.el.style.left = inputInfo.left - calendarInfo.width + 'px';
+                }
+                this.el.style.top = Math.max(winInfo.height - calendarInfo.height, 0) + 'px';
+                }
+        },
+
+        popoutCalendar : function(element) {
+            var pageContentDiv = tvc.getTopWindow().document.getElementById("pageContentDiv");
+            if (pageContentDiv) {
+                $("div[class^='"+element.className+"']", pageContentDiv).remove();
+                pageContentDiv.insertBefore(element, pageContentDiv.firstElementChild)
+
+                element.style.top = pageContentDiv.style.top;
+                element.style.left = pageContentDiv.style.left;
+                element.style.position = "fixed";
+            }
+            element.style.zindex = ZINDEX;
+        },
+
+        isInViewport : function(element) {
+            var elt = element.getBoundingClientRect();
+
+            if (0 === elt.top &&
+                elt.top  === elt.left &&
+                elt.left === elt.bottom &&
+                elt.bottom === elt.right) {
+                return false;
+            }
+
+            return (
+                elt.top >= 0 &&
+                elt.left >= 0 &&
+                elt.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+                elt.right <= (window.innerWidth || document.documentElement.clientWidth)
+            );
+        }
+    };
+
+    var api = {
+        /**
+         * Shows the date picker.
+         */
+        show : function() {
+            this.pikaday.show();
+        },
+
+        /**
+         * Hides the date picker.
+         */
+        hide : function() {
+            this.pikaday.hide();
+        },
+
+        /**
+         * Clears the selected date.
+         */
+        clear : function() {
+            var calendar = this;
+            this.pikaday.setDate();
+            setTimeout(function() {
+                calendar.pikaday.hide();
+            }, 10);
+        },
+
+        /**
+         * Gets the selected date.
+         */
+        getDate : function() {
+            return this.pikaday.getDate();
+        },
+
+        /**
+         * Gets the pikaday instance. Is used to achieve more advanced use
+         * cases.
+         */
+        getPikaday : function() {
+            return this.pikaday;
+        },
+
+        /**
+         * Destroys the calender.
+         */
+        destroy : function() {
+            this.pikaday && this.pikaday.destroy();
+            if (this.field) {
+                this.field[DOM_PROP_NAME] = undefined;
+            }
+        }
+    };
+
+    Calendar.prototype = api;
+
+    /**
+     * Static method getting picker of a field. The calendar is lazily setup.
+     *
+     * @param {Object}
+     *            options The options for the calendar.
+     */
+    Calendar.getPicker = function(options) {
+        if (options.field[DOM_PROP_NAME]) {
+            return options.field[DOM_PROP_NAME];
+        } else {
+            return new Calendar(options);
+        }
+    };
+
+    /**
+     * Static method to pop out calendar; away from the field in focus.
+     *
+     * @param {Object}
+     *            element The field on which date is to be set.
+     */
+    Calendar.popout = function(element) {
+        util.popoutCalendar(element);
+    };
+
+    /**
+     * Static method to check if the calendar is in viewport area.
+     *
+     * @param {Object}
+     *            element The field on which date is to be set.
+     */
+    Calendar.isCalendarInViewport = function(element) {
+        return util.isInViewport(element);
+    };
+
+    return Calendar;
+});
