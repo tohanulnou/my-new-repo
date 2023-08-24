@@ -1,0 +1,92 @@
+function tvcOI() {
+    return true;
+}
+function tvcCallMXCheckout(e, objectId, action, fileName, format) {
+    _tvcFileManager('callMXCheckout', e, objectId, action, fileName, format);
+}
+function tvcCallMXViewer(e, viewerURL, objectId, format, fileName) {
+    _tvcFileManager('callMXViewer', e, viewerURL, objectId, format, fileName);
+}
+function tvcOIView(e, objectId, format, fileName, callback) {
+    _tvcFileManager('view', e, objectId, format, fileName, callback);
+}
+function tvcOIPreview(e, objectId, format, fileName, callback) {
+    _tvcFileManager('preview', e, objectId, format, fileName, callback);
+}
+function tvcOIDownload(e, objectId, format, fileName, callback) {
+    _tvcFileManager('download', e, objectId, format, fileName, callback);
+}
+function tvcOICheckout(e, objectId, format, fileName, callback) {
+    _tvcFileManager('checkout', e, objectId, format, fileName, callback);
+}
+function tvcOICheckin(e, objectId, format, fileName, tryFindExisting, callback) {
+    _tvcFileManager('checkin', e, objectId, format, fileName, tryFindExisting, callback);
+}
+function tvcOICheckinNew(e, objectId, callback) {
+    _tvcFileManager('checkinNew', e, objectId, callback);
+}
+function tvcOILock(e, objectId, objectIdOnRow, callback) {
+    _tvcFileManager('lock', e, objectId, objectIdOnRow, callback);
+}
+function tvcOIUnlock(e, objectId, objectIdOnRow, callback) {
+    _tvcFileManager('unlock', e, objectId, objectIdOnRow, callback);
+}
+function tvcOIDeleteFile(e, objectId, format, fileName, callback) {
+    _tvcFileManager('deleteFile', e, objectId, format, fileName, callback);
+}
+function tvcOIDeleteVersion(e, objectId, objectIdOnRow, callback) {
+    _tvcFileManager('deleteVersion', e, objectId, objectIdOnRow, callback);
+}
+function tvcOIFPDStart(id) {
+    _tvcFileManager('fpdStart', id);
+}
+function tvcOIFPDCancel(id) {
+    _tvcFileManager('fpdCancel', id);
+}
+function getOIFrame() {
+    return tvcGetFileManagerFrame();
+}
+function tvcReloadOIFrame() {
+    tvcGetFileManagerFrame().location.href = '../tvc-action/oi-initIntegration';
+}
+function tvcGetFileManagerFrame() {
+    var _contentWin = document.getElementById('tvcFileManagerFrame').contentWindow;
+    if (_contentWin && _contentWin.tvc.fileManager.api) {
+        var api = _contentWin.tvc.fileManager.api;
+        api.showFmExtensionAlertForFirefox(
+            FM_EXTENSION_FIREFOX_INSTALL_ALERT,
+            FM_EXTENSION_FIREFOX_URL,
+            IS_OFFICE_LICENSE_VALID
+        );
+    }
+    return _contentWin;
+}
+function _tvcFileManager(apiMethod) {
+    var f = tvcGetFileManagerFrame();
+    if (f && f.tvc.fileManager.api) {
+        var api = f.tvc.fileManager.api,
+            fn = api[apiMethod];
+        if (fn) {
+            return fn.apply(api, Array.prototype.slice.call(arguments, 1));
+        }
+    }
+    return undefined;
+}
+function _tvcFileManagerFrameResizer() {
+    // special hack to resize the frame after load
+    // Since on IE - the applet won't get loaded in
+    // frames with zero height and width.
+    var container = document.getElementById('tvcFileManagerFrameContainer'),
+        frameElement = document.getElementById('tvcFileManagerFrame');
+    if (container && frameElement) {
+        container.style.height = '0px';
+        container.style.width = '0px';
+        frameElement.height = 0;
+        frameElement.width = 0;
+    }
+}
+if (typeof window.addEventListener == 'function') {
+    window.addEventListener('load', _tvcFileManagerFrameResizer, false);
+} else if (typeof window.attachEvent != 'undefined') {
+    //window.attachEvent("onload", _resizeFrame);
+}
