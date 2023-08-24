@@ -1,0 +1,147 @@
+(function(window) {
+    if (!window.tvc) {
+        window.tvc = {};
+    }
+    if (!window.tvc.fileManager) {
+        window.tvc.fileManager = {};
+    }
+
+    var API;
+    var alertDelay = 0;
+    function callAPI(apiMethod) {
+        var api = API || tvc.fileManager.html5API;
+        if (api) {
+            var fn = api[apiMethod];
+            if (fn) {
+                return fn.apply(api, Array.prototype.slice.call(arguments, 1));
+            }
+        }
+        return undefined;
+    }
+
+    window.tvc.fileManager.api = {
+        isInstalled: function() {
+            return API != undefined;
+        },
+        install: function(api) {
+            API = api;
+        },
+        callMXCheckout: function(e, objectId, action, fileName, format) {
+            callAPI('callMXCheckout', e, objectId, action, fileName, format);
+        },
+        callMXViewer: function(e, viewerURL, objectId, format, fileName) {
+            callAPI('callMXViewer', e, viewerURL, objectId, format, fileName);
+        },
+        view: function(e, objectId, format, fileName, callback) {
+            callAPI('view', e, objectId, format, fileName, callback);
+        },
+        preview: function(e, objectId, format, fileName, callback) {
+            tvc.fileManager.html5.downloadFile(e, objectId, format, fileName, false, true);
+        },
+        download: function(e, objectId, format, fileName, callback) {
+            callAPI('download', e, objectId, format, fileName, callback);
+        },
+        checkout: function(e, objectId, format, fileName, callback) {
+            callAPI('checkout', e, objectId, format, fileName, callback);
+        },
+        checkin: function(
+            e,
+            objectId,
+            format,
+            fileName,
+            tryFindExisting,
+            callback,
+            isHETrueWidget
+        ) {
+            callAPI(
+                'checkin',
+                e,
+                objectId,
+                format,
+                fileName,
+                tryFindExisting,
+                callback,
+                isHETrueWidget
+            );
+        },
+        checkinFiles: function(e, objectId, formats, fileNames, allowUpdateExisting) {
+            callAPI('checkinFiles', e, objectId, formats, fileNames, allowUpdateExisting);
+        },
+        checkinNew: function(e, objectId, callback, isHETrueWidget) {
+            callAPI('checkinNew', e, objectId, callback, isHETrueWidget);
+        },
+        lock: function(e, objectId, objectIdOnRow, callback) {
+            callAPI('lock', e, objectId, objectIdOnRow, callback);
+        },
+        unlock: function(e, objectId, objectIdOnRow, callback) {
+            callAPI('unlock', e, objectId, objectIdOnRow, callback);
+        },
+        deleteFile: function(e, objectId, format, fileName, callback) {
+            callAPI('deleteFile', e, objectId, format, fileName, callback);
+        },
+        deleteVersion: function(e, objectId, objectIdOnRow, callback) {
+            callAPI('deleteVersion', e, objectId, objectIdOnRow, callback);
+        },
+        fpdStart: function (id) {
+            var windowParams = window.location.search;
+            var isHETrueWidget = windowParams && windowParams.indexOf('isHETrueWidget=true') > -1;
+            if (isHETrueWidget) {
+                parent.postMessage({
+                    subscriber: 'fmFPDStart',
+                    id: id
+                 }, '*');
+                 return;
+             }
+             if (!API && parent && parent.App) {
+                 parent.App.file.fpdStart(id);
+                 return;
+              }
+              callAPI('fpdStart', id);
+        },
+        fpdCancel: function(id) {
+            var windowParams = window.location.search;
+            var isHETrueWidget = windowParams && windowParams.indexOf('isHETrueWidget=true') > -1;
+            if (isHETrueWidget) {
+                parent.postMessage({
+                    subscriber: 'fmFPDCancel',
+                    id: id
+                }, '*');
+                return;
+             }
+             if (!API && parent && parent.App) {
+                 parent.App.file.fpdCancel(id);
+                 return;
+              }
+              callAPI('fpdCancel', id);
+        },
+        showWindow: function() {
+            callAPI('showWindow');
+        },
+        hideWindow: function() {
+            callAPI('hideWindow');
+        },
+        showFmExtensionAlertForFirefox: function(
+            fmExtensionFirefoxInstallEnabled,
+            popupUrl,
+            isOfficeLicenseValid
+        ) {
+            var decodedCookie = decodeURIComponent(document.cookie);
+            var isFmFirefoxExtensionNotRequired;
+            if (decodedCookie && decodedCookie.indexOf('isFmFirefoxExtensionRequired=No') > -1) {
+                isFmFirefoxExtensionNotRequired = true;
+            }
+            if (
+                isOfficeLicenseValid &&
+                fmExtensionFirefoxInstallEnabled &&
+                !isFmFirefoxExtensionNotRequired &&
+                !API &&
+                $.browser.mozilla
+            ) {
+                alertDelay = 3000;
+                tvc.popup(popupUrl, 500, 300, true);
+            } else {
+                alertDelay = 0;
+            }
+        }
+    };
+})(window);
