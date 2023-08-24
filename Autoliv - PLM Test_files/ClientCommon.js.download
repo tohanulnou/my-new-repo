@@ -1,0 +1,407 @@
+(function(window, fileManagerService, i18n) {
+    if (!window.tvc) {
+        window.tvc = {};
+    }
+    if (!window.tvc.fileManager) {
+        window.tvc.fileManager = {};
+    }
+
+    function getWindowInfoForEvent(event, callback) {
+        if (!event) var event = window.event;
+        var target = event.target ? event.target : event.srcElement,
+            win = null;
+        if (target != null && target.ownerDocument != null) {
+            if (target.ownerDocument.defaultView != null) {
+                win = target.ownerDocument.defaultView;
+            } else if (target.ownerDocument.parentWindow != null) {
+                win = target.ownerDocument.parentWindow;
+            }
+        } else {
+            win = event.view;
+        }
+        var tableBeanName = null;
+        if (win.parent && win.parent.getTableBeanName) {
+            tableBeanName = win.parent.getTableBeanName();
+        }
+        if (win.name.indexOf('tvcInlineFrame_') == 0) {
+            tableBeanName = null;
+        }
+        return {
+            window: win,
+            target: target,
+            tableBeanName: tableBeanName,
+            callback: callback
+        };
+    }
+
+    function getParentWindow(w) {
+        return w.parent ? w.parent : w.top;
+    }
+
+    function isSpecialWindow(w) {
+        return (
+            ['APPFileSummary', 'APPFileVersions', 'APPNonVersionableFileSummary'].find(function(
+                name
+            ) {
+                return w.document.getElementById(name) != null;
+            }) != undefined
+        );
+    }
+
+    function findFrame(f, name) {
+        if (f) {
+            if (f.name == name) {
+                return f;
+            }
+            if (f.frames) {
+                for (var i = 0; i < f.frames.length; i++) {
+                    var found = findFrame(f.frames[i], name);
+                    if (found != null) {
+                        return found;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    function handleException(s, e) {
+        console.log(s, e);
+        // alert(s + ": " + e.message);
+    }
+
+    function getUpdateCallback(windowInfo) {
+        var win = windowInfo.window,
+            wdoc = win.document,
+            target = windowInfo.target,
+            callback = windowInfo.callback;
+
+        return function(ret, success) {
+            if (callback) {
+                return callback(ret, success);
+            } else if (success) {
+                if (ret) {
+                    if (win.ur) {
+                        var n = target,
+                            table = wdoc.getElementById('contentTable');
+                        if (table != null) {
+                            while (n.parentNode.parentNode != table) {
+                                n = n.parentNode;
+                            }
+                        } else {
+                            var t1 = wdoc.getElementById('tbl'),
+                                t2 = wdoc.getElementById('tbr');
+                            while (n != null) {
+                                if (
+                                    n.parentNode.parentNode == t1 ||
+                                    n.parentNode.parentNode == t2
+                                ) {
+                                    break;
+                                }
+                                n = n.parentNode;
+                            }
+                        }
+                        win.ur(n.id.substring(1));
+                    } else if (win.tvcReloadPage) {
+                        win.tvcReloadPage();
+                    } else if (win.parent && win.parent.tvcReloadPage) {
+                        win.parent.tvcReloadPage();
+                    } else {
+                        win.parent.location.href = win.parent.location.href;
+                    }
+                } else {
+                    if (isSpecialWindow(win) && win.parent) {
+                        win.parent.location.href = win.parent.location.href;
+                    } else {
+                        win.location.href = win.location.href;
+                    }
+                }
+            } else {
+                win.alert(ret.message);
+            }
+        };
+    }
+
+    tvc.fileManager.services = {
+        unsupportedPlatform: function() {
+            window.location.href = '../tvc-action/oi-changeStatus?enabled=false&silent=true';
+        },
+
+        lockOrUnlock: function(event, objectId, objectIdOnRow, lock, callback) {
+            var windowInfo = getWindowInfoForEvent(event, callback);
+            var fn = lock ? fileManagerService.lock : fileManagerService.unlock;
+            fn(
+                windowInfo.tableBeanName,
+                [objectId],
+                objectIdOnRow ? objectIdOnRow : objectId,
+                getUpdateCallback(windowInfo)
+            );
+        },
+
+        deleteFile: function(e, objectId, sFormat, sFileName, callback) {
+            var windowInfo = getWindowInfoForEvent(e, callback),
+                msg = i18n('tvc.office.label.confirmDeleteFile');
+            if (windowInfo.window.confirm(msg)) {
+                fileManagerService.deleteFile(
+                    windowInfo.tableBeanName,
+                    objectId,
+                    sFormat,
+                    sFileName,
+                    getUpdateCallback(windowInfo)
+                );
+                windowInfo.window.focus();
+            }
+        },
+
+        deleteVersion: function(e, objectId, objectIdOnRow, callback) {
+            var windowInfo = getWindowInfoForEvent(e, callback),
+                msg = i18n('tvc.office.label.confirmDeleteVersion');
+            if (windowInfo.window.confirm(msg)) {
+                fileManagerService.deleteVersion(
+                    windowInfo.tableBeanName,
+                    [objectId],
+                    objectIdOnRow ? objectIdOnRow : objectId,
+                    getUpdateCallback(windowInfo)
+                );
+                windowInfo.window.focus();
+            }
+        },
+
+        showInBrowser: function(sURL) {
+            tvc.popup(sURL, 800, 600, false);
+        }
+    };
+
+    function getWindowForEvent(event, isHETrueWidget) {
+        if (isHETrueWidget) {
+            return event;
+        }
+        if (!event) var event = window.event;
+        if (!event) {
+            return undefined;
+        }
+        var win = null;
+        if (event.view) {
+            win = event.view;
+        } else {
+            var target = event.target ? event.target : event.srcElement;
+            win = target.ownerDocument.parentWindow;
+        }
+        try {
+            if (win.name.indexOf('tvcInlineFrame_') == 0) {
+                return win; // .parent.frames["tableContentFrame"];
+            }
+        } catch (E) {}
+        if (!win.getTableBeanName && win.parent && win.parent.getTableBeanName) {
+            win = win.parent;
+        }
+        return win;
+    }
+
+    tvc.fileManager.listeners = {
+        _listeners: new Array(),
+
+        register: function(event, objectId, callback, isHETrueWidget) {
+            /*
+             * Tidy the list of registered listeners...
+             */
+            this._cleanUp();
+
+            var targetWindow = getWindowForEvent(event, isHETrueWidget);
+            if (targetWindow == undefined) {
+                return;
+            }
+
+            /*
+             * Check if we already have an object listener for the current object id. If
+             * so, just register the window to that object listener.
+             */
+            for (var i = 0; i < this._listeners.length; i++) {
+                if (this._listeners[i].objectId == objectId) {
+                    return this._listeners[i].registerWindow(
+                        targetWindow,
+                        callback,
+                        isHETrueWidget
+                    );
+                }
+            }
+            /*
+             * ok, we need to create a new object listener. do so and add it to our
+             * internal list of listeners.
+             */
+            var listener = new ObjectListener();
+            this._listeners.push(listener);
+            listener.objectId = objectId;
+            return listener.registerWindow(targetWindow, callback, isHETrueWidget);
+        },
+
+        entryChanged: function(objectId, sEvent) {
+            for (var i = 0; i < this._listeners.length; i++) {
+                if (this._listeners[i].objectId == objectId) {
+                    this._listeners[i].entryChanged(sEvent);
+                }
+            }
+        },
+
+        _debug: function() {
+            var s = '';
+            for (var i = 0; i < this._listeners.length; i++) {
+                s += '\n' + this._listeners[i].toString();
+            }
+            return s;
+        },
+
+        _cleanUp: function() {
+            if (this._listeners.length > 0) {
+                try {
+                    for (var i = 0; i < this._listeners.length; i++) {
+                        this._listeners[i].trim();
+                    }
+                    var len = this._listeners.length;
+                    for (var i = 0; i < len; i++) {
+                        if (this._listeners[i].windowHandlers.length == 0) {
+                            this._listeners.splice(i, 1);
+                            len--;
+                            i--;
+                        }
+                    }
+                } catch (E) {
+                    handleException('_cleanUp()', E);
+                }
+            }
+        }
+    };
+
+    var ObjectListener = function() {
+        this.objectId = null;
+        this.windowHandlers = new Array();
+    };
+
+    ObjectListener.prototype.entryChanged = function(sEvent) {
+        for (var j = 0; j < this.windowHandlers.length; j++) {
+            this.windowHandlers[j].entryChanged(sEvent);
+        }
+    };
+
+    ObjectListener.prototype.trim = function() {
+        var arr = this.windowHandlers;
+        var len = arr.length;
+        for (var j = 0; j < len; j++) {
+            var wh = arr[j];
+            if (wh.counter <= 0 || !wh.isValid()) {
+                arr.splice(j, 1);
+                len--;
+                j--;
+            }
+        }
+    };
+
+    ObjectListener.prototype.registerWindow = function(oWindow, callback, isHETrueWidget) {
+        for (var j = 0; j < this.windowHandlers.length; j++) {
+            var wh = this.windowHandlers[j];
+            try {
+                if (wh.isRegisteredFor(oWindow, callback)) {
+                    wh.counter++;
+                    return wh;
+                }
+            } catch (E) {
+                handleException('ObjectListener.registerWindow()', E);
+            }
+        }
+        var wh = new WindowHandler(oWindow, callback, isHETrueWidget);
+        this.windowHandlers.push(wh);
+        return wh;
+    };
+
+    ObjectListener.prototype.toString = function() {
+        var s = '--> Listener for: ' + this.objectId;
+        for (var i = 0; i < this.windowHandlers.length; i++) {
+            s += '\n' + this.windowHandlers[i].toString();
+        }
+        return s;
+    };
+
+    WindowHandler = function(oWindow, callback, isHETrueWidget) {
+        this.counter = 1;
+        this.targetWindowName = isHETrueWidget ? '' : oWindow.name;
+        this.parentWindow = getParentWindow(oWindow);
+        this.callback = callback;
+    };
+
+    WindowHandler.prototype.getTargetWindow = function() {
+        if (this.isValid()) {
+            return findFrame(this.parentWindow, this.targetWindowName);
+        }
+        return null;
+    };
+
+    WindowHandler.prototype.isValid = function() {
+        try {
+            if (
+                this.parentWindow != null &&
+                !this.parentWindow.closed &&
+                this.parentWindow.name != null
+            ) {
+                return true;
+            }
+        } catch (E) {
+            // ignore this
+        }
+        return false;
+    };
+
+    WindowHandler.prototype.isRegisteredFor = function(oWindow, callback) {
+        if (
+            this.targetWindowName == oWindow.name &&
+            this.parentWindow == getParentWindow(oWindow) &&
+            this.callback == callback
+        ) {
+            return true;
+        }
+        return false;
+    };
+
+    WindowHandler.prototype.entryChanged = function(sEvent) {
+        try {
+            var c = this.counter;
+            this.counter--;
+            if (this.callback) {
+                this.callback(sEvent, true);
+            } else if (c == 1 || (c == 0 && sEvent == 'upload_complete')) {
+                var w = this.getTargetWindow();
+                if (w && !w.closed) {
+                    if (w.tvcReloadTableContent) {
+                        w.tvcReloadTableContent();
+                    } else {
+                        var win =
+                            isSpecialWindow(w) || !this.targetWindowName ? this.parentWindow : w;
+                        win.location.reload();
+                    }
+                }
+            }
+        } catch (E) {
+            handleException('WindowHandler.entryChanged()', E);
+        }
+    };
+
+    WindowHandler.prototype.toString = function() {
+        var w = this.targetWindow;
+        var s = '';
+        try {
+            s += '\n  Window: ' + this.targetWindowName;
+        } catch (E) {}
+        try {
+            s += '\n  Parent: ' + this.parentWindow.name;
+        } catch (E) {}
+        try {
+            s += '\n  Counter: ' + this.counter;
+        } catch (E) {}
+        try {
+            s += '\n  Is Valid: ' + this.isValid();
+        } catch (E) {}
+        try {
+            s += '\n  Target Window: ' + this.getTargetWindow();
+        } catch (E) {}
+        return s;
+    };
+})(window, office, i18n);
