@@ -1,0 +1,56 @@
+var bc = {
+
+    'reload': function () {
+        alvBreadCrumbService.get(function (data) {
+            var $wrapper = bc.getBreadcrumb();
+            $wrapper.empty();
+            for (var i = 0; i < data.length; i++) {
+                bc.renderBreadcrumb(data[i], $wrapper);
+            }
+        });
+    },
+
+    'renderBreadcrumb': function (breadcrumb, $container) {
+        var html = breadcrumb.active ? '<li class="active">' : '<li>';
+        var onclick = "bc.navigate('" + breadcrumb.oid + "')";
+        if (breadcrumb.icon) {
+            html += '<i class="' + breadcrumb.icon + '" onclick="' +onclick + '" title="' + breadcrumb.displayName.substring(1) + '"/>';
+        }
+        else{
+            html += '<a title="' + breadcrumb.tooltip + '" href="javascript:void(0);" onclick="' + onclick + '">' + breadcrumb.displayName.substring(1) + '</a>';
+        }
+        html += '</li>'
+        $container.append(html);
+    },
+
+    'navigate': function (oid) {
+        alvBreadCrumbService.getObjectUrl(oid, function (result) {
+            if(result.data) {
+                if (oid) {
+                    $("#content").attr('src', result.data);
+                } else {
+                    bc.reload();
+                    $("#content").attr('src', result.data);
+                }
+            } else {
+                bc.reload();
+            }
+        });
+    },
+
+    'getBreadcrumb': function () {
+        var $bcWrapper = $('#alv-breadcrumb-wrapper');
+        if (!$bcWrapper.length) {
+            $bcWrapper = $('<div id="alv-breadcrumb-wrapper"><ol id="alv-breadcrumb" class="breadcrumb"></ol></div>');
+            $bcWrapper.insertAfter('#pageHeadDiv');
+        }
+        return $('#alv-breadcrumb', $bcWrapper);
+    }
+};
+
+
+jQuery(document).ready(function () {
+    $("#content").load(function () {
+        bc.reload();
+    });
+});
