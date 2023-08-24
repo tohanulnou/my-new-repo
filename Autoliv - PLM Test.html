@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<!-- saved from url=(0074)https://plmtest.autoliv.int:12090/enovia/common/emxNavigator.jsp?sso=false -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <script type="text/javascript" src="./Autoliv - PLM Test_files/jquery-latest.js.download"></script>
+    <script src="./Autoliv - PLM Test_files/emxUICore.js.download" type="text/javascript"></script>
+    <script src="./Autoliv - PLM Test_files/emxClientSideInfo.js.download" type="text/javascript"></script>
+
+
+                
+
+
+
+				   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script language="javascript" src="./Autoliv - PLM Test_files/emxUIModal.js.download"></script>
+<script language="Javascript">  
+
+</script>
+
+
+
+
+<script language="JavaScript">
+
+    var DisplayErrorMsg = "";
+
+</script>
+
+
+
+    
+
+
+<script>
+var isMobile = false;
+const e = document.createElement("script");
+e.async = !0, e.src = "//helpapp.alv.autoliv.int/wire.js", document.head.append(e);
+</script><script async="" src="./Autoliv - PLM Test_files/wire.js.download"></script>
+
+
+
+
+
+<script>
+var enablePageHistory = "false";
+</script>
+
+
+
+<link rel="shortcut icon" href="https://plmtest.autoliv.int:12090/enovia/favicon.ico" type="image/x-icon">
+ <title>Autoliv - PLM Test</title>
+ 
+
+<script language="JavaScript" type="text/javascript">
+function getTopAccessFrame() {
+    var oTop = this;
+    while(oTop && oTop.parent != oTop && oTop.name != "mxPortletContent" ){
+        try{
+            var doc = oTop.parent.test = "temp";
+        }catch(e){
+            break;
+        }
+
+        oTop = oTop.parent;
+    }
+    
+    try{
+    	while(oTop.name != "mxPortletContent" && oTop.opener && oTop.opener.top){
+    		var docOpenerTop = oTop.opener.top.test = "temp";
+        	oTop = oTop.opener.top
+    	}
+	}catch(e){
+	
+	}
+	    
+    return oTop;
+}
+
+var topAccessFrame = getTopAccessFrame();
+if(typeof topAccessFrame.emxUIConstants != "object"){
+    document.write("<scri" + "pt language=\"JavaScript\" type=\"text/javascript\" src=\"../common/emxUIConstantsJavaScriptInclude.jsp\"></scr" + "ipt>");
+    //alert(location.href);
+}else{
+    var emxUIConstants = topAccessFrame.emxUIConstants;
+}
+
+</script><script language="JavaScript" type="text/javascript" src="./Autoliv - PLM Test_files/emxUIConstantsJavaScriptInclude.jsp"></script>
+<script language="javascript" src="./Autoliv - PLM Test_files/emxUIConstants.js.download"></script>
+<script language="javascript" src="./Autoliv - PLM Test_files/emxUICore.js.download"></script>
+<script type="text/javascript" src="./Autoliv - PLM Test_files/emxUICoreMenu.js.download"></script>
+<script language="javascript" src="./Autoliv - PLM Test_files/jquery-latest.js.download"></script>
+<script language="javascript" src="./Autoliv - PLM Test_files/dsTouchEvents.js.download"></script>
+<script language="javascript">
+  addStyleSheet('emxUICalendar');
+</script><link rel="stylesheet" type="text/css" href="./Autoliv - PLM Test_files/emxUICalendar.css">
+
+
+        <script src="./Autoliv - PLM Test_files/emxUIModal.js.download" type="text/javascript"></script>
+        <script type="text/javascript" language="javascript">
+        function redirectTheParent()
+        {
+            if(isIE)
+            {
+                setTimeout(function(){
+                document.location.href="../emxLoginDisplay.jsp";
+                var myWindow = showAndGetNonModalDialog("emxNavigator.jsp?sso=false",1100,700,true);
+                myWindow.opener = null;
+                myWindow.top.moveTo(-4,-4);
+                myWindow.top.resizeTo(screen.availWidth+6,screen.availHeight+6);
+                }, 1500);
+            } else {
+                var myWindow = showAndGetNonModalDialog("emxNavigator.jsp?sso=false",1100,700,true);
+                    myWindow.opener = null;
+                    document.location.href="../emxLoginDisplay.jsp";
+            }
+        }
+
+
+       
+     window.onerror = function(msg,url,lno) { if (msg.indexOf('Permission denied') >= 0) { return true; } else { return false; } }
+
+
+        addStyleSheet("emxUIDefault");
+        addStyleSheet("emxUINavigator");
+        addStyleSheet("emxUIMenu");
+		addStyleSheet("jquery-ui");
+        // Javascript Object/variable to hold all the Child windows reference.
+        if (!top.childWindows) {
+            top.childWindows = new Array;
+        }
+    </script><link rel="stylesheet" type="text/css" href="./Autoliv - PLM Test_files/emxUIDefault.css"><link rel="stylesheet" type="text/css" href="./Autoliv - PLM Test_files/emxUINavigator.css"><link rel="stylesheet" type="text/css" href="./Autoliv - PLM Test_files/emxUIMenu.css"><link rel="stylesheet" type="text/css" href="./Autoliv - PLM Test_files/jquery-ui.css">
+
+ <script src="./Autoliv - PLM Test_files/emxUICoreTree.js.download" type="text/javascript"></script>
+ <script src="./Autoliv - PLM Test_files/emxUIUtility.js.download" type="text/javascript"></script>
+ <script src="./Autoliv - PLM Test_files/emxUIPopups.js.download" type="text/javascript"></script>
+    <script type="text/javascript" src="./Autoliv - PLM Test_files/emxUIToolbar.js.download"></script>
+ <script src="./Autoliv - PLM Test_files/emxUINavigator.js.download" type="text/javascript"></script>
+ <script src="./Autoliv - PLM Test_files/emxUIHistoryTree.js.download" type="text/javascript"></script>
+ <script src="./Autoliv - PLM Test_files/emxUIStructureTree.js.download" type="text/javascript"></script>
+ <script src="./Autoliv - PLM Test_files/emxUIDetailsTree.js.download" type="text/javascript"></script>
+ <script src="./Autoliv - PLM Test_files/emxUITreeUtil.js.download" type="text/javascript"></script>
+ <script src="./Autoliv - PLM Test_files/emxUISearch.js.download" type="text/javascript"></script>
+ <script src="./Autoliv - PLM Test_files/emxUIMetrics.js.download" type="text/javascript"></script>
+    <script type="text/javascript" src="./Autoliv - PLM Test_files/emxUISlideIn.js.download"></script>
+ <script src="./Autoliv - PLM Test_files/emxUICalendar.js.download" type="text/javascript"></script>
+ <script type="text/javascript" src="./Autoliv - PLM Test_files/jquery-latest.js.download"></script>
+ <script type="text/javascript" src="./Autoliv - PLM Test_files/jquery-ui.custom.js.download"></script>
+ <script type="text/javascript" src="./Autoliv - PLM Test_files/jquery-autocomplete.js.download"></script>
+ <script type="text/javascript">
+
+  var objDetailsTree = new emxUIDetailsTree;
+  var objStructureTree = new emxUIStructureTree;
+
+  function initStructureTree(){
+      objStructureTree = new emxUIStructureTree;
+      objDetailsTree = objStructureTree;
+      return objStructureTree ;
+  }
+
+  function initLegacyStructureTree(){
+        objStructureTree = new emxUIStructureTree;
+        objDetailsTree = new emxUIDetailsTree;
+        return objStructureTree ;
+    }
+
+
+ emxUINavigator.setLayout(emxUINavigator.LAYOUT_SHRUNK);
+ var contentURL =  "null";
+ if(contentURL != null && contentURL != "null" && contentURL != ""){
+	 emxUINavigator.setContent("emxNavigatorContentLoad.jsp");
+  }else{
+ emxUINavigator.setContent("emxNavigatorContentLoad.jsp?sso=false");
+	}
+
+
+
+ //emxUINavigator.toolbar.historyEnabled = true;
+</script>
+ <script type="text/javascript">
+ var pctoppos = "64px";
+ function initializeSlideIns(){
+   var pcdtop = "64px";
+   var phd = document.getElementById("pageHeadDiv");
+   var bc = document.getElementById("breadcrumbs");
+
+   pcdtop = phd.offsetHeight;
+	if(pcdtop <= 0){
+		pcdtop = phd.clientHeight;
+	}
+
+	if(!isMobile){
+		var bcheight = bc.offsetHeight;
+		if(bcheight <= 0){
+			bcheight = bc.clientHeight;
+		}
+		pcdtop += bcheight;
+	}
+
+  	if(isIE){
+  		// padding-bottom 3px is not being calculated for the height of the pageheaddiv
+  		// for a quickfix adding that to the total height of the phd
+  		pcdtop += 3;
+	}
+  pctoppos = pcdtop + "px";
+  document.getElementById("pageContentDiv").style.top = pcdtop + "px";
+ }
+ </script>
+<script src="./Autoliv - PLM Test_files/emxNavigatorToolbar.jsp" type="text/javascript"></script>
+ <!-- <script src="scripts/emxUIHistoryController.js" type="text/javascript"></script>  -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script language="javascript" src="./Autoliv - PLM Test_files/emxUIModal.js.download"></script>
+<script language="Javascript">  
+
+</script>
+
+
+
+
+<script language="JavaScript">
+
+    var DisplayErrorMsg = "";
+
+</script>
+
+
+
+ <style>
+    /* the following styles are inline in this HTML example, but should be moved to JS functions for the release app */
+    div.mmenu {
+        top: 35px;
+        left: 20px;
+    }
+
+    div.breadcrumbs ul {
+        right:15px;
+    }
+ </style>
+
+
+<style>
+    div.breadcrumbs {
+        display: none;
+        visibility: hidden;
+    }
+
+    div#pageContentDiv {
+        top: 47px;
+    }
+</style>
+
+    <style>
+        /*Cookie Consent Begin*/
+        #cookieConsent {
+            background-color: #009ee3;
+            min-height: 26px;
+            font-size: 14px;
+            color:#FFFFFF;
+            line-height: 26px;
+            padding: 8px 0 8px 30px;
+            font-family: Verdana, Helvetica, Arial, Sans-Serif;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            display: none;
+            z-index: 9999;
+            text-align: center;
+        }
+
+        #cookieConsent a {
+            color: #FFFFFF;
+            
+        }
+
+        #cookieConsent a.cookieConsentOK {
+            background-color: #17e00b;
+            color: #FFFFFF;
+            display: inline-block;
+            border-radius: 5px;
+            padding: 0 20px;
+            cursor: pointer;
+            float: none;
+            margin: 0 60px 0 10px;
+            text-decoration: none;
+        }
+
+        #cookieConsent a.cookieConsentOK:hover {
+            background-color: #17e00b;
+        }
+        /*Cookie Consent End*/
+    </style>
+
+    <script type="text/javascript">
+        $(document).ready(function () {            
+            if (localStorage.getItem('cookieState') == null) {
+                setTimeout(function () {
+                    $("#cookieConsent").fadeIn(200);
+            
+                }, 4000);
+               
+            }
+            $(window).onbeforeunload(function () {
+                $(window).onunload(function () {
+                    window.localStorage.cookieState = null;
+                });
+
+                $(window).onload(function () {
+                    window.localStorage.cookieState = '';
+                });
+
+            });
+           
+           
+              
+            
+        });  
+        function acceptCookies() {
+            $("#cookieConsent").fadeOut(100);
+            localStorage.setItem('cookieState', 'true');
+        }
+    </script>
+<style>.Toastify__toast-container{z-index:9999;-webkit-transform:translateZ(9999px);position:fixed;padding:4px;width:320px;box-sizing:border-box;color:#fff}.Toastify__toast-container--top-left{top:1em;left:1em}.Toastify__toast-container--top-center{top:1em;left:50%;transform:translateX(-50%)}.Toastify__toast-container--top-right{top:1em;right:1em}.Toastify__toast-container--bottom-left{bottom:1em;left:1em}.Toastify__toast-container--bottom-center{bottom:1em;left:50%;transform:translateX(-50%)}.Toastify__toast-container--bottom-right{bottom:1em;right:1em}@media only screen and (max-width:480px){.Toastify__toast-container{width:100vw;padding:0;left:0;margin:0}.Toastify__toast-container--top-center,.Toastify__toast-container--top-left,.Toastify__toast-container--top-right{top:0;transform:translateX(0)}.Toastify__toast-container--bottom-center,.Toastify__toast-container--bottom-left,.Toastify__toast-container--bottom-right{bottom:0;transform:translateX(0)}.Toastify__toast-container--rtl{right:0;left:auto}}.Toastify__toast{position:relative;min-height:64px;box-sizing:border-box;margin-bottom:1rem;padding:8px;border-radius:1px;box-shadow:0 1px 10px 0 rgba(0,0,0,.1),0 2px 15px 0 rgba(0,0,0,.05);display:-ms-flexbox;display:flex;-ms-flex-pack:justify;justify-content:space-between;max-height:800px;overflow:hidden;font-family:sans-serif;cursor:pointer;direction:ltr}.Toastify__toast--rtl{direction:rtl}.Toastify__toast--dark{background:#121212;color:#fff}.Toastify__toast--default{background:#fff;color:#aaa}.Toastify__toast--info{background:#3498db}.Toastify__toast--success{background:#07bc0c}.Toastify__toast--warning{background:#f1c40f}.Toastify__toast--error{background:#e74c3c}.Toastify__toast-body{margin:auto 0;-ms-flex:1 1 auto;flex:1 1 auto}@media only screen and (max-width:480px){.Toastify__toast{margin-bottom:0}}.Toastify__close-button{color:#fff;background:transparent;outline:none;border:none;padding:0;cursor:pointer;opacity:.7;transition:.3s ease;-ms-flex-item-align:start;align-self:flex-start}.Toastify__close-button--default{color:#000;opacity:.3}.Toastify__close-button>svg{fill:currentColor;height:16px;width:14px}.Toastify__close-button:focus,.Toastify__close-button:hover{opacity:1}@keyframes Toastify__trackProgress{0%{transform:scaleX(1)}to{transform:scaleX(0)}}.Toastify__progress-bar{position:absolute;bottom:0;left:0;width:100%;height:5px;z-index:9999;opacity:.7;background-color:hsla(0,0%,100%,.7);transform-origin:left}.Toastify__progress-bar--animated{animation:Toastify__trackProgress linear 1 forwards}.Toastify__progress-bar--controlled{transition:transform .2s}.Toastify__progress-bar--rtl{right:0;left:auto;transform-origin:right}.Toastify__progress-bar--default{background:linear-gradient(90deg,#4cd964,#5ac8fa,#007aff,#34aadc,#5856d6,#ff2d55)}.Toastify__progress-bar--dark{background:#bb86fc}@keyframes Toastify__bounceInRight{0%,60%,75%,90%,to{animation-timing-function:cubic-bezier(.215,.61,.355,1)}0%{opacity:0;transform:translate3d(3000px,0,0)}60%{opacity:1;transform:translate3d(-25px,0,0)}75%{transform:translate3d(10px,0,0)}90%{transform:translate3d(-5px,0,0)}to{transform:none}}@keyframes Toastify__bounceOutRight{20%{opacity:1;transform:translate3d(-20px,0,0)}to{opacity:0;transform:translate3d(2000px,0,0)}}@keyframes Toastify__bounceInLeft{0%,60%,75%,90%,to{animation-timing-function:cubic-bezier(.215,.61,.355,1)}0%{opacity:0;transform:translate3d(-3000px,0,0)}60%{opacity:1;transform:translate3d(25px,0,0)}75%{transform:translate3d(-10px,0,0)}90%{transform:translate3d(5px,0,0)}to{transform:none}}@keyframes Toastify__bounceOutLeft{20%{opacity:1;transform:translate3d(20px,0,0)}to{opacity:0;transform:translate3d(-2000px,0,0)}}@keyframes Toastify__bounceInUp{0%,60%,75%,90%,to{animation-timing-function:cubic-bezier(.215,.61,.355,1)}0%{opacity:0;transform:translate3d(0,3000px,0)}60%{opacity:1;transform:translate3d(0,-20px,0)}75%{transform:translate3d(0,10px,0)}90%{transform:translate3d(0,-5px,0)}to{transform:translateZ(0)}}@keyframes Toastify__bounceOutUp{20%{transform:translate3d(0,-10px,0)}40%,45%{opacity:1;transform:translate3d(0,20px,0)}to{opacity:0;transform:translate3d(0,-2000px,0)}}@keyframes Toastify__bounceInDown{0%,60%,75%,90%,to{animation-timing-function:cubic-bezier(.215,.61,.355,1)}0%{opacity:0;transform:translate3d(0,-3000px,0)}60%{opacity:1;transform:translate3d(0,25px,0)}75%{transform:translate3d(0,-10px,0)}90%{transform:translate3d(0,5px,0)}to{transform:none}}@keyframes Toastify__bounceOutDown{20%{transform:translate3d(0,10px,0)}40%,45%{opacity:1;transform:translate3d(0,-20px,0)}to{opacity:0;transform:translate3d(0,2000px,0)}}.Toastify__bounce-enter--bottom-left,.Toastify__bounce-enter--top-left{animation-name:Toastify__bounceInLeft}.Toastify__bounce-enter--bottom-right,.Toastify__bounce-enter--top-right{animation-name:Toastify__bounceInRight}.Toastify__bounce-enter--top-center{animation-name:Toastify__bounceInDown}.Toastify__bounce-enter--bottom-center{animation-name:Toastify__bounceInUp}.Toastify__bounce-exit--bottom-left,.Toastify__bounce-exit--top-left{animation-name:Toastify__bounceOutLeft}.Toastify__bounce-exit--bottom-right,.Toastify__bounce-exit--top-right{animation-name:Toastify__bounceOutRight}.Toastify__bounce-exit--top-center{animation-name:Toastify__bounceOutUp}.Toastify__bounce-exit--bottom-center{animation-name:Toastify__bounceOutDown}@keyframes Toastify__zoomIn{0%{opacity:0;transform:scale3d(.3,.3,.3)}50%{opacity:1}}@keyframes Toastify__zoomOut{0%{opacity:1}50%{opacity:0;transform:scale3d(.3,.3,.3)}to{opacity:0}}.Toastify__zoom-enter{animation-name:Toastify__zoomIn}.Toastify__zoom-exit{animation-name:Toastify__zoomOut}@keyframes Toastify__flipIn{0%{transform:perspective(400px) rotateX(90deg);animation-timing-function:ease-in;opacity:0}40%{transform:perspective(400px) rotateX(-20deg);animation-timing-function:ease-in}60%{transform:perspective(400px) rotateX(10deg);opacity:1}80%{transform:perspective(400px) rotateX(-5deg)}to{transform:perspective(400px)}}@keyframes Toastify__flipOut{0%{transform:perspective(400px)}30%{transform:perspective(400px) rotateX(-20deg);opacity:1}to{transform:perspective(400px) rotateX(90deg);opacity:0}}.Toastify__flip-enter{animation-name:Toastify__flipIn}.Toastify__flip-exit{animation-name:Toastify__flipOut}@keyframes Toastify__slideInRight{0%{transform:translate3d(110%,0,0);visibility:visible}to{transform:translateZ(0)}}@keyframes Toastify__slideInLeft{0%{transform:translate3d(-110%,0,0);visibility:visible}to{transform:translateZ(0)}}@keyframes Toastify__slideInUp{0%{transform:translate3d(0,110%,0);visibility:visible}to{transform:translateZ(0)}}@keyframes Toastify__slideInDown{0%{transform:translate3d(0,-110%,0);visibility:visible}to{transform:translateZ(0)}}@keyframes Toastify__slideOutRight{0%{transform:translateZ(0)}to{visibility:hidden;transform:translate3d(110%,0,0)}}@keyframes Toastify__slideOutLeft{0%{transform:translateZ(0)}to{visibility:hidden;transform:translate3d(-110%,0,0)}}@keyframes Toastify__slideOutDown{0%{transform:translateZ(0)}to{visibility:hidden;transform:translate3d(0,500px,0)}}@keyframes Toastify__slideOutUp{0%{transform:translateZ(0)}to{visibility:hidden;transform:translate3d(0,-500px,0)}}.Toastify__slide-enter--bottom-left,.Toastify__slide-enter--top-left{animation-name:Toastify__slideInLeft}.Toastify__slide-enter--bottom-right,.Toastify__slide-enter--top-right{animation-name:Toastify__slideInRight}.Toastify__slide-enter--top-center{animation-name:Toastify__slideInDown}.Toastify__slide-enter--bottom-center{animation-name:Toastify__slideInUp}.Toastify__slide-exit--bottom-left,.Toastify__slide-exit--top-left{animation-name:Toastify__slideOutLeft}.Toastify__slide-exit--bottom-right,.Toastify__slide-exit--top-right{animation-name:Toastify__slideOutRight}.Toastify__slide-exit--top-center{animation-name:Toastify__slideOutUp}.Toastify__slide-exit--bottom-center{animation-name:Toastify__slideOutDown}</style><style>/* open-sans-300normal - latin */
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 300;
+  src:
+    local('Open Sans Light '),
+    local('Open Sans-Light'),
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-300.woff2) format('woff2'), 
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-300.woff) format('woff'); /* Modern Browsers */
+}
+
+/* open-sans-300italic - latin */
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 300;
+  src:
+    local('Open Sans Light italic'),
+    local('Open Sans-Lightitalic'),
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-300italic.woff2) format('woff2'), 
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-300italic.woff) format('woff'); /* Modern Browsers */
+}
+
+/* open-sans-400normal - latin */
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src:
+    local('Open Sans Regular '),
+    local('Open Sans-Regular'),
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-400.woff2) format('woff2'), 
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-400.woff) format('woff'); /* Modern Browsers */
+}
+
+/* open-sans-400italic - latin */
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 400;
+  src:
+    local('Open Sans Regular italic'),
+    local('Open Sans-Regularitalic'),
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-400italic.woff2) format('woff2'), 
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-400italic.woff) format('woff'); /* Modern Browsers */
+}
+
+/* open-sans-600normal - latin */
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 600;
+  src:
+    local('Open Sans SemiBold '),
+    local('Open Sans-SemiBold'),
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-600.woff2) format('woff2'), 
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-600.woff) format('woff'); /* Modern Browsers */
+}
+
+/* open-sans-600italic - latin */
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 600;
+  src:
+    local('Open Sans SemiBold italic'),
+    local('Open Sans-SemiBolditalic'),
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-600italic.woff2) format('woff2'), 
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-600italic.woff) format('woff'); /* Modern Browsers */
+}
+
+/* open-sans-700normal - latin */
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 700;
+  src:
+    local('Open Sans Bold '),
+    local('Open Sans-Bold'),
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-700.woff2) format('woff2'), 
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-700.woff) format('woff'); /* Modern Browsers */
+}
+
+/* open-sans-700italic - latin */
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 700;
+  src:
+    local('Open Sans Bold italic'),
+    local('Open Sans-Bolditalic'),
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-700italic.woff2) format('woff2'), 
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-700italic.woff) format('woff'); /* Modern Browsers */
+}
+
+/* open-sans-800normal - latin */
+@font-face {
+  font-family: 'Open Sans';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 800;
+  src:
+    local('Open Sans ExtraBold '),
+    local('Open Sans-ExtraBold'),
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-800.woff2) format('woff2'), 
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-800.woff) format('woff'); /* Modern Browsers */
+}
+
+/* open-sans-800italic - latin */
+@font-face {
+  font-family: 'Open Sans';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 800;
+  src:
+    local('Open Sans ExtraBold italic'),
+    local('Open Sans-ExtraBolditalic'),
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-800italic.woff2) format('woff2'), 
+    url(https://helpapp.alv.autoliv.int/assets/fonts/open-sans-latin-800italic.woff) format('woff'); /* Modern Browsers */
+}
+
+</style><style data-styled="active" data-styled-version="5.2.1"></style></head>
+
+
+<body class="navigator" onload="initializeSlideIns()" onbeforeunload="closeAllChildWindows()"><div class="mmenu" style="visibility: visible; display: none;"><div class="mmenu-content"><div class="mmenu-border" style="width: 231px;"><div class="mmenu-inset" style="width: 231px;"><div class="mmenu-group first-child last-child"><div class="mmenu-column first-child last-child"><ul><li menuuid="emx669419901656.0048" id="liemx669419901656.0048" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Session Info...</span></li><li menuuid="emx533858876579.5124" id="liemx533858876579.5124" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>About...</span></li><li menuuid="emx1093550541045.7397" id="liemx1093550541045.7397" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Release Highlights...</span></li></ul></div></div></div></div></div></div><div class="mmenu" style="visibility: visible; display: none;"><div class="mmenu-content"><div class="mmenu-border" style="width: 462px;"><div class="mmenu-inset" style="width: 462px;"><div class="mmenu-group first-child last-child"><div class="mmenu-column first-child"><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconAdminAccesses.gif"></span><span>Admin Tools</span></h3><ul><li menuuid="emx1598487123176.1377" id="liemx1598487123176.1377" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Assign Licensing by Product...</span></li><li menuuid="emx948875733679.7468" id="liemx948875733679.7468" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Database Analysis</span></li><li menuuid="emx1409595247306.7285" id="liemx1409595247306.7285" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Monitor</span></li><li menuuid="emx78923953468.70833" id="liemx78923953468.70833" class="submenu"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Property Registration</span></li><ul><li menuuid="emx297637364211.16" id="liemx297637364211.16" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Admin Type...</span></li><li menuuid="emx1574251878120.0017" id="liemx1574251878120.0017" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>State...</span></li><li menuuid="emx1501290681305.2915" id="liemx1501290681305.2915" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Viewer...</span></li></ul><li menuuid="emx744033472905.8914" id="liemx744033472905.8914" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Run MQL</span></li><li menuuid="emx1461604665034.8555" id="liemx1461604665034.8555" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Setup Training Class...</span></li><li menuuid="emx1449662070963.519" id="liemx1449662070963.519" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>System Data</span></li><li menuuid="emx915556616456.3787" id="liemx915556616456.3787" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Trigger Report...</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallCADModel.gif"></span><span>CAD</span></h3><ul><li menuuid="emx1216986440672.0803" id="liemx1216986440672.0803" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Global Preferences</span></li><li menuuid="emx542257082924.7071" id="liemx542257082924.7071" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Update Assignments</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallDeliverable.gif"></span><span>Engineering</span></h3><ul><li menuuid="emx512565260824.0415" id="liemx512565260824.0415" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>BOM Rules</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallCommonGroup.gif"></span><span>General</span></h3><ul><li menuuid="emx1261330842072.1438" id="liemx1261330842072.1438" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconActionChangePassword.gif"></span><span>Change Password...</span></li><li menuuid="emx127367824367.24323" id="liemx127367824367.24323" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Edit My Profile...</span></li><li menuuid="emx415969088355.82275" id="liemx415969088355.82275" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Preferences...</span></li><li menuuid="emx543016630059.6548" id="liemx543016630059.6548" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconActionReloadCache.gif"></span><span>Reload Cache</span></li><li menuuid="emx359436417679.7658" id="liemx359436417679.7658" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Clear Cache - Titles</span></li></ul><ul></ul></div><div class="mmenu-column last-child"><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallVPMTask.gif"></span><span>Jobs</span></h3><ul><li menuuid="emx628915895116.6549" id="liemx628915895116.6549" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Background Jobs...</span></li><li menuuid="emx773184224066.661" id="liemx773184224066.661" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Show all conversion queues</span></li><li menuuid="emx12961791996.892004" id="liemx12961791996.892004" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Show my file conversion jobs</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallDefault.gif"></span><span>Product Builder</span></h3><ul><li menuuid="emx1475226198531.7693" id="liemx1475226198531.7693" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Configurations</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallWorkflowTask.gif"></span><span>Office Integration</span></h3><ul><li menuuid="emx342953488349.94507" id="liemx342953488349.94507" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Open Window</span></li><li menuuid="emx847640945335.3724" id="liemx847640945335.3724" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/tvc_icon.gif"></span><span>Toggle TVC Office Integration</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallDeliverable.gif"></span><span>Testing</span></h3><ul><li menuuid="emx412998412308.83777" id="liemx412998412308.83777" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallObjectFolder.gif"></span><span>Test Items Result Dynamic</span></li><li menuuid="emx494109979082.36395" id="liemx494109979082.36395" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/yellowbullet.gif"></span><span>Test Part Table Column Management...</span></li><li menuuid="emx958318300786.4417" id="liemx958318300786.4417" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/yellowbullet.gif"></span><span>Test Table Column Management...</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconActionUtilities.gif"></span><span>TVC Tools</span></h3><ul><li menuuid="emx520235155613.4733" id="liemx520235155613.4733" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/tvc_icon.gif"></span><span>About TVC</span></li><li menuuid="emx1508880957430.833" id="liemx1508880957430.833" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/tvc_icon.gif"></span><span>Clear TVC Cache</span></li><li menuuid="emx1537733495983.9104" id="liemx1537733495983.9104" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/tvc_icon.gif"></span><span>Collect Log Files</span></li><li menuuid="emx1349342095259.7659" id="liemx1349342095259.7659" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/tvc_icon.gif"></span><span>MQL Client...</span></li><li menuuid="emx1225715569218.353" id="liemx1225715569218.353" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/tvc_icon.gif"></span><span>TVC Debug OFF</span></li><li menuuid="emx1014281025988.8519" id="liemx1014281025988.8519" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/tvc_icon.gif"></span><span>TVC Debug ON</span></li><li menuuid="emx49838668199.758995" id="liemx49838668199.758995" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/tvc_icon.gif"></span><span>TVC Log Watcher...</span></li><li menuuid="emx54573184009.1983" id="liemx54573184009.1983" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/tvc_icon.gif"></span><span>TVC Toggle Trace</span></li></ul></div></div></div></div></div></div><div class="mmenu" style="visibility: visible; display: none;"><div class="mmenu-content"><div class="mmenu-border" style="width: 924px;"><div class="mmenu-inset" style="width: 924px;"><div class="mmenu-group first-child last-child"><div class="mmenu-column first-child"><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallDefault.gif"></span><span>Popular</span></h3><ul><li menuuid="emx88036174208.62093" id="liemx88036174208.62093" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Parts...</span></li><li menuuid="emx84617030707.15024" id="liemx84617030707.15024" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Active ECRs...</span></li><li menuuid="emx171033361759.55405" id="liemx171033361759.55405" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Documents...</span></li><li menuuid="emx1263982917812.5117" id="liemx1263982917812.5117" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Test Orders...</span></li><li menuuid="emx109090575200.12834" id="liemx109090575200.12834" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Sample Orders/GEO Build Orders...</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallEngineeringPart.gif"></span><span>Engineering</span></h3><ul><li menuuid="emx973477279038.9443" id="liemx973477279038.9443" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Parts...</span></li><li menuuid="emx158364767609.88403" id="liemx158364767609.88403" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Modified Parts...</span></li><li menuuid="emx1478873835528.0784" id="liemx1478873835528.0784" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallDrawingPrint.gif"></span><span>Principal Documents...</span></li><li menuuid="emx150971932936.25974" id="liemx150971932936.25974" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallCADModel.gif"></span><span>CAD...</span></li><li menuuid="emx6626137803.54986" id="liemx6626137803.54986" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Manufacturing Equivalent Parts...</span></li><li menuuid="emx676435675127.0911" id="liemx676435675127.0911" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallECR.gif"></span><span>Engineering Service Requests...</span></li><li menuuid="emx1550998430950.6912" id="liemx1550998430950.6912" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallMaterial.gif"></span><span>Materials...</span></li><li menuuid="emx1234301230150.4324" id="liemx1234301230150.4324" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallMaterialDeclaration.gif"></span><span>Autoliv Material Definitions...</span></li><li menuuid="emx1481771267617.0247" id="liemx1481771267617.0247" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallRelatedObject.gif"></span><span>Related Items...</span></li><li menuuid="emx1555886100359.7637" id="liemx1555886100359.7637" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallEquivalentPart.gif"></span><span>Customer Equivalent Parts...</span></li><li menuuid="emx717483757391.7975" id="liemx717483757391.7975" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallSubstance.gif"></span><span>Substances...</span></li><li menuuid="emx1649019853608.3745" id="liemx1649019853608.3745" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallMaterialDeclaration.gif"></span><span>Supplier Material Declarations...</span></li><li menuuid="emx444488522150.2941" id="liemx444488522150.2941" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallStatusAlert.gif"></span><span>Alerts...</span></li><li menuuid="emx359797088467.5958" id="liemx359797088467.5958" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>PB Configs...</span></li><li menuuid="emx890012378565.7388" id="liemx890012378565.7388" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallEngineeringPart.gif"></span><span>Legacy Part Search...</span></li></ul></div><div class="mmenu-column"><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallEngineeringPart.gif"></span><span>Engineering<em> (continued) </em></span></h3><ul><li menuuid="emx337205421818.9173" id="liemx337205421818.9173" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Legacy Modified Part Search...</span></li><li menuuid="emx290965861731.17114" id="liemx290965861731.17114" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Seatbelt Installations...</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallDeliverable.gif"></span><span>Testing/CAE</span></h3><ul><li menuuid="emx1088582180499.6007" id="liemx1088582180499.6007" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Test Orders...</span></li><li menuuid="emx962329726250.6926" id="liemx962329726250.6926" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Sample Orders/GEO Build Orders...</span></li><li menuuid="emx1357924249038.422" id="liemx1357924249038.422" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Support Components...</span></li><li menuuid="emx1214785074432.9775" id="liemx1214785074432.9775" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Tests...</span></li><li menuuid="emx658937997904.3004" id="liemx658937997904.3004" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Warehouse Orders...</span></li><li menuuid="emx873202809057.3021" id="liemx873202809057.3021" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>DVPs and DVEs...</span></li><li menuuid="emx295707791281.0044" id="liemx295707791281.0044" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Test Parts...</span></li><li menuuid="emx1209007537966.4592" id="liemx1209007537966.4592" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Simulation Orders...</span></li><li menuuid="emx1226446422942.769" id="liemx1226446422942.769" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>CAE Order...</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconActionCreateMarkup.gif"></span><span>Change Management</span></h3><ul><li menuuid="emx512359286551.207" id="liemx512359286551.207" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Active ECRs...</span></li><li menuuid="emx190598702162.48956" id="liemx190598702162.48956" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallECO.gif"></span><span>ECOs...</span></li><li menuuid="emx1056897113634.0458" id="liemx1056897113634.0458" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/alvIconSmallMCO.gif"></span><span>MCOs...</span></li><li menuuid="emx123496245138.53482" id="liemx123496245138.53482" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallPCO.gif"></span><span>PCOs...</span></li><li menuuid="emx340803716135.53674" id="liemx340803716135.53674" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/alvIconSmallalvSCO.gif"></span><span>SCOs...</span></li><li menuuid="emx97360549312.18332" id="liemx97360549312.18332" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Process Issues...</span></li><li menuuid="emx409406159362.05115" id="liemx409406159362.05115" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Best Practice...</span></li><li menuuid="emx1080803909490.7759" id="liemx1080803909490.7759" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallECR.gif"></span><span>Legacy ECR Search...</span></li></ul><ul></ul></div><div class="mmenu-column"><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallProject.gif"></span><span>Project Management</span></h3><ul><li menuuid="emx240149027949.8727" id="liemx240149027949.8727" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Projects...</span></li><li menuuid="emx968109376825.4948" id="liemx968109376825.4948" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallProject.gif"></span><span>Collaboration Space...</span></li><li menuuid="emx115465896745.41534" id="liemx115465896745.41534" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallProgram.gif"></span><span>Programs...</span></li><li menuuid="emx196380620232.30115" id="liemx196380620232.30115" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>PSC Projects...</span></li><li menuuid="emx1088555798208.8759" id="liemx1088555798208.8759" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallCarModel.gif"></span><span>Car Models...</span></li><li menuuid="emx250319601721.33304" id="liemx250319601721.33304" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallIssue.gif"></span><span>Issues...</span></li><li menuuid="emx697320328933.7052" id="liemx697320328933.7052" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/structure_icon.gif"></span><span>CTO's...</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallPart.gif"></span><span>Manufacturing</span></h3><ul><li menuuid="emx422005949770.32684" id="liemx422005949770.32684" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>MPS Documents...</span></li><li menuuid="emx326211950351.2371" id="liemx326211950351.2371" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallCompany.gif"></span><span>Manufacturing Sites...</span></li><li menuuid="emx523884122610.4053" id="liemx523884122610.4053" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallST.gif"></span><span>Stations...</span></li><li menuuid="emx42677757365.76357" id="liemx42677757365.76357" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/PL.gif"></span><span>Production Lines...</span></li><li menuuid="emx155559747584.69778" id="liemx155559747584.69778" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallPart.gif"></span><span>M-Parts...</span></li><li menuuid="emx1333289455529.17" id="liemx1333289455529.17" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallDeparment.gif"></span><span>Manufacturing Groups...</span></li><li menuuid="emx32286108189.467888" id="liemx32286108189.467888" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Tools...</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallGeneralLibrary.gif"></span><span>Organization</span></h3><ul><li menuuid="emx1231926182084.0608" id="liemx1231926182084.0608" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallPerson.gif"></span><span>People...</span></li><li menuuid="emx1223261758551.9514" id="liemx1223261758551.9514" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallCompany.gif"></span><span>Supplier...</span></li><li menuuid="emx275052359368.589" id="liemx275052359368.589" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallOrganization.gif"></span><span>Change Control Board...</span></li><li menuuid="emx692496311502.1458" id="liemx692496311502.1458" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Customers...</span></li><li menuuid="emx1410503972606.6638" id="liemx1410503972606.6638" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallLocation.gif"></span><span>Locations...</span></li><li menuuid="emx924262568996.0621" id="liemx924262568996.0621" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallOrganization.gif"></span><span>Sourcing Board...</span></li></ul><ul></ul></div><div class="mmenu-column last-child"><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallNewsBulletin.gif"></span><span>Producer Management</span></h3><ul><li menuuid="emx1208030962072.0403" id="liemx1208030962072.0403" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconResponsibilityManufacturing.gif"></span><span>Asset...</span></li><li menuuid="emx1618045663603.4016" id="liemx1618045663603.4016" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Asset Change Requests...</span></li><li menuuid="emx1298219708244.2324" id="liemx1298219708244.2324" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Bulletins...</span></li><li menuuid="emx1196382072251.6665" id="liemx1196382072251.6665" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>RFQs/RFBs...</span></li><li menuuid="emx1399089491452.159" id="liemx1399089491452.159" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/alvIconSmallSupplierPPAP.gif"></span><span>Supplier PPAP Package...</span></li><li menuuid="emx14924830331.45015" id="liemx14924830331.45015" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallQualityPlan.gif"></span><span>Supplier Quality Projects...</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallAdministration.gif"></span><span>Tooling/Fixtures</span></h3><ul><li menuuid="emx381950029758.2934" id="liemx381950029758.2934" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallDrawingPrint.gif"></span><span>Tool Drawings...</span></li><li menuuid="emx1163765067526.224" id="liemx1163765067526.224" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallEngineeringPart.gif"></span><span>Tool Parts...</span></li><li menuuid="emx465221317975.5384" id="liemx465221317975.5384" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallEngineeringPart.gif"></span><span>Machines...</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallCommonGroup.gif"></span><span>General</span></h3><ul><li menuuid="emx440988290097.79913" id="liemx440988290097.79913" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconActionSearch.gif"></span><span>General...</span></li></ul></div></div></div></div></div></div><div class="mmenu" style="visibility: visible; display: none;"><div class="mmenu-content"><div class="mmenu-border" style="width: 231px;"><div class="mmenu-inset" style="width: 231px;"><div class="mmenu-group first-child last-child"><div class="mmenu-column first-child last-child"><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallDefault.gif"></span><span>Reports</span></h3><ul><li menuuid="emx1126667920192.6992" id="liemx1126667920192.6992" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/report_icon.gif"></span><span>Collection Reports...</span></li><li menuuid="emx257389352316.31845" id="liemx257389352316.31845" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Lifenet Reports</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallDefault.gif"></span><span>Dashboards</span></h3><ul><li menuuid="emx277200635914.7431" id="liemx277200635914.7431" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Change Management</span></li><li menuuid="emx902634659351.9713" id="liemx902634659351.9713" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Documentation</span></li><li menuuid="emx881259577264.402" id="liemx881259577264.402" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Engineering</span></li><li menuuid="emx307075332242.2164" id="liemx307075332242.2164" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Manufacturing</span></li><li menuuid="emx547310808505.55756" id="liemx547310808505.55756" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Material Management</span></li><li menuuid="emx730015162168.4392" id="liemx730015162168.4392" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Organization</span></li><li menuuid="emx438206355386.51953" id="liemx438206355386.51953" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Producer Management</span></li><li menuuid="emx878355656525.708" id="liemx878355656525.708" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Testing</span></li></ul></div></div></div></div></div></div><div class="mmenu" style="visibility: visible; display: none;"><div class="mmenu-content"><div class="mmenu-border" style="width: 693px;"><div class="mmenu-inset" style="width: 693px;"><div class="mmenu-group first-child last-child"><div class="mmenu-column first-child"><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallRule.gif"></span><span>Documentation</span></h3><ul><li menuuid="emx1673839411402.8696" id="liemx1673839411402.8696" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallDefault.gif"></span><span>Create Document...</span></li><li menuuid="emx718665828538.1366" id="liemx718665828538.1366" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Create H-Cert...</span></li><li menuuid="emx812183899656.0526" id="liemx812183899656.0526" class="submenu"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Create Management Documents</span></li><ul><li menuuid="emx1019821485101.2125" id="liemx1019821485101.2125" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Autoliv Material Specification...</span></li><li menuuid="emx1382635179835.1592" id="liemx1382635179835.1592" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>External Standard...</span></li><li menuuid="emx328087908097.2253" id="liemx328087908097.2253" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>MPS - Manf. Process Specification...</span></li><li menuuid="emx1624352107432.2935" id="liemx1624352107432.2935" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallalvPyrotechnicApproval.gif"></span><span>Pyrotechnic Approval...</span></li><li menuuid="emx180621644278.19635" id="liemx180621644278.19635" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallalvRegulatoryDrawing.gif"></span><span>Regulatory Drawing...</span></li><li menuuid="emx996052174762.4929" id="liemx996052174762.4929" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>S- MPS...</span></li></ul><li menuuid="emx1308787565204.979" id="liemx1308787565204.979" class="submenu"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Create Master Documents</span></li><ul><li menuuid="emx47842382413.47144" id="liemx47842382413.47144" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Master CC/SC List...</span></li><li menuuid="emx120195951230.46654" id="liemx120195951230.46654" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Master Control Plan...</span></li><li menuuid="emx1384942940918.7776" id="liemx1384942940918.7776" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Master Design Verification...</span></li><li menuuid="emx114632663052.54951" id="liemx114632663052.54951" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Master DFMEA...</span></li><li menuuid="emx573263308326.7234" id="liemx573263308326.7234" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Master PFMEA...</span></li><li menuuid="emx246628073977.72708" id="liemx246628073977.72708" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Specific Master PFMEA...</span></li><li menuuid="emx1000929165245.7919" id="liemx1000929165245.7919" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Master Process Flow Chart...</span></li></ul><li menuuid="emx1075232682385.0153" id="liemx1075232682385.0153" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/alvRequestExternalDocument.gif"></span><span>Request Unlisted External Document...</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallEngineeringPart.gif"></span><span>Engineering</span></h3><ul><li menuuid="emx716224052235.7567" id="liemx716224052235.7567" class="submenu"><span class="icon"><img src="./Autoliv - PLM Test_files/iconMenuDesignerCentral.gif"></span><span>CAD</span></li></ul></div><div class="mmenu-column"><ul><li menuuid="emx716224052235.7567" id="liemx716224052235.7567" class="submenu"><span class="icon"><img src="./Autoliv - PLM Test_files/iconMenuDesignerCentral.gif"></span><span>CAD<em> (continued) </em></span></li><ul><li menuuid="emx262066686010.61203" id="liemx262066686010.61203" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Design Change Report</span></li><li menuuid="emx29274702110.323624" id="liemx29274702110.323624" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Create Non-CATIA Model...</span></li><li menuuid="emx1209499438972.3486" id="liemx1209499438972.3486" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Preferences</span></li><li menuuid="emx620645803479.8838" id="liemx620645803479.8838" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Start Design...</span></li><li menuuid="emx1246728222668.8223" id="liemx1246728222668.8223" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>View/Convert 3D Model...</span></li></ul><li menuuid="emx1445682360094.5337" id="liemx1445682360094.5337" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallPart.gif"></span><span>Create Part...</span></li><li menuuid="emx1609165914036.864" id="liemx1609165914036.864" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallEngineeringPart.gif"></span><span>Create Engineering Part Clone...</span></li><li menuuid="emx761776250634.9093" id="liemx761776250634.9093" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Create Engineering Service Request...</span></li><li menuuid="emx1638577669036.4316" id="liemx1638577669036.4316" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>New Material Request...</span></li><li menuuid="emx1121530611188.0947" id="liemx1121530611188.0947" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Test Material Declaration...</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallPart.gif"></span><span>Manufacturing</span></h3><ul><li menuuid="emx499282334661.441" id="liemx499282334661.441" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallPart.gif"></span><span>Create Manufacturing Part...</span></li><li menuuid="emx195028590702.2139" id="liemx195028590702.2139" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallPart.gif"></span><span>Create Manufacturing Part Clone...</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallProject.gif"></span><span>Project Management</span></h3><ul><li menuuid="emx684932238859.1212" id="liemx684932238859.1212" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Create Change Control Board...</span></li><li menuuid="emx768637447983.2413" id="liemx768637447983.2413" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallProject.gif"></span><span>Create Collaboration Space...</span></li><li menuuid="emx1455172926868.8037" id="liemx1455172926868.8037" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallProject.gif"></span><span>Request New Project...</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallNewsBulletin.gif"></span><span>Producer Management</span></h3><ul><li menuuid="emx1520558965574.0098" id="liemx1520558965574.0098" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Create Sourcing Board...</span></li></ul><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallDeliverable.gif"></span><span>Testing/CAE</span></h3></div><div class="mmenu-column last-child"><h3><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallDeliverable.gif"></span><span>Testing/CAE<em> (continued) </em></span></h3><ul><li menuuid="emx968506301496.8992" id="liemx968506301496.8992" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Create Test Order...</span></li><li menuuid="emx126616769966.05539" id="liemx126616769966.05539" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Create Sequence Test Order...</span></li><li menuuid="emx851758168151.5011" id="liemx851758168151.5011" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/yellowbullet.gif"></span><span>Create DVP...</span></li><li menuuid="emx816798854999.9272" id="liemx816798854999.9272" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/yellowbullet.gif"></span><span>Create Sample Order...</span></li><li menuuid="emx1031864095595.0577" id="liemx1031864095595.0577" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Create Simulation order...</span></li><li menuuid="emx1570442378815.623" id="liemx1570442378815.623" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Create Support Component...</span></li><li menuuid="emx384212641889.39044" id="liemx384212641889.39044" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Create Warehouse Order...</span></li><li menuuid="emx245482116647.9844" id="liemx245482116647.9844" class="submenu"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>COP</span></li><ul><li menuuid="emx114045840584.03418" id="liemx114045840584.03418" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/yellowbullet.gif"></span><span>Book Part For COP Testing...</span></li><li menuuid="emx511071934764.28033" id="liemx511071934764.28033" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/yellowbullet.gif"></span><span>Create Barcode Mapping...</span></li><li menuuid="emx1299856390142.1406" id="liemx1299856390142.1406" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/yellowbullet.gif"></span><span>Create COP Test Order...</span></li><li menuuid="emx1366763727309.8892" id="liemx1366763727309.8892" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/yellowbullet.gif"></span><span>Recording Of Parts In COP Lab...</span></li></ul><li menuuid="emx19831126651.207714" id="liemx19831126651.207714" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Create VIR</span></li><li menuuid="emx880503025920.3248" id="liemx880503025920.3248" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Create CAE Order...</span></li></ul></div></div></div></div></div></div><div class="mmenu" style="visibility: visible; display: none;"><div class="mmenu-content"><div class="mmenu-border" style="width: 231px;"><div class="mmenu-inset" style="width: 231px;"><div class="mmenu-group first-child last-child"><div class="mmenu-column first-child last-child"><ul><li menuuid="emx367198107588.65857" id="liemx367198107588.65857" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Engineering</span></li><li menuuid="emx1085580960560.4165" id="liemx1085580960560.4165" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>My CCBs</span></li><li menuuid="emx1152069099397.0007" id="liemx1152069099397.0007" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>My Collections...</span></li><li menuuid="emx1603604956029.8862" id="liemx1603604956029.8862" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallCompany.gif"></span><span>My Company...</span></li><li menuuid="emx545048954321.0632" id="liemx545048954321.0632" class="link"><span class="icon"><img src="./Autoliv - PLM Test_files/iconSmallCompany.gif"></span><span>My Person...</span></li><li menuuid="emx1691001656197.0325" id="liemx1691001656197.0325" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>My Recent Objects...</span></li><li menuuid="emx692778801885.9475" id="liemx692778801885.9475" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>My RFQs/RFBs</span></li><li menuuid="emx508046309763.7726" id="liemx508046309763.7726" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>My Subscriptions</span></li><li menuuid="emx1280996231780.6914" id="liemx1280996231780.6914" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Producer Management</span></li><li menuuid="emx1668399719024.5364" id="liemx1668399719024.5364" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Project Management</span></li><li menuuid="emx239854111027.1417" id="liemx239854111027.1417" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Tasks</span></li><li menuuid="emx1468747621182.461" id="liemx1468747621182.461" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>Testing</span></li><li menuuid="emx1329048318382.0996" id="liemx1329048318382.0996" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>My View</span></li><li menuuid="emx9088869913.359098" id="liemx9088869913.359098" class="link"><span class="icon" style="background-image: url(&quot;../common/images/utilMmenuBullets.gif&quot;);"></span><span>TVX</span></li></ul></div></div></div></div></div></div>
+
+
+
+
+
+<script type="text/javascript" src="./Autoliv - PLM Test_files/tvcAjaxEngine.js.download"></script><script type="text/javascript">if(!window.alvNotificationService){window.alvNotificationService={};}
+alvNotificationService.URL="https://plmtest.autoliv.int:12090/enovia/tvc-action/ajax";
+alvNotificationService.getNotifications=function(c){tvc.ajaxEngine.call(alvNotificationService.URL,"UTF-8","alvNotificationService","getNotifications",[],c,true);}
+</script>
+<script type="text/javascript">if(!window.alvBreadCrumbService){window.alvBreadCrumbService={};}
+alvBreadCrumbService.URL="https://plmtest.autoliv.int:12090/enovia/tvc-action/ajax";
+alvBreadCrumbService.getQuickAccessMenuUserPreference=function(a0,c){tvc.ajaxEngine.call(alvBreadCrumbService.URL,"UTF-8","alvBreadCrumbService","getQuickAccessMenuUserPreference",[a0],c,true);}
+alvBreadCrumbService.get=function(c){tvc.ajaxEngine.call(alvBreadCrumbService.URL,"UTF-8","alvBreadCrumbService","get",[],c,true);}
+alvBreadCrumbService.getObjectUrl=function(a0,c){tvc.ajaxEngine.call(alvBreadCrumbService.URL,"UTF-8","alvBreadCrumbService","getObjectUrl",[a0],c,true);}
+</script>
+<script type="text/javascript">if(!window.alvReleaseHighlightService){window.alvReleaseHighlightService={};}
+alvReleaseHighlightService.URL="https://plmtest.autoliv.int:12090/enovia/tvc-action/ajax";
+alvReleaseHighlightService.displayReleaseHighlight=function(a0,c){tvc.ajaxEngine.call(alvReleaseHighlightService.URL,"UTF-8","alvReleaseHighlightService","displayReleaseHighlight",[a0],c,true);}
+</script>
+<script type="text/javascript">if(!window.cadViewerService){window.cadViewerService={};}
+cadViewerService.URL="https://plmtest.autoliv.int:12090/enovia/tvc-action/ajax";
+cadViewerService.generateToken=function(){return tvc.ajaxEngine.call(cadViewerService.URL,"UTF-8","cadViewerService","generateToken",[],null,false);}
+cadViewerService.getCadViewerServerUrl=function(){return tvc.ajaxEngine.call(cadViewerService.URL,"UTF-8","cadViewerService","getCadViewerServerUrl",[],null,false);}
+cadViewerService.getCadViewerBackendServerUrl=function(){return tvc.ajaxEngine.call(cadViewerService.URL,"UTF-8","cadViewerService","getCadViewerBackendServerUrl",[],null,false);}
+</script>
+<link rel="stylesheet" href="./Autoliv - PLM Test_files/topbar.css"><script type="text/javascript" src="./Autoliv - PLM Test_files/topbar.js.download"></script><script type="text/javascript" src="./Autoliv - PLM Test_files/breadcrumb.js.download"></script><link rel="stylesheet" href="./Autoliv - PLM Test_files/breadcrumb.css"><link rel="stylesheet" href="./Autoliv - PLM Test_files/font-awesome.min.css"><script type="text/javascript" src="./Autoliv - PLM Test_files/quickaccessmenu.js.download"></script><script type="text/javascript" src="./Autoliv - PLM Test_files/releaseHighlights.js.download"></script><script type="text/javascript" src="./Autoliv - PLM Test_files/cadviewer.js.download"></script>
+
+  
+
+
+
+<script type="text/javascript">var FM_EXTENSION_FIREFOX_INSTALL_ALERT=false;
+var IS_OFFICE_LICENSE_VALID=true;
+var FM_EXTENSION_FIREFOX_URL="https://plmtest.autoliv.int:12090/enovia/tvc-action/fmExtensionFirefoxActionPath";
+</script>
+
+<link rel="stylesheet" href="./Autoliv - PLM Test_files/tvcHTML5UI.css">
+<div id="tvc-filemanager-webext" data-extension-avail="true" data-extension-version="1.4"></div>
+<div id="tvcFileManagerFrameContainer" style="position: absolute; left: -1000px; top: -1000px; height: 0px; width: 0px; overflow: hidden;"><iframe id="tvcFileManagerFrame" name="tvcFileManagerFrame" src="./Autoliv - PLM Test_files/oi-initIntegration.html" scrolling="no" marginwidth="0" marginheight="0" height="0" width="0" frameborder="0"></iframe></div>
+<script type="text/javascript" src="./Autoliv - PLM Test_files/ClientAPI.js.download"></script>
+
+<form name="navigatorForm">
+    <div id="cookieConsent">
+        This website is using cookies. <a class="cookieConsentLink" href="https://plmtest.autoliv.int:12090/enovia/autoliv/cookiebanner/alvCookieBannerView.jsp" target="_blank">More info</a>
+        <a class="cookieConsentOK" onclick="acceptCookies();">Close</a>
+    </div>
+    
+    
+ <div id="pageHeadDiv">
+        <div class="toolbar-container" id="globalToolbar"><div id="divToolbar" class="toolbar-frame"><div class="toolbar group-left"><table><tbody><tr><td itemid="emx1308001076969.735" title="Back" nowrap="" class="icon-button"><img src="./Autoliv - PLM Test_files/left-arrow.png"></td><td itemid="emx1642772959488.1372" title="Forward" nowrap="" class="icon-button"><img src="./Autoliv - PLM Test_files/right-arrow.png"></td><td itemid="emx658492055339.9137" nowrap="" class="text-button">MyDesk&nbsp;<img src="./Autoliv - PLM Test_files/utilNavMenuArrow.gif"></td><td itemid="emx162607193782.63754" nowrap="" class="text-button">Actions&nbsp;<img src="./Autoliv - PLM Test_files/utilNavMenuArrow.gif"></td><td itemid="emx47363960430.21195" nowrap="" class="text-button">Reports&nbsp;<img src="./Autoliv - PLM Test_files/utilNavMenuArrow.gif"></td><td itemid="emx986685606017.4661" nowrap="" class="text-button">Search&nbsp;<img src="./Autoliv - PLM Test_files/utilNavMenuArrow.gif"></td><td itemid="emx99763358116.27765" nowrap="" class="text-button">Tools&nbsp;<img src="./Autoliv - PLM Test_files/utilNavMenuArrow.gif"></td><td itemid="emx1186484525319.1338" nowrap="" class="text-button">Help&nbsp;<img src="./Autoliv - PLM Test_files/utilNavMenuArrow.gif"></td></tr></tbody></table></div><div class="toolbar group-center"><table><tbody><tr><td id="alvMainMenuTitle"><div style="font-family:Arial,Helvetica,Sans-Serif; font-weight:bold; font-size:20pt; letter-spacing:2pt; color:#FFF;">PLM Test</div></td></tr></tbody></table></div><div class="toolbar group-right"><table><tbody><tr><tr id="alv-notifications"><a href="javascript:showNonModalDialog(&#39;https://plmtest.autoliv.int:12090/enovia/tvc-action/execCustomLoaderToTable?pageConfig=tvc:pageconfig//tvc/task/MyTasksPageConfig.xml&amp;loader=tvc:dataset:technia:tasks/MyActiveApprovalNoNotifyTasks.xml&#39;,800,9000,true,&#39;&#39;,&#39;Large&#39;)" class="notification-card" style="background:#FFF;color:#009fe3;" title="Open Tasks"><i class="fa fa-inbox fa-2x"></i><span class="count-bubble">18</span></a></tr><td itemid="emx383153046673.086" title="Open simPLy" nowrap="" class="icon-button"><img src="./Autoliv - PLM Test_files/simplyLogo.png"></td><td itemid="emx604684734997.9255" title="Contact Service Desk" nowrap="" class="icon-button"><img src="./Autoliv - PLM Test_files/help-desk.png"></td><td>&nbsp;<label title="Search" class="toolbar-panel-label"></label>&nbsp;<input type="text" class="text" title="Search" id="AEFGlobalFullTextSearch" name="AEFGlobalFullTextSearch" value="" onclick="textboxClicked(this)" onkeyup="getSearchHistory(this)" onkeypress="isEnterKeyPressed(event, &#39;javascript:void()&#39; , &#39;popup&#39; , &#39;AEFGlobalFullTextSearch&#39; , &#39;812&#39; , &#39;500&#39; , &#39;null&#39; , &#39;&#39; , &#39;&#39; , &#39;false&#39; , &#39;false&#39; , &#39;textbox&#39;,&#39;AEFGlobalFullTextSearchmxcommandcode&#39; )" style="width:150px;" placeholder="PLM Finder">&nbsp;<img src="./Autoliv - PLM Test_files/searchPLMTB.png" border="0" align="top" style="cursor: pointer;display: none;" name="AEFGlobalFullTextSearch" class="button" title="Search" onclick="submitToolbarForm(&#39;javascript:void()&#39; , &#39;popup&#39; , &#39;AEFGlobalFullTextSearch&#39; , &#39;812&#39; , &#39;500&#39; , &#39;null&#39; , &#39;&#39; , &#39;&#39; , &#39;false&#39; , &#39;false&#39; , &#39;submit&#39;, &#39;AEFGlobalFullTextSearchmxcommandcode&#39;)" onkeypress="isEnterKeyPressed(event, &#39;javascript:void()&#39; , &#39;popup&#39; , &#39;AEFGlobalFullTextSearch&#39; , &#39;812&#39; , &#39;500&#39; , &#39;null&#39; , &#39;&#39; , &#39;&#39; , &#39;submit&#39;, &#39;AEFGlobalFullTextSearchmxcommandcode&#39;)" value=""></td><td id="AEFWelcomeToolbar"><a href="JavaScript:showModalDialog(&#39;../common/emxTree.jsp?objectId=4706.39075.28445.16082&#39;)" style="text-decoration:none;color:white" title="Go to User Account properties.">Super Alexandru Ilie</a></td><td itemid="emx665425320093.0383" title="Logout" nowrap="" class="icon-button"><img src="./Autoliv - PLM Test_files/sign-out.png"></td></tr></tbody></table></div></div></div>
+ </div><div id="alv-breadcrumb-wrapper"><ol id="alv-breadcrumb" class="breadcrumb"><li class="active"><i class="fa fa-home" onclick="bc.navigate(&#39;&#39;)" title="Home"></i></li><li class="active"><i class="fa fa-book" onclick="bc.navigate(&#39;RECENT_OBJECTS&#39;)" title="My Recent Objects"></i></li><li class="active"><i class="fa fa-trash" onclick="bc.navigate(&#39;CLEAR&#39;)" title="Clear"></i></li><li class="active"><i class="fa fa-angle-double-left" onclick="bc.navigate(&#39;4706.39075.64392.21727&#39;)" title=""></i></li><li class="active"><i class="fa fa-angle-left" onclick="bc.navigate(&#39;4706.39075.36372.56302&#39;)" title=""></i></li><li><a title="ECR " href="javascript:void(0);" onclick="bc.navigate(&#39;4706.39075.64392.21727&#39;)">406946</a></li><li><a title="SCO " href="javascript:void(0);" onclick="bc.navigate(&#39;4706.39075.58793.61332&#39;)">000101</a></li><li><a title="SCO " href="javascript:void(0);" onclick="bc.navigate(&#39;4706.39075.27905.26511&#39;)">330040</a></li><li><a title="ECR " href="javascript:void(0);" onclick="bc.navigate(&#39;4706.39075.36372.56302&#39;)">618181</a></li><li class="active"><a title="ECR " href="javascript:void(0);" onclick="bc.navigate(&#39;4706.39075.61703.52347&#39;)">671645</a></li></ol></div><div id="alvQuickAccessMenu" class="alvQuickAccessMenu"><i class="fa fa-angle-double-left" aria-hidden="true"></i> <a href="javascript:void(0)" onclick="javascript:emxUISlideIn.slidein_template(&#39;right&#39;);$(&#39;div#rightSlideIn&#39;).css(&#39;width&#39;,&#39;250px&#39;);setTimeout(top.showSlideInDialog(&#39;../common/alvUserRecentActionsLayout.jsp?&amp;suiteKey=&#39;,false , &#39;&#39;),100);$(&#39;#displaybox&#39;).css(&#39;display&#39;,&#39;block&#39;);" title="Show Quick Access Menu">Quick Access Menu</a></div><div id="displaybox" style="display: none;"><img src="./Autoliv - PLM Test_files/load-blue-white-big.gif"><h2 class="loadingMessage">Loading data, Please wait...</h2></div>
+ 
+
+<div class="breadcrumbs" id="breadcrumbs">
+    <div id="breadcrumbs_leftbutton" class="buttons previous">
+        <a href="javascript:;" class="btn left"></a>
+    </div>
+    <ul id="bcul" style="right: 0px;"><li id="liemxbc0" class="current last-child"><a onclick="return false">&nbsp;671645 : Home</a></li></ul>
+    <div id="breadcrumbs_rightbutton" class="buttons next">
+        <a href="javascript:;" class="btn right"></a>
+    </div>
+ </div><!-- /.breadcrumbs -->
+
+
+<script type="text/javascript" src="./Autoliv - PLM Test_files/emxBreadcrumbs.js.download"></script>
+ <script type="text/javascript" src="./Autoliv - PLM Test_files/emxQuery.js.download"></script>
+ <script type="text/javascript">
+ 	 if(isMobile){
+ 		addStyleSheet("emxUIMobile", '../common/mobile/styles/');
+ 	 }
+ 	this.onload = function(){
+	 	var openURL = this.openURL;
+	 if(typeof openURL != 'string'){
+		 openURL = openURL ? openURL.value : null;
+	 	}
+	 	if(openURL){
+		 	var contentFrame = findFrame(this,'content');
+		 	//timeout needed becasue of IE
+		 	setTimeout(function(){
+			 	contentFrame.location.href = openURL;
+			 	},500);
+	 	}
+ 	};
+     var bclist = bclist ? bclist : new emxBreadCrumbList();
+     var bculmousedown = false;
+
+     $(".btn.left").mousedown( function (){
+         bculmousedown = true;
+         animate("left");
+     });
+
+     $(".btn.left").mouseup( function (){
+         bculmousedown = false;
+         $("#bcul").stop();
+         paintButtons();
+     });
+
+     $(".btn.left").mouseout( function (){
+         bculmousedown = false;
+         $("#bcul").stop();
+         paintButtons();
+     });
+
+     $(".btn.right").mousedown( function (){
+         bculmousedown = true;
+         animate("right");
+     });
+
+     $(".btn.right").mouseup( function (){
+         bculmousedown = false;
+         $("#bcul").stop();
+         paintButtons();
+     });
+
+     $(".btn.right").mouseout( function (){
+         bculmousedown = false;
+         $("#bcul").stop();
+         paintButtons();
+     });
+
+     function paintButtons(){
+         var bcul = $("#bcul");
+         var bc = top.bclist.getFirstBC();
+         if(bc != null) {
+               var bcj = $("#liemxbc" + 0);
+               if(bcul.position().left +  bcj.position().left < 40) {
+                   $("#breadcrumbs_leftbutton").removeClass("disabled");
+               } else {
+                   $("#breadcrumbs_leftbutton").addClass("disabled");
+               }
+         } else {
+             $("#breadcrumbs_leftbutton").addClass("disabled");
+         }
+
+         if(parseInt(bcul[0].style.right) < 40){
+             $("#breadcrumbs_rightbutton").removeClass("disabled");
+         } else {
+             $("#breadcrumbs_rightbutton").addClass("disabled");
+         }
+     }
+
+     function animate(direction){
+         var bcul = $("#bcul");
+         if(direction == "left") {
+             var bc = top.bclist.getFirstBC();
+             if(bc != null) {
+                 var bcj = $("#liemxbc" + 0);
+                 if(bcul.position().left +  bcj.position().left < 0)
+                 {
+                     bcul.animate({right: (parseInt(bcul[0].style.right) -40 + bcul.position().left +  bcj.position().left) + "px" }, -(bcul.position().left +  bcj.position().left)*5, function() {
+                         if(bculmousedown)
+                             animate("left");
+                     });
+                 }
+             }
+         } else {
+             if(parseInt(bcul[0].style.right) < 40){
+                 bcul.animate({right: "40px"}, (40 - parseInt(bcul[0].style.right))*5, function() {
+                     if(bculmousedown)
+                         animate("right");
+                 });
+             }
+         }
+    }
+ </script>
+
+ 
+<div id="pageContentDiv" previous-left="" style="right: 250.029px;">
+    <iframe frameborder="0" id="content" name="content" width="100%" height="100%" src="./Autoliv - PLM Test_files/tvaRecentObjects.html"></iframe>
+    <iframe class="hidden-frame" id="hiddenFrame" name="hiddenFrame" src="./Autoliv - PLM Test_files/saved_resource.html"></iframe>
+
+	
+    	<iframe class="hidden-frame applet-support" id="integrationsFrame" name="integrationsFrame" src="./Autoliv - PLM Test_files/emxIntegrations.html"></iframe>\
+    
+    <iframe class="hidden-frame applet-support" id="appletFrame" name="appletFrame" src="./Autoliv - PLM Test_files/saved_resource(1).html"></iframe>
+    <iframe class="hidden-frame" id="ClipboardCollection" name="ClipboardCollection" src="./Autoliv - PLM Test_files/emxClipboardCollection.html"></iframe>
+    
+</div>
+<!-- overlay layer -->
+<div id="layerOverlay" style="display:none;"></div><!-- /layerOverlay -->
+
+
+<!-- windowshade -->
+<div id="windowshadeMask">
+      <div class="windowshade search">
+            <div class="windowshade-body">
+                  <iframe frameborder="0" allowtransparency="true" name="windowShadeFrame" src="./Autoliv - PLM Test_files/saved_resource(2).html"></iframe>
+            </div>
+            <div class="windowshade-foot">
+                  <table>
+                        <tbody><tr>
+                              <td class="functions">
+                                    <table>
+                                          <tbody><tr>
+                                                <td></td>
+                                                <td></td>
+                                          </tr>
+                                    </tbody></table>
+                              </td>
+                              <td class="buttons">
+                                    <table>
+                                          <tbody>
+                                                <tr>
+                                                      <td><a onclick="top.closeWindowShadeDialog()" href="https://plmtest.autoliv.int:12090/enovia/common/emxNavigator.jsp?sso=false#"><img border="0" align="absmiddle" src="./Autoliv - PLM Test_files/buttonDialogCancel.gif"></a></td>
+                                                </tr>
+                                          </tbody>
+                                    </table>
+                              </td>
+                        </tr>
+                  </tbody></table>
+            </div><!-- /.windowshade-foot -->
+      </div><!-- /.windowshade -->
+</div>
+
+
+
+
+ <div id="rightSlideIn" class="slide-in-panel dialog viewer" style="right: 0px; width: 250px; display: block;"><iframe frameborder="0" name="slideInFrame" src="./Autoliv - PLM Test_files/saved_resource(3).html"></iframe></div></form>
+ <!--
+ This div and Form are added to remove the checkout empty dilaog
+ Do not remove this as AEF is not using this form or div.
+ -->
+ <div id="checkoutdiv">
+  <form name="commonDocumentCheckout" id="commonDocumentCheckout" method="post" action="https://plmtest.autoliv.int:12090/enovia/components/emxCommonDocumentPreCheckout.jsp">
+      <input type="hidden" name="objectId" value="">
+      <input type="hidden" name="action" value="">
+      <input type="hidden" name="format" value="">
+      <input type="hidden" name="fileName" value="">
+      <input type="hidden" name="appName" value="">
+      <input type="hidden" name="appDir" value="">
+      <input type="hidden" name="closeWindow" value="">
+      <input type="hidden" name="refresh" value="">
+      <input type="hidden" name="trackUsagePartId" value="">
+      <input type="hidden" name="version" value="">
+      <input type="hidden" name="customSortColumns" value="">
+      <input type="hidden" name="customSortDirections" value="">
+      <input type="hidden" name="uiType" value="">
+      <input type="hidden" name="table" value="">
+      <input type="hidden" name="getCheckoutMapFromSession" value="">
+      <input type="hidden" name="fromDataSessionKey" value="">
+      <input type="hidden" name="parentOID" value="">
+      <input type="hidden" name="appProcessPage" value="">
+      <input type="hidden" name="id" value="">
+      <input type="hidden" name="fileAction" value="">
+      <input type="hidden" name="file" value="">
+  </form>
+</div>
+
+
+
+<div id="autoliv-help-app" style="pointer-events: none;"><div><div rotate="0" class="HelpAppContent__Container-sc-1jtcgdo-0 fYqmTT"><div rotate="0" class="Container__WindowWrapper-b8woqc-0 iyomPW"><div class="FadingTransitionContainer__Container-sc-1bbvow6-0 nuKMf HelpWindow__AnimationContainer-xymepk-0 buzOCT"><div class="ResourcesView__Container-sc-11opfpu-0 klMmeb"><h2 class="Header__Container-sc-27kvr1-0 iBVBSL">How can we help you?<div class="ResourcesView__ButtonWrapper-sc-11opfpu-1 ldOUFM"><div size="20" class="GenericButton__Container-qxzlqk-0 lkjnXi"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ResourcesView__X-sc-11opfpu-2 coGJEe"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div></div></h2><div class="Search__Container-sc-6j6kj-0 braJRq"><div class="Input__Container-sc-1mkpyxt-0 hGEsch"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="Icons__StyledSearch-sc-11qd3fq-1 dCRiDm"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input placeholder="Enter keyword" class="Input__StyledInput-sc-1mkpyxt-1 hIMgtQ" value=""></div><div class="Container-sc-1ebndhv-0 bhKOqo"><div class="styles__Container-sc-1v4lg2u-0 dDNSzo"><div class="styles__Title-sc-1v4lg2u-1 cRsrFZ">FAQ (0)</div><div class="styles__NoResults-sc-1v4lg2u-2 bvvaqC"><a href="https://autolivprod.service-now.com/servicenet?id=sc_cat_item&amp;sys_id=ed9c4111871770104d5910e73cbb3552&amp;application=PLMTEST" target="_blank" rel="noreferrer" class="styles__Anchor-sc-1v4lg2u-3 isGlzB">Sorry we have no results, please submit your question to the team.</a></div></div><div class="styles__Container-sc-1v4lg2u-0 dDNSzo"><div class="styles__Title-sc-1v4lg2u-1 cRsrFZ">Guides (0)</div><div class="styles__NoResults-sc-1v4lg2u-2 bvvaqC"><a href="https://autolivprod.service-now.com/servicenet?id=sc_cat_item&amp;sys_id=ed9c4111871770104d5910e73cbb3552&amp;application=PLMTEST" target="_blank" rel="noreferrer" class="styles__Anchor-sc-1v4lg2u-3 isGlzB">Sorry we have no results, please submit your question to the team.</a></div></div></div></div><div class="Tabs__Container-sc-1nzfhrw-0 deyHa-d"><div class="Tab__Container-couvvp-0 gwDshJ">FAQ</div><div class="Tab__Container-couvvp-0 dgTLkc">Guides</div></div><div class="SwipeableContent__StyledSwipeableViews-sc-1evko16-0 ixzWFp" style="overflow-x: hidden;"><div class="react-swipeable-view-container" style="height: 100%; flex-direction: row; transition: all 0s ease 0s; transform: translate(0%, 0px); direction: ltr; display: flex; will-change: transform;"><div aria-hidden="false" data-swipeable="true" style="width: 100%; flex-shrink: 0; overflow: auto; height: 100%; display: flex;"><div class="Faqs__Container-sc-1eq6cou-0 Vlymp"><div class="ItemsListstyles__ItemListContainer-sc-1017cye-0 cuUqfY"></div></div></div><div aria-hidden="true" data-swipeable="true" style="width: 100%; flex-shrink: 0; overflow: auto; height: 100%; display: flex;"><div class="Guides__Container-sc-1khv2cb-0 cAQKMw"><div class="ItemsListstyles__ItemListContainer-sc-1017cye-0 cuUqfY"></div></div></div><div aria-hidden="true" data-swipeable="true" style="width: 100%; flex-shrink: 0; overflow: auto; height: 100%; display: flex;"><div class="Feedback__Container-sc-1tldi0x-0 hxAwJa">Feedback content</div></div></div></div></div></div></div><span class="styles__ForceRerender-sc-1igtrv6-0 kJSpx">hidden</span><div rotate="0" class="styles__Wrapper-sc-1igtrv6-1 fYEkBN"><div class="styles__Container-sc-1igtrv6-2 jGYPfU"><div class="styles__InnerContainer-sc-1igtrv6-3 eFZSDv"><p class="styles__Text-sc-1igtrv6-4 kldYIG">Help</p></div></div></div></div></div><div class="Toastify"></div></div></body></html>
