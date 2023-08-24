@@ -1,0 +1,241 @@
+/* -------------------------------------------------------------------------
+	Calendar Stylesheet for Windows/Mac Platforms
+	emxUICalendar.css
+	
+	Release: 2013xHF11
+	Version: 1.1
+	
+	Copyright (c) 1992-2013 Dassault Systemes ENOVIA Corp. All Rights Reserved.
+	This program contains proprietary and trade secret information 
+	of Dassault Systemes ENOVIA Corp. Copyright notice is precautionary only
+	and does not evidence any actual or intended publication of such program
+   ------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------
+   Default Settings
+   ------------------------------------------------------------------------- */
+
+.calendar-container {
+	-moz-user-select:none;
+	background-color:#666;
+	margin:0;
+	padding:4px;
+	border:none;
+}
+
+.calendar-container th,
+.calendar-container td {white-space:normal;}
+
+/* -------------------------------------------------------------------------
+   Calendar Settings
+   ------------------------------------------------------------------------- */
+
+/* Month Table Cell */
+#tdMonth {
+	background:#dadada url(../images/utilCalendarArrowDown.gif) no-repeat right center;
+	border:1px solid #FFF;
+	border-right:1px solid #737373;
+	border-bottom:1px solid #737373;
+	cursor:pointer;
+	cursor:hand;
+	font-weight:bold;
+	padding:5px 5px 5px 12px;
+	text-align:left;   
+} 
+ 
+/* Year Table Cell */
+#tdYear {
+	background:#dadada url(../images/utilCalendarArrowDown.gif) no-repeat right center;
+	border:1px solid #FFF;
+	border-right:1px solid #737373;
+	border-bottom:1px solid #737373;
+	cursor:pointer;
+	cursor:hand;
+	font-weight:bold;
+	padding:5px 5px 5px 12px;
+	text-align:left;
+} 
+ 
+/* Today Table Cell */
+#tdToday {
+	cursor:pointer;
+	cursor:hand;
+	border:1px solid #FFF;
+	border-right:1px solid #737373;
+	border-bottom:1px solid #737373;
+} 
+
+/* Calendar Header Font Appearance */
+td.calendarHead { 
+	background-color:#c7d0db;
+	cursor:default;
+	font-family:Verdana, Arial, Helvetica, Geneva, Swiss, SunSans-Regular; 
+	font-size:12px; 
+	font-weight:bold; 
+	text-align:center; 
+}
+
+th.day-name,
+th.wk-num {
+	background-color:#666;
+	color:#FFF; 
+	cursor:default;
+	font-family:Verdana, Arial, Helvetica, Geneva, Swiss, SunSans-Regular;
+	font-size:13px; 
+	font-weight:bold; 
+	text-align:center;        
+} 
+
+/* Day Appearance */
+td.day { 
+	background-color:#FFF; 
+	cursor:pointer;
+	cursor:hand;
+	text-align:center;
+}
+
+/* Empty Cell Appearance */
+td.empty { 
+	background-color:#EEE; 
+	cursor:pointer;
+	cursor:hand;
+	text-align:center;
+}
+
+/* Selected Day Appearance */
+td.selected { 
+	color:#000000;
+	background-color:#FC6;
+	font-weight:bold; 
+	cursor:pointer;
+	cursor:hand;
+}
+
+td.hover {background-color:blue;}
+
+/* Today Appearance */
+td.today { 
+	background-color:#FFF; 
+	cursor:pointer;
+	cursor:hand;
+	text-align:center; 
+	border:1px solid #9e005d;
+}
+
+/* Calendar Body Appearance */
+td.calendarBody {background-color:#DDD;}
+
+.calendarBody td {border:1px solid #c8c8c8;}
+
+/* Left and right arrows */
+td.calendarArrow {
+	cursor:pointer;
+	cursor:hand;
+}
+
+#tdToday {
+	cursor:pointer;
+	cursor:hand;
+	padding:2px;        
+}
+
+td.wk-num {
+    width:32px;
+    text-align:center;
+    font-weight:bold;
+    background:#c8c8c8;
+    color:#888;
+    cursor:default;
+}
+
+/* -------------------------------------------------------------------------
+   Calendar Month/Year Menu Settings
+   ------------------------------------------------------------------------- */
+   
+div.monthmenu, body.monthmenu,
+div.yearmenu, body.yearmenu {
+	background-color:#EEE; 
+	border:1px solid black; 
+	position:absolute; 
+	width:150px; 
+}
+
+/* Menu Separator Line Appearance */
+.monthmenu div.menu-separator,
+.yearmenu div.menu-separator { 
+	border-bottom:1px solid #FFF; 
+	border-top:1px solid #848484; 
+	overflow:hidden;
+}
+
+.monthmenu td.menu-label,
+.yearmenu td.menu-label {
+	color:black;
+	cursor:pointer;
+	cursor:hand;
+	font-weight:bold;
+	padding:5px 5px 5px 12px;
+}
+
+.monthmenu tr.menu-item-selected,
+.yearmenu tr.menu-item-selected {background-color:#8e8e8e;}
+
+.monthmenu tr.menu-item-selected td.menu-label,
+.yearmenu tr.menu-item-selected td.menu-label { 
+	color:white;
+	cursor:pointer;
+	cursor:hand;
+	padding:5px 5px 5px 12px;
+}
+
+/* Up Button */
+.monthmenu div.upbutton,
+.yearmenu div.upbutton {
+	background:#C9C9C9 url(../images/utilActionScrollArrowUp.gif) no-repeat center center;
+	border:1px solid #EEE;
+	border-bottom:1px solid #B4B4B0;
+	border-right:1px solid #B4B4B0;
+	cursor:pointer;
+	cursor:hand;
+	height:14px;
+	width:100%;
+}
+
+/* Up Button (for mouse over) */
+.monthmenu div.upbutton-hover,
+.yearmenu div.upbutton-hover {
+	background:#C9C9C9 url(../images/utilActionScrollArrowUp.gif) no-repeat center center;
+	border:1px solid #EEE;
+	border-bottom:1px solid #B4B4B0;
+	border-right:1px solid #B4B4B0;
+	cursor:pointer;
+	cursor:hand;
+	height:14px;
+	width:100%;
+}
+
+/* Down Button */
+.monthmenu div.downbutton,
+.yearmenu div.downbutton {
+	background:#C9C9C9 url(../images/utilActionScrollArrowDown.gif) no-repeat center center;
+	border:1px solid #EEE;
+	border-bottom:1px solid #B4B4B0;
+	border-right:1px solid #B4B4B0;
+	cursor:pointer;
+	cursor:hand;
+	height:14px;
+	width:100%;
+}
+
+/* Down Button (for mouse over) */
+.monthmenu div.downbutton-hover,
+.yearmenu div.downbutton-hover {
+	background:#C9C9C9 url(../images/utilActionScrollArrowDown.gif) no-repeat center center;
+	border:1px solid #EEE;
+	border-bottom:1px solid #B4B4B0;
+	border-right:1px solid #B4B4B0;
+	cursor:pointer;
+	cursor:hand;
+	height:14px;
+	width:100%;
+}
