@@ -1,0 +1,137 @@
+function tvc_filemanager_applet_unsupportedPlatform() {
+    tvc.fileManager.services.unsupportedPlatform();
+}
+
+function tvc_filemanager_applet_entryChanged(objectId, event) {
+    tvc.fileManager.listeners.entryChanged(objectId, event);
+}
+
+function tvc_filemanager_applet_showInBrowser(url) {
+    tvc.fileManager.services.showInBrowser(url);
+}
+
+(function(window) {
+    if (!window.tvc) { window.tvc={}; }
+    if (!window.tvc.fileManager) { window.tvc.fileManager={}; }
+
+    var appletId = "tvcFileManagerApplet",
+        appletInstance = null;
+
+    function getApplet() {
+        if (appletInstance == null) {
+            appletInstance = findApplet();
+        }
+        return appletInstance;
+    }
+
+    function findApplet() {
+        var app = document.getElementById(appletId);
+        if (app == null) {
+            for (var i = 0; i < document.applets.length; i++) {
+                app = document.applets[i];
+                if (app.name == appletId) {
+                    break;
+                }
+            }
+        }
+        return app;
+    }
+
+    function installAPI() {
+        tvc.fileManager.api.install({
+            callMXCheckout : function(e, objectId, action, format, fileName) {
+                window.tvc.fileManager.enovia.checkoutFile(e, objectId, action, format, fileName);
+            },
+            callMXViewer : function(e, viewerURL, objectId, format, fileName) {
+                window.tvc.fileManager.enovia.openViewer(e, viewerURL, objectId, format, fileName);
+            },
+            view :  function(e, objectId, format, fileName, callback) {
+                getApplet().newDownload(objectId, format, fileName, false, true);
+            },
+            preview :  function(e, objectId, format, fileName, callback) {
+            	tvc.fileManager.html5.downloadFile(e, objectId, format, fileName, false, true);
+            },
+            download : function(e, objectId, format, fileName, callback) {
+                getApplet().newDownload(objectId, format, fileName, false, false);
+            },
+            checkout : function(e, objectId, format, fileName, callback) {
+                tvc.fileManager.listeners.register(e, objectId, callback);
+                getApplet().newDownload(objectId, format, fileName, true, true);
+            },
+            checkin : function(e, objectId, format, fileName, tryFindExisting, callback) {
+                tvc.fileManager.listeners.register(e, objectId, callback);
+                getApplet().checkin(objectId, format, fileName, tryFindExisting);
+            },
+            checkinNew : function(e, objectId, callback) {
+                tvc.fileManager.listeners.register(e, objectId, callback);
+                getApplet().checkinNew(objectId);
+            },
+            lock : function(e, objectId, objectIdOnRow, callback) {
+                tvc.fileManager.services.lockOrUnlock(e, objectId, objectIdOnRow, true, callback);
+            },
+            unlock : function(e, objectId, objectIdOnRow, callback) {
+                tvc.fileManager.services.lockOrUnlock(e, objectId, objectIdOnRow, false, callback);
+            },
+            deleteFile : function(e, objectId, format, fileName, callback) {
+                tvc.fileManager.services.deleteFile(e, objectId, format, fileName, callback);
+            },
+            deleteVersion : function(e, objectId, objectIdOnRow, callback) {
+                tvc.fileManager.services.deleteVersion(e, objectId, objectIdOnRow, callback);
+            },
+            fpdStart : function(packageId) {
+                getApplet().downloadPackage(packageId)
+            },
+            fpdCancel : function(packageId) {
+                fpdService.cancel(packageId);
+            },
+            showWindow : function() {
+                getApplet().showWindow();
+            },
+            hideWindow : function() {
+                getApplet().hideWindow();
+            }
+        });
+    }
+
+    function debug() {
+        if (window.console && window.console.debug) {
+            try {
+                window.console.debug.apply(window, arguments);
+            } catch(E) {}
+        }
+    }
+
+    window.tvc.fileManager.applet = {
+        init: function (appletHTML, callback) {
+            return new Promise(function (resolve, reject) {
+                    var $wrapper = $('<div></div>');
+                    $wrapper.html(appletHTML);
+                    $(document.body).prepend($wrapper);
+                    window.setTimeout(function () {
+                        var app = findApplet();
+                        if (app == null || app == undefined || typeof app.onLoad == "undefined") {
+                            reject("Applets not supported on this platform");
+                        } else {
+                            app.onLoad(function () {
+                                switch (app.status) {
+                                    case 1:
+                                        debug("Applet loading...");
+                                        break;
+                                    case 2:
+                                        debug("Applet ready, installing API.");
+                                        installAPI();
+                                        resolve();
+                                        break;
+                                    case 3:
+                                        reject("Applet failed to load!");
+                                        break;
+                                }
+                            });
+                        }
+                    }, 500);
+                }
+            );
+        }
+    };
+
+})(window);
